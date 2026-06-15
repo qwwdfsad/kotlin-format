@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ktfmt vs optofmt</title>
+<style>
+  :root { --bg:#0f1115; --panel:#171a21; --line:#262b36; --txt:#d7dce5; --mut:#8b94a7;
+          --grn:#3fb950; --red:#f85149; --amb:#d29922; --acc:#58a6ff; --pur:#bc8cff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt);
+         font:15px/1.55 -apple-system,Segoe UI,Roboto,sans-serif; }
+  header,footer { max-width:1320px; margin:0 auto; padding:34px 28px 18px; }
+  footer { padding:0 28px 50px; color:var(--mut); font-size:13px; }
+  h1 { margin:0 0 10px; font-size:25px; letter-spacing:-.01em; }
+  header p { color:var(--mut); max-width:92ch; margin:8px 0; }
+  header.b { border-bottom:1px solid var(--line); }
+  .pills { margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; }
+  .pill { font-size:13px; padding:4px 11px; border-radius:99px; border:1px solid var(--line);
+          background:var(--panel); color:var(--mut); }
+  main { max-width:1320px; margin:0 auto; padding:6px 28px 40px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+          padding:18px 20px; margin:22px 0; }
+  h2 { font-size:18px; margin:2px 0 8px; font-weight:600; }
+  .src { font:12px ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--mut);
+         font-weight:400; margin-left:6px; }
+  .verdict { font-size:11px; padding:2px 8px; border-radius:6px; margin-left:8px;
+             vertical-align:2px; font-weight:600; }
+  .verdict.win { background:rgba(63,185,80,.16); color:var(--grn); }
+  .verdict.parity { background:rgba(139,148,167,.16); color:var(--mut); }
+  .thesis { color:var(--txt); margin:6px 0 14px; }
+  code { background:#222733; padding:1px 5px; border-radius:4px; font-size:.92em; }
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .cols3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  @media (max-width:900px) { .cols,.cols3 { grid-template-columns:1fr; } }
+  .col { min-width:0; }
+  .hd { font-size:12px; font-weight:600; padding:6px 10px; border-radius:7px 7px 0 0;
+        border:1px solid var(--line); border-bottom:none; color:var(--mut); }
+  .hd.ktfmt { color:var(--amb); }
+  .hd.optofmt { color:var(--acc); }
+  .hd.third { color:var(--pur); }
+  .col.idiomatic .hd { color:var(--grn); border-color:var(--grn); }
+  .col.idiomatic pre { border-color:var(--grn); box-shadow:inset 3px 0 0 var(--grn); }
+  .best { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--grn);
+          border:1px solid var(--grn); border-radius:5px; padding:1px 5px; margin-left:6px; }
+  .same { font-size:11px; color:var(--mut); margin-left:6px; font-weight:400; }
+  pre { margin:0; background:#0c0e13; border:1px solid var(--line); border-radius:0 0 7px 7px;
+        padding:12px 14px; overflow-x:auto; font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; }
+  pre span { display:block; white-space:pre; }
+  pre span.over { background:rgba(210,153,34,.18); }
+  details { margin-top:8px; }
+  summary { cursor:pointer; color:var(--acc); font-size:13px; }
+  details p { color:var(--mut); margin:8px 0 2px; max-width:92ch; }
+</style></head>
+<body>
+<header class="b">
+  <h1>ktfmt vs optofmt</h1>
+  <p>Each snippet is the same Kotlin formatted two ways: <b>ktfmt</b> (<code>--kotlinlang-style</code>, the greedy engine) on the left, and <b>optofmt</b> (the optimizing model in <code>RULES.md</code>) on the right. A third column appears when a strictly better option exists that neither formatter produces. Both use <b>4-space indent</b> and a <b>100-column limit</b>.</p><p>The <span style="color:var(--grn);font-weight:600">idiomatic</span> column is outlined in green; amber marks any line past 100 columns. ktfmt output is real; optofmt output is the layout entailed by the rules.</p>
+  <div class="pills"><span class="pill">12 patterns</span><span class="pill">9 optofmt wins</span><span class="pill">2 parity</span><span class="pill">0 ktfmt wins</span><span class="pill">1 better 3rd option</span></div>
+</header>
+<main>
+    <section class="card">
+      <h2>Multi-line boolean condition <span class="src">kotlinx.coroutines · JobSupport.kt:273</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">optofmt keeps every operand at one indent; ktfmt pushes each operand after the first a level deeper.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><span>fun f() {</span>
+<span>    if (</span>
+<span>        unwrapped !== rootCause &amp;&amp;</span>
+<span>            unwrapped !== unwrappedCause &amp;&amp;</span>
+<span>            unwrapped !is CancellationException &amp;&amp;</span>
+<span>            seenExceptions.add(unwrapped)</span>
+<span>    ) {</span>
+<span>        rootCause.addSuppressed(unwrapped)</span>
+<span>    }</span>
+<span>}</span></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><span>fun f() {</span>
+<span>    if (</span>
+<span>        unwrapped !== rootCause &amp;&amp;</span>
+<span>        unwrapped !== unwrappedCause &amp;&amp;</span>
+<span>        unwrapped !is CancellationException &amp;&amp;</span>
+<span>        seenExceptions.add(unwrapped)</span>
+<span>    ) {</span>
+<span>        rootCause.addSuppressed(unwrapped)</span>
+<span>    }</span>
+<span>}</span></pre>
+      </div>
+    </div>
+      <details><summary>Why</summary><p>A condition too long for one line must wrap to stacked operands. optofmt opens the paren and lays every operand at the same body indent — one indentation size, so the operands form a clean rectangular block. ktfmt adds a continuation indent on top of the block indent, so operand 2+ drift one step further right than operand 1, with no structural meaning a reader can attach to.</p></details>
+    </section>
+    <section class="card">
+      <h2>Nested call wrapping (indent economy) <span class="src">icpc/live-v3 · Rules.kt:219</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">optofmt collapses the wrapper openers and stacks the closers; ktfmt staircases with lonely parens.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><span>fun f() {</span>
+<span>    add(</span>
+<span>        OverrideQueue(</span>
+<span>            queueSettings.waitTime,</span>
+<span>            queueSettings.firstToSolveWaitTime,</span>
+<span>            queueSettings.featuredRunWaitTime,</span>
+<span>            queueSettings.inProgressRunWaitTime,</span>
+<span>            queueSettings.maxQueueSize,</span>
+<span>            queueSettings.maxUntestedRun,</span>
+<span>        )</span>
+<span>    )</span>
+<span>}</span></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><span>fun f() {</span>
+<span>    add(OverrideQueue(</span>
+<span>        queueSettings.waitTime,</span>
+<span>        queueSettings.firstToSolveWaitTime,</span>
+<span>        queueSettings.featuredRunWaitTime,</span>
+<span>        queueSettings.inProgressRunWaitTime,</span>
+<span>        queueSettings.maxQueueSize,</span>
+<span>        queueSettings.maxUntestedRun</span>
+<span>    ))</span>
+<span>}</span></pre>
+      </div>
+    </div>
+      <details><summary>Why</summary><p>When an outer call's single argument is itself a call that must split, optofmt lets the two openers share a line (<code>add(OverrideQueue(</code>) and the closers collapse onto one line (<code>))</code>) — the arguments sit one level in. ktfmt cannot share indentation: each opener gets its own line and a deeper indent, and each closer gets a line of its own, leaving orphaned parens and an extra indentation level.</p></details>
+    </section>
+    <section class="card">
+      <h2>Infix call (to) stays attached <span class="src">icpc/live-v3 · OverrideOrganizations</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">optofmt keeps the key and the call opener together; ktfmt breaks after `to` and double-indents.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><span>val pair =</span>
+<span>    orgInfo.id to</span>
+<span>        OverrideOrganizations.Override(</span>
+<span>            fullName = substituteRaw(fullName),</span>
+<span>            displayName = substituteRaw(displayName),</span>
+<span>        )</span></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><span>val pair = orgInfo.id to OverrideOrganizations.Override(</span>
+<span>    fullName = substituteRaw(fullName),</span>
+<span>    displayName = substituteRaw(displayName)</span>
+<span>)</span></pre>
+      </div>
+    </div>
+      <details><summary>Why</summary><p>ktfmt breaks after the infix <code>to</code> and indents the call an extra level, leaving <code>to</code> dangling at the end of a line. optofmt keeps the introducer attached to the opener it introduces — <code>orgInfo.id to OverrideOrganizations.Override(</code> stays on one line and only the argument list wraps, exactly as a human writes a key/value pair.</p></details>
+    </section>
+    <section class="card">
+      <h2>Supertype constructor call stays attached to : <span class="src">icpc/live-v3 · ClicsArchiveCommand</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">optofmt keeps `Name : Base(` on one line; ktfmt breaks after `:` and strands the supertype.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><span>object ClicsArchiveCommand :</span>
+<span>    DumpFileCommand(</span>
+<span>        name = &quot;clics-archive&quot;,</span>
+<span>        help = &quot;Dump CLICS contest archive (zip)&quot;,</span>
+<span>        defaultFileName = &quot;contest-archive.zip&quot;,</span>
+<span>        outputHelp = &quot;Path to new zip file&quot;,</span>
+<span>    ) {}</span></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><span>object ClicsArchiveCommand : DumpFileCommand(</span>
+<span>    name = &quot;clics-archive&quot;,</span>
+<span>    help = &quot;Dump CLICS contest archive (zip)&quot;,</span>
+<span>    defaultFileName = &quot;contest-archive.zip&quot;,</span>
+<span>    outputHelp = &quot;Path to new zip file&quot;</span>
+<span>) {}</span></pre>
+      </div>
+    </div>
+      <details><summary>Why</summary><p><code>object X : DumpFileCommand(</code> fits on one line, but ktfmt breaks after the supertype <code>:</code> and indents the constructor call an extra level, leaving the supertype name alone on its own line. optofmt keeps the introducer attached and wraps only the argument list — same family as not breaking after <code>=</code>.</p></details>
+    </section>
+    <section class="card">
+      <h2>Block-valued right-hand side (when) stays on the = line <span class="src">icpc/live-v3 · AbstractScoreboardCalculator.kt:202</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">optofmt keeps `val x = when (…) {` attached; ktfmt pushes the `when` below `=` and indents every branch deeper.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><span>fun f() {</span>
+<span>    val teamsAffected =</span>
+<span>        when (val event = state.lastEvent) {</span>
+<span>            is CommentaryMessagesUpdate -&gt; emptyList()</span>
+<span>            is InfoUpdate -&gt; info.teams.keys.toList()</span>
+<span>            is RunUpdate -&gt; {</span>
+<span>                lastSubmissionTime = maxOf(lastSubmissionTime, event.newInfo.time)</span>
+<span>                runsByTeamId.applyEvent(state)</span>
+<span>            }</span>
+<span>        }</span>
+<span>}</span></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><span>fun f() {</span>
+<span>    val teamsAffected = when (val event = state.lastEvent) {</span>
+<span>        is CommentaryMessagesUpdate -&gt; emptyList()</span>
+<span>        is InfoUpdate -&gt; info.teams.keys.toList()</span>
+<span>        is RunUpdate -&gt; {</span>
+<span>            lastSubmissionTime = maxOf(lastSubmissionTime, event.newInfo.time)</span>
+<span>            runsByTeamId.applyEvent(state)</span>
+<span>        }</span>
+<span>    }</span>
+<span>}</span></pre>
+      </div>
+    </div>
+      <details><summary>Why</summary><p>ktfmt breaks after <code>=</code> and indents the whole <code>when</code> an extra level, although <code>val teamsAffected = when (val event = state.lastEvent) {</code> fits easily. optofmt treats an assignment prefix like a header and keeps the block opener attached, so the branches sit one level in instead of two.</p></details>
+    </section>
+    <section class="card">
+      <h2>Long call chain <span class="src">icpc/live-v3 · CdsLoadersTest</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">optofmt keeps the receiver on the `=` line and breaks each call at one indent; ktfmt breaks after `=` and double-indents.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><span>fun f() {</span>
+<span>    val testDataDir: Path =</span>
+<span>        Path.of(&quot;&quot;)</span>
+<span>            .absolute()</span>
+<span>            .parent</span>
+<span>            .parent</span>
+<span>            .resolve(&quot;tests&quot;)</span>
+<span>            .resolve(&quot;testData&quot;)</span>
+<span>            .resolve(&quot;loaders&quot;)</span>
+<span>            .relativeTo(Path.of(&quot;&quot;).absolute())</span>
+<span>}</span></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><span>fun f() {</span>
+<span>    val testDataDir: Path = Path.of(&quot;&quot;)</span>
+<span>        .absolute()</span>
+<span>        .parent</span>
+<span>        .parent</span>
+<span>        .resolve(&quot;tests&quot;)</span>
+<span>        .resolve(&quot;testData&quot;)</span>
+<span>        .resolve(&quot;loaders&quot;)</span>
+<span>        .relativeTo(Path.of(&quot;&quot;).absolute())</span>
+<span>}</span></pre>
+      </div>
+    </div>
+      <details><summary>Why</summary><p>A fluent chain that overflows breaks before each call. optofmt keeps the receiver on the introducer's line and puts each subsequent call on its own line at one indent. ktfmt first breaks after <code>=</code> (an extra line) and then indents the whole chain a second level — more lines and deeper nesting for the same chain.</p></details>
+    </section>
+    <section class="card">
+      <h2>Trailing lambda / last-argument expansion <span class="src">synthetic</span>
+        <span class="verdict win">neither — see column 3</span></h2>
+      <p class="thesis">optofmt keeps the leading args inline and lets the block hang off; ktfmt explodes every argument. The most idiomatic move is to take the lambda out of the parentheses entirely.</p>
+      <div class="cols3">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><span>fun run() {</span>
+<span>    executeWithRetryPolicy(</span>
+<span>        maximumRetryCount,</span>
+<span>        backoffStrategy,</span>
+<span>        { requestContext: RequestContext -&gt; requestContext.proceed() },</span>
+<span>    )</span>
+<span>}</span></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">optofmt &middot; optimizing</div>
+        <pre><span>fun run() {</span>
+<span>    executeWithRetryPolicy(maximumRetryCount, backoffStrategy, { requestContext: RequestContext -&gt;</span>
+<span>        requestContext.proceed()</span>
+<span>    })</span>
+<span>}</span></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd third">idiomatic — trailing lambda outside () <span class="best">idiomatic</span></div>
+        <pre><span>fun run() {</span>
+<span>    executeWithRetryPolicy(maximumRetryCount, backoffStrategy) { requestContext -&gt;</span>
+<span>        requestContext.proceed()</span>
+<span>    }</span>
+<span>}</span></pre>
+      </div>
+    </div>
+      <details><summary>Why</summary><p>optofmt may keep leading arguments on the opener line while the final lambda expands in place, so the call stays compact with the block hanging off the end. ktfmt is all-or-nothing: once the call doesn't fit, every argument goes on its own line, including the lambda. Neither moves the lambda; the most idiomatic Kotlin pulls a trailing lambda outside the parentheses (third column) — a refactor a pure formatter leaves to the author.</p></details>
+    </section>
+    <section class="card">
+      <h2>Compact declaration header (annotations &amp; modifiers) <span class="src">kotlinx.coroutines · SharedFlowSubscriptionScope</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">optofmt keeps annotations & modifiers on the declaration line; ktfmt drops each onto its own line.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><span>public class SharedFlowSubscriptionScope&lt;T&gt;</span>
+<span>@PublishedApi</span>
+<span>internal constructor(</span>
+<span>    @PublishedApi internal val flow: SharedFlow&lt;T&gt;,</span>
+<span>    private val subscriptionWaitingFlow: MutableStateFlow&lt;Int&gt;,</span>
+<span>) {}</span></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><span>public class SharedFlowSubscriptionScope&lt;T&gt; @PublishedApi internal constructor(</span>
+<span>    @PublishedApi internal val flow: SharedFlow&lt;T&gt;,</span>
+<span>    private val subscriptionWaitingFlow: MutableStateFlow&lt;Int&gt;</span>
+<span>) {}</span></pre>
+      </div>
+    </div>
+      <details><summary>Why</summary><p>Facing a long constructor header, ktfmt puts the class line, the <code>@PublishedApi</code> annotation, and <code>internal constructor(</code> on three separate lines before it even reaches the parameters. optofmt keeps the whole modifier run together and wraps only the parameter list — the part that actually needs it.</p></details>
+    </section>
+    <section class="card">
+      <h2>Block-comment / KDoc prose is not reflowed <span class="src">icpc/live-v3 · contest-config KDoc</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">optofmt preserves the author's comment line breaks; ktfmt rewraps KDoc prose to its own width.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><span>/**</span>
+<span> * Ideally, all this information should be received from the contest system. Unfortunately, in the</span>
+<span> * real world, it is not always possible, or information can be not fully correct or convenient to</span>
+<span> * display.</span>
+<span> */</span>
+<span>class ContestConfigOverrides</span></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><span>/**</span>
+<span> * Ideally, all this information should be received from the contest system.</span>
+<span> * Unfortunately, in the real world, it is not always possible, or information</span>
+<span> * can be not fully correct or convenient to display.</span>
+<span> */</span>
+<span>class ContestConfigOverrides</span></pre>
+      </div>
+    </div>
+      <details><summary>Why</summary><p>ktfmt reflows the text inside <code>/** … */</code> KDoc comments to fill the column, merging and re-splitting sentences the author laid out deliberately and churning diffs on unrelated edits. optofmt treats comment text as opaque: it owns the surrounding whitespace but never reflows the words, so hand-formatted comment blocks, tables, and lists survive intact.</p></details>
+    </section>
+    <section class="card">
+      <h2>Grouped one-line declarations keep no blank lines <span class="src">synthetic</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">optofmt keeps a run of one-line declarations tight; ktfmt forces a blank line between each.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><span>typealias TeamId = StrongId&lt;TeamTag&gt;</span>
+<span>&nbsp;</span>
+<span>typealias RunId = StrongId&lt;RunTag&gt;</span>
+<span>&nbsp;</span>
+<span>typealias MessageId = StrongId&lt;MessageTag&gt;</span></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><span>typealias TeamId = StrongId&lt;TeamTag&gt;</span>
+<span>typealias RunId = StrongId&lt;RunTag&gt;</span>
+<span>typealias MessageId = StrongId&lt;MessageTag&gt;</span></pre>
+      </div>
+    </div>
+      <details><summary>Why</summary><p>ktfmt injects a blank line between consecutive one-line <code>typealias</code> (and <code>fun</code>) declarations, doubling the height of a tight family of related one-liners. optofmt preserves the author's grouping: consecutive same-kind declarations stay together, multiple blank lines collapse to one, and a blank is inserted only between declarations of different kinds.</p></details>
+    </section>
+    <section class="card">
+      <h2>Long parameter list <span class="src">synthetic</span>
+        <span class="verdict parity">parity</span></h2>
+      <p class="thesis">Parity — both split parameters one per line and keep `) {` together (ktfmt adds a trailing comma).</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><span>fun registerEventListener(</span>
+<span>    eventType: EventType,</span>
+<span>    listenerPriority: ListenerPriority,</span>
+<span>    listenerCallback: EventListener,</span>
+<span>) {</span>
+<span>    installListener()</span>
+<span>}</span></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">optofmt &middot; optimizing</div>
+        <pre><span>fun registerEventListener(</span>
+<span>    eventType: EventType,</span>
+<span>    listenerPriority: ListenerPriority,</span>
+<span>    listenerCallback: EventListener</span>
+<span>) {</span>
+<span>    installListener()</span>
+<span>}</span></pre>
+      </div>
+    </div>
+      <details><summary>Why</summary><p>Included to show the comparison is fair: on the bread-and-butter case the two engines agree. The only difference is ktfmt's added trailing comma. The wins elsewhere are specific structural cases, not a blanket claim.</p></details>
+    </section>
+    <section class="card">
+      <h2>Elvis (?:) operator wrap <span class="src">kotlin-toolchain · PetTypeFormatter.kt:44</span>
+        <span class="verdict parity">parity</span></h2>
+      <p class="thesis">Parity — both put `?:` at the start of the continuation line (the kotlinx-majority style).</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><span>fun f(): PetType {</span>
+<span>    return findPetTypes.find { it.name == text }</span>
+<span>        ?: throw ParseException(&quot;type not found: &quot; + text, 0)</span>
+<span>}</span></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="same">&equiv; identical</span></div>
+        <pre><span>fun f(): PetType {</span>
+<span>    return findPetTypes.find { it.name == text }</span>
+<span>        ?: throw ParseException(&quot;type not found: &quot; + text, 0)</span>
+<span>}</span></pre>
+      </div>
+    </div>
+      <details><summary>Why</summary><p>Elvis is one of the operators that reads best with the operator leading the continuation line, and both engines agree: keep the left side on the first line and start the wrapped line with <code>?:</code> at one indent. (This is the opposite of the chain operators like <code>&amp;&amp;</code>, which trail.)</p></details>
+    </section></main>
+<footer>Generated by <code>python3 generate.py</code> from <code>snippets.py</code>;
+  optofmt rules live in <code>RULES.md</code>.</footer>
+</body></html>
