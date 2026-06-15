@@ -5,7 +5,7 @@
 Most of the content in this repo is **agent-generated**. It is meant to be a playground 
 for experimentation and exploration for the potential ktfmt change,
 but beware of weird fluctuations in the output and inconsistencies, as well as do not
-try to make a lot of sense from anything but [report.html](report.html) code snippets.
+try to make a lot of sense from anything but [report.html](https://htmlpreview.github.io/?https://github.com/qwwdfsad/kotlin-format/blob/master/report.html) code snippets.
 `.md` files are mostly write-only, don't waste your time on them.
 
 The optimized layout is not in fact guaranteed, and I rely on the ability of the agent to reproduce
@@ -14,7 +14,7 @@ the output from the somehow-synthesized [RULES.md](RULES.md).
 The column-limit is 100 to make snippets-generation easier, it's not an actual production target.
 
 **Quickstart**:
-* Look at [report.html](report.html). It is nice
+* Look at [report.html](https://htmlpreview.github.io/?https://github.com/qwwdfsad/kotlin-format/blob/master/report.html). It is nice
 * Run `claude` -- ask it to add your snippet to the report and see if it is a duplicate
 * If you don't like one of the results -- write me, there is probably a rule missing
 
