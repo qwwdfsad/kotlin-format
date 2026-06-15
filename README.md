@@ -53,7 +53,7 @@ A **third column** appears when a strictly better option exists that neither for
 (e.g. a refactor). The **idiomatic** column is outlined in **green**; **amber** marks any line
 past the 100-column limit. Every card keeps a one-line thesis, a "why", and a source.
 
-Current tally: **12 patterns — 9 optofmt wins, 2 parity, 1 with a better third option.**
+Current tally: **15 patterns — 12 optofmt wins, 2 parity, 1 with a better third option.**
 
 ## optofmt in a nutshell
 

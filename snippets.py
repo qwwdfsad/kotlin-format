@@ -372,4 +372,59 @@ typealias MessageId = StrongId<MessageTag>""",
 }""",
         "idiomatic": "parity",
     },
+    {
+        "id": "annotation-placement",
+        "name": "Annotation with arguments on its own line",
+        "source": "Kotlin project · ktfmt diff study",
+        "thesis": "optofmt drops an argument-carrying annotation onto its own line above the declaration; ktfmt keeps it inline with `fun`.",
+        "why": "Kotlin convention places an annotation that carries arguments "
+               "(<code>@JvmName(\"other\")</code>, <code>@Test</code>, <code>@Deprecated(...)</code>) on "
+               "its own line directly above the declaration; only argument-less modifier-like "
+               "annotations (<code>@PublishedApi</code>, <code>@JvmStatic</code>) stay inline. ktfmt "
+               "keeps every annotation glued to the declaration line, so "
+               "<code>@JvmName(\"other\") fun testSomething() {}</code> reads as a single run and the "
+               "annotation loses the visual separation a reader expects. optofmt breaks after the "
+               "argument-carrying annotation (§9).",
+        "input": '@JvmName("other") fun testSomething() {}',
+        "ktfmt": '@JvmName("other") fun testSomething() {}',
+        "optofmt": '@JvmName("other")\nfun testSomething() {}',
+        "idiomatic": "optofmt",
+    },
+    {
+        "id": "accessor-placement",
+        "name": "Trivial property accessor stays on the property line",
+        "source": "Kotlin project · ktfmt diff study",
+        "thesis": "optofmt keeps a short `get()` on the property line because it fits (§1); ktfmt always drops the accessor onto its own line.",
+        "why": "ktfmt unconditionally moves a property accessor onto its own indented line, even when "
+               "the whole declaration fits: <code>val placeOfGetter: String get() = \"hello\"</code> is "
+               "well under 100 columns. optofmt follows the §1 objective — don't wrap what fits — and "
+               "keeps the trivial accessor inline, the denser form kotlinx code favours for "
+               "one-expression getters. (When the accessor body is long enough to overflow, optofmt "
+               "moves it to its own line at one indent like any other wrap.)",
+        "input": 'val placeOfGetter: String get() = "hello"',
+        "ktfmt": 'val placeOfGetter: String\n    get() = "hello"',
+        "optofmt": 'val placeOfGetter: String get() = "hello"',
+        "idiomatic": "optofmt",
+    },
+    {
+        "id": "control-flow-lambda",
+        "name": "Lambda that fits stays on one line (even with `return`)",
+        "source": "Kotlin project · ktfmt diff study",
+        "thesis": "optofmt keeps a one-line lambda inline because it fits; ktfmt force-expands any lambda containing `return`/`break`/`continue`.",
+        "why": "ktfmt preserves author line breaks in lambdas, but it still force-expands a lambda whose "
+               "body is a control-flow jump: <code>nullableString?.let { return }</code> becomes three "
+               "lines. The single statement fits comfortably, so optofmt keeps it inline per §1 (don't "
+               "wrap what fits) — the compact guard-style form that is idiomatic for "
+               "<code>?.let { return }</code> and friends.",
+        "input": "fun lambdasWithReturns(nullableString: String?) { nullableString?.let { return } }",
+        "ktfmt": """fun lambdasWithReturns(nullableString: String?) {
+    nullableString?.let {
+        return
+    }
+}""",
+        "optofmt": """fun lambdasWithReturns(nullableString: String?) {
+    nullableString?.let { return }
+}""",
+        "idiomatic": "optofmt",
+    },
 ]

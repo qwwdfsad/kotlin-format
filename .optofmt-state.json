@@ -10,5 +10,8 @@
   "comment-preservation": "/**\n * Ideally, all this information should be received from the contest system.\n * Unfortunately, in the real world, it is not always possible, or information\n * can be not fully correct or convenient to display.\n */\nclass ContestConfigOverrides",
   "grouped-declarations": "typealias TeamId = StrongId<TeamTag>\ntypealias RunId = StrongId<RunTag>\ntypealias MessageId = StrongId<MessageTag>",
   "long-parameter-list": "fun registerEventListener(\n    eventType: EventType,\n    listenerPriority: ListenerPriority,\n    listenerCallback: EventListener\n) {\n    installListener()\n}",
-  "elvis-wrap": "fun f(): PetType {\n    return findPetTypes.find { it.name == text }\n        ?: throw ParseException(\"type not found: \" + text, 0)\n}"
+  "elvis-wrap": "fun f(): PetType {\n    return findPetTypes.find { it.name == text }\n        ?: throw ParseException(\"type not found: \" + text, 0)\n}",
+  "annotation-placement": "@JvmName(\"other\")\nfun testSomething() {}",
+  "accessor-placement": "val placeOfGetter: String get() = \"hello\"",
+  "control-flow-lambda": "fun lambdasWithReturns(nullableString: String?) {\n    nullableString?.let { return }\n}"
 }

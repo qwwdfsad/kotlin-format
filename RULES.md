@@ -151,8 +151,18 @@ comment blocks, tables, and lists are preserved exactly.
 
 ## 9. Declaration headers stay compact
 
-Keep a declaration's annotations and modifiers on the same line as the declared name; when the
-header is too long, wrap **only** the parameter list (§4), not the modifier run.
+Keep a declaration's **modifiers** and **argument-less annotations** (`internal`, `public`,
+`@PublishedApi`, `@JvmStatic`) on the same line as the declared name; when the header is too
+long, wrap **only** the parameter list (§4), not the modifier run.
+
+A standalone **annotation that carries arguments** (`@JvmName("other")`, `@Test`,
+`@Deprecated(...)`) goes on its **own line** directly above the declaration — matching Kotlin
+convention. ktfmt keeps it inline; optofmt breaks after it.
+
+```kotlin
+@JvmName("other")
+fun testSomething() {}
+```
 
 ```kotlin
 public class Scope<T> @PublishedApi internal constructor(
@@ -197,3 +207,6 @@ typealias MessageId = StrongId<MessageTag>
 - optofmt does not add trailing commas; ktfmt does.
 - optofmt never reflows comment prose; ktfmt rewraps KDoc.
 - optofmt keeps grouped one-liners tight; ktfmt inserts blank lines between them.
+- optofmt puts a standalone annotation-with-arguments on its own line; ktfmt keeps it inline.
+- optofmt keeps a construct that fits on one line inline per §1 — a trivial property accessor
+  (`val x: T get() = …`), a control-flow lambda (`?.let { return }`); ktfmt force-breaks both.
