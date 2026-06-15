@@ -3,3 +3,4 @@ __pycache__/
 .optofmt-state.json
 diff.html
 vendor/*.jar
+.idea/
