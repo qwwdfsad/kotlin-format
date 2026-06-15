@@ -13,7 +13,12 @@ the output from the somehow-synthesized [RULES.md](RULES.md).
 
 The column-limit is 100 to make snippets-generation easier, it's not an actual production target.
 
-===
+**Quickstart**:
+* Look at [report.html](report.html). It is nice
+* Run `claude` -- ask it to add your snippet to the report and see if it is a duplicate
+* If you don't like one of the results -- write me, there is probably a rule missing
+
+====== End of human-written content ===== 
 
 **Greedy vs. optimizing Kotlin layout, side by side.**
 
