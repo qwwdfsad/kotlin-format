@@ -42,6 +42,10 @@
   .best { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--grn);
           border:1px solid var(--grn); border-radius:5px; padding:1px 5px; margin-left:6px; }
   .same { font-size:11px; color:var(--mut); margin-left:6px; font-weight:400; }
+  .extra { margin-top:16px; padding-top:14px; border-top:1px dashed var(--line); }
+  .extra .thesis { margin:0 0 12px; }
+  .same-rule { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--acc);
+          border:1px solid var(--acc); border-radius:5px; padding:1px 5px; margin-right:6px; }
   pre { margin:0; background:#0c0e13; border:1px solid var(--line); border-radius:0 0 7px 7px;
         padding:12px 14px; overflow-x:auto; font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; }
   pre span { display:block; white-space:pre; }
@@ -89,6 +93,7 @@
 <span>}</span></pre>
       </div>
     </div>
+      
       <details><summary>Why</summary><p>A condition too long for one line must wrap to stacked operands. optofmt opens the paren and lays every operand at the same body indent — one indentation size, so the operands form a clean rectangular block. ktfmt adds a continuation indent on top of the block indent, so operand 2+ drift one step further right than operand 1, with no structural meaning a reader can attach to.</p></details>
     </section>
     <section class="card">
@@ -125,6 +130,30 @@
 <span>}</span></pre>
       </div>
     </div>
+      
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> Here collapsing isn't cosmetic — it decides fit vs. overflow. The single argument is one unbreakable token. Staircased (ktfmt) it lands at indent 12 and hits column 101; with the openers collapsed it sits at indent 8 and fits in 97. Same §5 mechanism, now arbitrating §1's “minimize the worst overflow.”</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><span>fun f() {</span>
+<span>    registerHandler(</span>
+<span>        buildHandler(</span>
+<span class="over">            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY</span>
+<span>        )</span>
+<span>    )</span>
+<span>}</span></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><span>fun f() {</span>
+<span>    registerHandler(buildHandler(</span>
+<span>        aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY</span>
+<span>    ))</span>
+<span>}</span></pre>
+      </div>
+    </div>
+      </div>
       <details><summary>Why</summary><p>When an outer call's single argument is itself a call that must split, optofmt lets the two openers share a line (<code>add(OverrideQueue(</code>) and the closers collapse onto one line (<code>))</code>) — the arguments sit one level in. ktfmt cannot share indentation: each opener gets its own line and a deeper indent, and each closer gets a line of its own, leaving orphaned parens and an extra indentation level.</p></details>
     </section>
     <section class="card">
@@ -149,6 +178,7 @@
 <span>)</span></pre>
       </div>
     </div>
+      
       <details><summary>Why</summary><p>ktfmt breaks after the infix <code>to</code> and indents the call an extra level, leaving <code>to</code> dangling at the end of a line. optofmt keeps the introducer attached to the opener it introduces — <code>orgInfo.id to OverrideOrganizations.Override(</code> stays on one line and only the argument list wraps, exactly as a human writes a key/value pair.</p></details>
     </section>
     <section class="card">
@@ -176,6 +206,7 @@
 <span>) {}</span></pre>
       </div>
     </div>
+      
       <details><summary>Why</summary><p><code>object X : DumpFileCommand(</code> fits on one line, but ktfmt breaks after the supertype <code>:</code> and indents the constructor call an extra level, leaving the supertype name alone on its own line. optofmt keeps the introducer attached and wraps only the argument list — same family as not breaking after <code>=</code>.</p></details>
     </section>
     <section class="card">
@@ -211,6 +242,7 @@
 <span>}</span></pre>
       </div>
     </div>
+      
       <details><summary>Why</summary><p>ktfmt breaks after <code>=</code> and indents the whole <code>when</code> an extra level, although <code>val teamsAffected = when (val event = state.lastEvent) {</code> fits easily. optofmt treats an assignment prefix like a header and keeps the block opener attached, so the branches sit one level in instead of two.</p></details>
     </section>
     <section class="card">
@@ -246,6 +278,7 @@
 <span>}</span></pre>
       </div>
     </div>
+      
       <details><summary>Why</summary><p>A fluent chain that overflows breaks before each call. optofmt keeps the receiver on the introducer's line and puts each subsequent call on its own line at one indent. ktfmt first breaks after <code>=</code> (an extra line) and then indents the whole chain a second level — more lines and deeper nesting for the same chain.</p></details>
     </section>
     <section class="card">
@@ -280,6 +313,7 @@
 <span>}</span></pre>
       </div>
     </div>
+      
       <details><summary>Why</summary><p>optofmt may keep leading arguments on the opener line while the final lambda expands in place, so the call stays compact with the block hanging off the end. ktfmt is all-or-nothing: once the call doesn't fit, every argument goes on its own line, including the lambda. Neither moves the lambda; the most idiomatic Kotlin pulls a trailing lambda outside the parentheses (third column) — a refactor a pure formatter leaves to the author.</p></details>
     </section>
     <section class="card">
@@ -304,6 +338,7 @@
 <span>) {}</span></pre>
       </div>
     </div>
+      
       <details><summary>Why</summary><p>Facing a long constructor header, ktfmt puts the class line, the <code>@PublishedApi</code> annotation, and <code>internal constructor(</code> on three separate lines before it even reaches the parameters. optofmt keeps the whole modifier run together and wraps only the parameter list — the part that actually needs it.</p></details>
     </section>
     <section class="card">
@@ -330,6 +365,7 @@
 <span>class ContestConfigOverrides</span></pre>
       </div>
     </div>
+      
       <details><summary>Why</summary><p>ktfmt reflows the text inside <code>/** … */</code> KDoc comments to fill the column, merging and re-splitting sentences the author laid out deliberately and churning diffs on unrelated edits. optofmt treats comment text as opaque: it owns the surrounding whitespace but never reflows the words, so hand-formatted comment blocks, tables, and lists survive intact.</p></details>
     </section>
     <section class="card">
@@ -352,6 +388,7 @@
 <span>typealias MessageId = StrongId&lt;MessageTag&gt;</span></pre>
       </div>
     </div>
+      
       <details><summary>Why</summary><p>ktfmt injects a blank line between consecutive one-line <code>typealias</code> (and <code>fun</code>) declarations, doubling the height of a tight family of related one-liners. optofmt preserves the author's grouping: consecutive same-kind declarations stay together, multiple blank lines collapse to one, and a blank is inserted only between declarations of different kinds.</p></details>
     </section>
     <section class="card">
@@ -380,6 +417,7 @@
 <span>}</span></pre>
       </div>
     </div>
+      
       <details><summary>Why</summary><p>Included to show the comparison is fair: on the bread-and-butter case the two engines agree. The only difference is ktfmt's added trailing comma. The wins elsewhere are specific structural cases, not a blanket claim.</p></details>
     </section>
     <section class="card">
@@ -402,6 +440,7 @@
 <span>}</span></pre>
       </div>
     </div>
+      
       <details><summary>Why</summary><p>Elvis is one of the operators that reads best with the operator leading the continuation line, and both engines agree: keep the left side on the first line and start the wrapped line with <code>?:</code> at one indent. (This is the opposite of the chain operators like <code>&amp;&amp;</code>, which trail.)</p></details>
     </section>
     <section class="card">
@@ -419,6 +458,7 @@
 <span>fun testSomething() {}</span></pre>
       </div>
     </div>
+      
       <details><summary>Why</summary><p>Kotlin convention places an annotation that carries arguments (<code>@JvmName("other")</code>, <code>@Test</code>, <code>@Deprecated(...)</code>) on its own line directly above the declaration; only argument-less modifier-like annotations (<code>@PublishedApi</code>, <code>@JvmStatic</code>) stay inline. ktfmt keeps every annotation glued to the declaration line, so <code>@JvmName("other") fun testSomething() {}</code> reads as a single run and the annotation loses the visual separation a reader expects. optofmt breaks after the argument-carrying annotation (§9).</p></details>
     </section>
     <section class="card">
@@ -436,6 +476,7 @@
         <pre><span>val placeOfGetter: String get() = &quot;hello&quot;</span></pre>
       </div>
     </div>
+      
       <details><summary>Why</summary><p>ktfmt unconditionally moves a property accessor onto its own indented line, even when the whole declaration fits: <code>val placeOfGetter: String get() = "hello"</code> is well under 100 columns. optofmt follows the §1 objective — don't wrap what fits — and keeps the trivial accessor inline, the denser form kotlinx code favours for one-expression getters. (When the accessor body is long enough to overflow, optofmt moves it to its own line at one indent like any other wrap.)</p></details>
     </section>
     <section class="card">
@@ -458,6 +499,7 @@
 <span>}</span></pre>
       </div>
     </div>
+      
       <details><summary>Why</summary><p>ktfmt preserves author line breaks in lambdas, but it still force-expands a lambda whose body is a control-flow jump: <code>nullableString?.let { return }</code> becomes three lines. The single statement fits comfortably, so optofmt keeps it inline per §1 (don't wrap what fits) — the compact guard-style form that is idiomatic for <code>?.let { return }</code> and friends.</p></details>
     </section></main>
 <footer>Generated by <code>python3 generate.py</code> from <code>snippets.py</code>;

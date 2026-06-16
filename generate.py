@@ -63,12 +63,21 @@ def card(s):
     verdict = {"optofmt": "optofmt wins", "ktfmt": "ktfmt wins",
                "third": "neither — see column 3", "parity": "parity"}[s["idiomatic"]]
     vcls = "parity" if s["idiomatic"] == "parity" else "win"
+    extras = "".join(
+        f'''
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> {ex["note"]}</p>
+        {columns([("ktfmt", COL_LABEL["ktfmt"], ex["ktfmt"]),
+                  ("optofmt", COL_LABEL["optofmt"], ex["optofmt"])], ex.get("idiomatic", s["idiomatic"]))}
+      </div>'''
+        for ex in s.get("extra", []))
     return f'''
     <section class="card">
       <h2>{esc(s["name"]).replace("`", "")} <span class="src">{s["source"]}</span>
         <span class="verdict {vcls}">{verdict}</span></h2>
       <p class="thesis">{s["thesis"]}</p>
       {columns(panes, s["idiomatic"])}
+      {extras}
       {why}
     </section>'''
 
@@ -113,6 +122,10 @@ STYLE = """
   .best { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--grn);
           border:1px solid var(--grn); border-radius:5px; padding:1px 5px; margin-left:6px; }
   .same { font-size:11px; color:var(--mut); margin-left:6px; font-weight:400; }
+  .extra { margin-top:16px; padding-top:14px; border-top:1px dashed var(--line); }
+  .extra .thesis { margin:0 0 12px; }
+  .same-rule { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--acc);
+          border:1px solid var(--acc); border-radius:5px; padding:1px 5px; margin-right:6px; }
   pre { margin:0; background:#0c0e13; border:1px solid var(--line); border-radius:0 0 7px 7px;
         padding:12px 14px; overflow-x:auto; font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; }
   pre span { display:block; white-space:pre; }

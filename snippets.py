@@ -90,6 +90,25 @@ SNIPPETS = [
     ))
 }""",
         "idiomatic": "optofmt",
+        "extra": [{
+            "note": "Here collapsing isn't cosmetic — it decides fit vs. overflow. The single "
+                    "argument is one unbreakable token. Staircased (ktfmt) it lands at indent 12 "
+                    "and hits column 101; with the openers collapsed it sits at indent 8 and "
+                    "fits in 97. Same §5 mechanism, now arbitrating §1's “minimize the worst "
+                    "overflow.”",
+            "ktfmt": """fun f() {
+    registerHandler(
+        buildHandler(
+            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY
+        )
+    )
+}""",
+            "optofmt": """fun f() {
+    registerHandler(buildHandler(
+        aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY
+    ))
+}""",
+        }],
     },
     {
         "id": "infix-attached",
