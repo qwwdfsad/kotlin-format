@@ -1,0 +1,39 @@
+name: "New snippet / formatting pattern"
+description: "Propose a Kotlin code pattern to experiment with and add to the report"
+title: "[Pattern]: "
+labels: ["snippet", "report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this to capture a Kotlin layout pattern worth experimenting with.
+        The goal is to try out how optofmt formats this code pattern and add it to `report.html`.
+  - type: input
+    id: pattern-name
+    attributes:
+      label: Pattern name
+      description: A short label for the pattern.
+      placeholder: "Multi-line boolean condition: expression with the assignment operator"
+    validations:
+      required: true
+  - type: textarea
+    id: snippet
+    attributes:
+      label: Code snippet
+      description: Paste the Kotlin code or note that demonstrates the pattern. It will be rendered as Kotlin.
+      render: kotlin
+      placeholder: |
+        val isValid =
+            input.isNotEmpty() &&
+                input.length < MAX &&
+                !input.contains(forbidden)
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Description / notes
+      description: Description stub
+      placeholder: "Experiment with how this code pattern is laid out and add it to the report."
+    validations:
+      required: false
