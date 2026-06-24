@@ -163,13 +163,15 @@ SNIPPETS = [
     },
     {
         "id": "block-rhs",
-        "name": "Block-valued right-hand side (`when`) stays on the `=` line",
+        "name": "Block-valued right-hand side (`when`/`if`) stays on the `=` line",
         "source": "icpc/live-v3 · AbstractScoreboardCalculator.kt:202",
-        "thesis": "optofmt keeps `val x = when (…) {` attached; ktfmt pushes the `when` below `=` and indents every branch deeper.",
-        "why": "ktfmt breaks after <code>=</code> and indents the whole <code>when</code> an extra "
-               "level, although <code>val teamsAffected = when (val event = state.lastEvent) {</code> "
+        "thesis": "optofmt keeps `val x = when (…) {` attached; ktfmt pushes the block below `=` and indents every branch deeper.",
+        "why": "ktfmt breaks after <code>=</code> and indents the whole block-valued right-hand side an "
+               "extra level, although <code>val teamsAffected = when (val event = state.lastEvent) {</code> "
                "fits easily. optofmt treats an assignment prefix like a header and keeps the block "
-               "opener attached, so the branches sit one level in instead of two.",
+               "opener attached, so the branches sit one level in instead of two. The same rule covers "
+               "any block-valued RHS — a <code>when</code> or an <code>if</code>/<code>else</code> used "
+               "as an expression.",
         "input": "fun f() {\nval teamsAffected = when (val event = state.lastEvent) {\n"
                  "is CommentaryMessagesUpdate -> emptyList()\nis InfoUpdate -> info.teams.keys.toList()\n"
                  "is RunUpdate -> {\nlastSubmissionTime = maxOf(lastSubmissionTime, event.newInfo.time)\n"
@@ -196,6 +198,27 @@ SNIPPETS = [
     }
 }""",
         "idiomatic": "optofmt",
+        "extra": [{
+            "note": "An <code>if</code>/<code>else</code> used as an expression is the same case — a "
+                    "block-valued RHS. ktfmt breaks after <code>=</code> and indents both branches an "
+                    "extra level; optofmt keeps <code>val builder = if (!builders.isEmpty()) {</code> "
+                    "attached. (Kotlin · ControlFlowInstructionsGenerator)",
+            "ktfmt": """fun f() {
+    val builder =
+        if (!builders.isEmpty()) {
+            builders.peek()
+        } else {
+            null
+        }
+}""",
+            "optofmt": """fun f() {
+    val builder = if (!builders.isEmpty()) {
+        builders.peek()
+    } else {
+        null
+    }
+}""",
+        }],
     },
     {
         "id": "long-call-chain",
