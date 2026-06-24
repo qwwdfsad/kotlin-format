@@ -13,5 +13,6 @@
   "elvis-wrap": "fun f(): PetType {\n    return findPetTypes.find { it.name == text }\n        ?: throw ParseException(\"type not found: \" + text, 0)\n}",
   "annotation-placement": "@JvmName(\"other\")\nfun testSomething() {}",
   "accessor-placement": "val placeOfGetter: String get() = \"hello\"",
-  "control-flow-lambda": "fun lambdasWithReturns(nullableString: String?) {\n    nullableString?.let { return }\n}"
+  "control-flow-lambda": "fun lambdasWithReturns(nullableString: String?) {\n    nullableString?.let { return }\n}",
+  "when-comma-condition": "fun f(x: Int) {\n    when (x) {\n        0, 1 -> println(\"a or b\")\n    }\n}"
 }

@@ -469,4 +469,30 @@ typealias MessageId = StrongId<MessageTag>""",
 }""",
         "idiomatic": "optofmt",
     },
+    {
+        "id": "when-comma-condition",
+        "name": "Comma-separated `when` conditions stay on one line when they fit",
+        "source": "synthetic",
+        "thesis": "optofmt keeps `0, 1 -> …` on one line because it fits (§1/§4); ktfmt force-splits the conditions one per line.",
+        "why": "ktfmt treats the comma-separated condition list of a <code>when</code> entry as a "
+               "breakable list and splits it one-per-line even when the whole entry fits comfortably: "
+               "<code>0, 1 -> println(\"a or b\")</code> becomes two lines for the conditions plus the "
+               "body. optofmt follows §1 (don't wrap what fits) and §4 (a comma list is compact when it "
+               "fits) and keeps the entry on a single line — the form a human writes for a short "
+               "multi-value branch. (When the conditions genuinely overflow, §4 splits them one per "
+               "line.)",
+        "input": "fun f(x: Int) {\nwhen (x) {\n0, 1 -> println(\"a or b\")\n}\n}",
+        "ktfmt": """fun f(x: Int) {
+    when (x) {
+        0,
+        1 -> println("a or b")
+    }
+}""",
+        "optofmt": """fun f(x: Int) {
+    when (x) {
+        0, 1 -> println("a or b")
+    }
+}""",
+        "idiomatic": "optofmt",
+    },
 ]
