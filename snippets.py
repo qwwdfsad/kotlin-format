@@ -494,5 +494,28 @@ typealias MessageId = StrongId<MessageTag>""",
     }
 }""",
         "idiomatic": "optofmt",
+        "extra": [{
+            "note": "The flip side, and where the two agree: when the conditions genuinely overflow, §4 "
+                    "splits them one per line. Here the single-line entry is 103 columns, so optofmt "
+                    "fully splits the list — exactly what ktfmt does. Parity, not a win: the divergence "
+                    "above is only about entries that <em>fit</em>. It's really important to agree on the column width.",
+            "ktfmt": """fun f() {
+    when (it.resolvedCall.resultingDescriptor) {
+        is LocalVariableDescriptor,
+        is ValueParameterDescriptor,
+        is ReceiverParameterDescriptor -> true
+        else -> false
+    }
+}""",
+            "optofmt": """fun f() {
+    when (it.resolvedCall.resultingDescriptor) {
+        is LocalVariableDescriptor,
+        is ValueParameterDescriptor,
+        is ReceiverParameterDescriptor -> true
+        else -> false
+    }
+}""",
+            "idiomatic": "parity",
+        }],
     },
 ]
