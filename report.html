@@ -1,10 +1,35 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8">
+<html lang="en" data-theme="system"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ktfmt vs optofmt</title>
 <style>
-  :root { --bg:#0f1115; --panel:#171a21; --line:#262b36; --txt:#d7dce5; --mut:#8b94a7;
-          --grn:#3fb950; --red:#f85149; --amb:#d29922; --acc:#58a6ff; --pur:#bc8cff; }
+  /* Dark is the base palette; light overrides below. */
+  :root, :root[data-theme="dark"] {
+          --bg:#0f1115; --panel:#171a21; --line:#262b36; --txt:#d7dce5; --mut:#8b94a7;
+          --grn:#3fb950; --red:#f85149; --amb:#d29922; --acc:#58a6ff; --pur:#bc8cff;
+          --code-bg:#222733;
+          --grn-bg:rgba(63,185,80,.16); --mut-bg:rgba(139,148,167,.16); --over:rgba(210,153,34,.18);
+          /* IntelliJ Darcula editor scheme */
+          --pre-bg:#2b2b2b; --syn-fg:#a9b7c6; --syn-kw:#cc7832; --syn-num:#6897bb; --syn-str:#6a8759;
+          --syn-comment:#808080; --syn-fn:#ffc66d; --syn-annot:#bbb529; --syn-prop:#9876aa; }
+  :root[data-theme="light"] {
+          --bg:#ffffff; --panel:#f6f8fa; --line:#d0d7de; --txt:#1f2328; --mut:#656d76;
+          --grn:#1a7f37; --red:#cf222e; --amb:#9a6700; --acc:#0969da; --pur:#8250df;
+          --code-bg:#eaeef2;
+          --grn-bg:rgba(26,127,55,.12); --mut-bg:rgba(101,109,118,.12); --over:rgba(154,103,0,.16);
+          /* IntelliJ Light editor scheme */
+          --pre-bg:#ffffff; --syn-fg:#080808; --syn-kw:#0033b3; --syn-num:#1750eb; --syn-str:#067d17;
+          --syn-comment:#8c8c8c; --syn-fn:#00627a; --syn-annot:#9e880d; --syn-prop:#871094; }
+  @media (prefers-color-scheme: light) {
+    :root[data-theme="system"] {
+          --bg:#ffffff; --panel:#f6f8fa; --line:#d0d7de; --txt:#1f2328; --mut:#656d76;
+          --grn:#1a7f37; --red:#cf222e; --amb:#9a6700; --acc:#0969da; --pur:#8250df;
+          --code-bg:#eaeef2;
+          --grn-bg:rgba(26,127,55,.12); --mut-bg:rgba(101,109,118,.12); --over:rgba(154,103,0,.16);
+          /* IntelliJ Light editor scheme */
+          --pre-bg:#ffffff; --syn-fg:#080808; --syn-kw:#0033b3; --syn-num:#1750eb; --syn-str:#067d17;
+          --syn-comment:#8c8c8c; --syn-fn:#00627a; --syn-annot:#9e880d; --syn-prop:#871094; }
+  }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--txt);
          font:15px/1.55 -apple-system,Segoe UI,Roboto,sans-serif; }
@@ -24,10 +49,10 @@
          font-weight:400; margin-left:6px; }
   .verdict { font-size:11px; padding:2px 8px; border-radius:6px; margin-left:8px;
              vertical-align:2px; font-weight:600; }
-  .verdict.win { background:rgba(63,185,80,.16); color:var(--grn); }
-  .verdict.parity { background:rgba(139,148,167,.16); color:var(--mut); }
+  .verdict.win { background:var(--grn-bg); color:var(--grn); }
+  .verdict.parity { background:var(--mut-bg); color:var(--mut); }
   .thesis { color:var(--txt); margin:6px 0 14px; }
-  code { background:#222733; padding:1px 5px; border-radius:4px; font-size:.92em; }
+  code { background:var(--code-bg); padding:1px 5px; border-radius:4px; font-size:.92em; }
   .cols { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   .cols3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
   @media (max-width:900px) { .cols,.cols3 { grid-template-columns:1fr; } }
@@ -46,15 +71,41 @@
   .extra .thesis { margin:0 0 12px; }
   .same-rule { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--acc);
           border:1px solid var(--acc); border-radius:5px; padding:1px 5px; margin-right:6px; }
-  pre { margin:0; background:#0c0e13; border:1px solid var(--line); border-radius:0 0 7px 7px;
+  pre { margin:0; background:var(--pre-bg); border:1px solid var(--line); border-radius:0 0 7px 7px;
         padding:12px 14px; overflow-x:auto; font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; }
-  pre span { display:block; white-space:pre; }
-  pre span.over { background:rgba(210,153,34,.18); }
+  pre code { background:none; padding:0; border-radius:0; font:inherit; color:var(--syn-fg); }
+  pre .line { display:block; white-space:pre; }
+  pre .line:empty::after { content:" "; }
+  pre .line.over { background:var(--over); }
+  /* highlight.js token colors matching IntelliJ (Darcula dark / IntelliJ Light). */
+  .hljs-keyword, .hljs-literal { color:var(--syn-kw); font-weight:bold; }
+  .hljs-built_in, .hljs-operator, .hljs-punctuation, .hljs-params, .hljs-variable { color:var(--syn-fg); }
+  .hljs-string, .hljs-char, .hljs-regexp, .hljs-subst { color:var(--syn-str); }
+  .hljs-number, .hljs-symbol { color:var(--syn-num); }
+  .hljs-title.function_, .hljs-section { color:var(--syn-fn); }
+  .hljs-title, .hljs-title.class_, .hljs-type, .hljs-built_in.class_ { color:var(--syn-fg); }
+  .hljs-attr, .hljs-attribute, .hljs-property { color:var(--syn-prop); }
+  .hljs-comment, .hljs-quote { color:var(--syn-comment); }
+  .hljs-meta, .hljs-meta .hljs-keyword { color:var(--syn-annot); font-weight:normal; }
+  .hljs-meta .hljs-string { color:var(--syn-str); }
   details { margin-top:8px; }
   summary { cursor:pointer; color:var(--acc); font-size:13px; }
   details p { color:var(--mut); margin:8px 0 2px; max-width:92ch; }
-</style></head>
+  .theme-toggle { position:fixed; top:16px; right:18px; z-index:10; cursor:pointer;
+        font:13px/1 -apple-system,Segoe UI,Roboto,sans-serif; padding:7px 13px; border-radius:99px;
+        border:1px solid var(--line); background:var(--panel); color:var(--mut); }
+  .theme-toggle:hover { color:var(--txt); border-color:var(--mut); }
+</style>
+<script>
+  // Apply saved theme before first paint to avoid a flash. Default is system; the
+  // picker toggles between light and dark.
+  (function () {
+    var t = localStorage.getItem("theme");
+    document.documentElement.setAttribute("data-theme", (t === "light" || t === "dark") ? t : "system");
+  })();
+</script></head>
 <body>
+<button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">System</button>
 <header class="b">
   <h1>ktfmt vs optofmt</h1>
   <p>Each snippet is the same Kotlin formatted two ways: <b>ktfmt</b> (<code>--kotlinlang-style</code>, the greedy engine) on the left, and <b>optofmt</b> (the optimizing model in <code>RULES.md</code>) on the right. A third column appears when a strictly better option exists that neither formatter produces. Both use <b>4-space indent</b> and a <b>100-column limit</b>.</p><p>The <span style="color:var(--grn);font-weight:600">idiomatic</span> column is outlined in green; amber marks any line past 100 columns. ktfmt output is real; optofmt output is the layout entailed by the rules.</p>
@@ -68,29 +119,29 @@
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>fun f() {</span>
-<span>    if (</span>
-<span>        unwrapped !== rootCause &amp;&amp;</span>
-<span>            unwrapped !== unwrappedCause &amp;&amp;</span>
-<span>            unwrapped !is CancellationException &amp;&amp;</span>
-<span>            seenExceptions.add(unwrapped)</span>
-<span>    ) {</span>
-<span>        rootCause.addSuppressed(unwrapped)</span>
-<span>    }</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    if (
+        unwrapped !== rootCause &amp;&amp;
+            unwrapped !== unwrappedCause &amp;&amp;
+            unwrapped !is CancellationException &amp;&amp;
+            seenExceptions.add(unwrapped)
+    ) {
+        rootCause.addSuppressed(unwrapped)
+    }
+}</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
-        <pre><span>fun f() {</span>
-<span>    if (</span>
-<span>        unwrapped !== rootCause &amp;&amp;</span>
-<span>        unwrapped !== unwrappedCause &amp;&amp;</span>
-<span>        unwrapped !is CancellationException &amp;&amp;</span>
-<span>        seenExceptions.add(unwrapped)</span>
-<span>    ) {</span>
-<span>        rootCause.addSuppressed(unwrapped)</span>
-<span>    }</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    if (
+        unwrapped !== rootCause &amp;&amp;
+        unwrapped !== unwrappedCause &amp;&amp;
+        unwrapped !is CancellationException &amp;&amp;
+        seenExceptions.add(unwrapped)
+    ) {
+        rootCause.addSuppressed(unwrapped)
+    }
+}</code></pre>
       </div>
     </div>
       
@@ -103,31 +154,31 @@
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>fun f() {</span>
-<span>    add(</span>
-<span>        OverrideQueue(</span>
-<span>            queueSettings.waitTime,</span>
-<span>            queueSettings.firstToSolveWaitTime,</span>
-<span>            queueSettings.featuredRunWaitTime,</span>
-<span>            queueSettings.inProgressRunWaitTime,</span>
-<span>            queueSettings.maxQueueSize,</span>
-<span>            queueSettings.maxUntestedRun,</span>
-<span>        )</span>
-<span>    )</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    add(
+        OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.featuredRunWaitTime,
+            queueSettings.inProgressRunWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        )
+    )
+}</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
-        <pre><span>fun f() {</span>
-<span>    add(OverrideQueue(</span>
-<span>        queueSettings.waitTime,</span>
-<span>        queueSettings.firstToSolveWaitTime,</span>
-<span>        queueSettings.featuredRunWaitTime,</span>
-<span>        queueSettings.inProgressRunWaitTime,</span>
-<span>        queueSettings.maxQueueSize,</span>
-<span>        queueSettings.maxUntestedRun</span>
-<span>    ))</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    add(OverrideQueue(
+        queueSettings.waitTime,
+        queueSettings.firstToSolveWaitTime,
+        queueSettings.featuredRunWaitTime,
+        queueSettings.inProgressRunWaitTime,
+        queueSettings.maxQueueSize,
+        queueSettings.maxUntestedRun
+    ))
+}</code></pre>
       </div>
     </div>
       
@@ -136,21 +187,21 @@
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>fun f() {</span>
-<span>    registerHandler(</span>
-<span>        buildHandler(</span>
-<span class="over">            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY</span>
-<span>        )</span>
-<span>    )</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="3">fun f() {
+    registerHandler(
+        buildHandler(
+            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY
+        )
+    )
+}</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
-        <pre><span>fun f() {</span>
-<span>    registerHandler(buildHandler(</span>
-<span>        aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY</span>
-<span>    ))</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    registerHandler(buildHandler(
+        aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY
+    ))
+}</code></pre>
       </div>
     </div>
       </div>
@@ -163,19 +214,19 @@
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>val pair =</span>
-<span>    orgInfo.id to</span>
-<span>        OverrideOrganizations.Override(</span>
-<span>            fullName = substituteRaw(fullName),</span>
-<span>            displayName = substituteRaw(displayName),</span>
-<span>        )</span></pre>
+        <pre><code class="language-kotlin" data-over="">val pair =
+    orgInfo.id to
+        OverrideOrganizations.Override(
+            fullName = substituteRaw(fullName),
+            displayName = substituteRaw(displayName),
+        )</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
-        <pre><span>val pair = orgInfo.id to OverrideOrganizations.Override(</span>
-<span>    fullName = substituteRaw(fullName),</span>
-<span>    displayName = substituteRaw(displayName)</span>
-<span>)</span></pre>
+        <pre><code class="language-kotlin" data-over="">val pair = orgInfo.id to OverrideOrganizations.Override(
+    fullName = substituteRaw(fullName),
+    displayName = substituteRaw(displayName)
+)</code></pre>
       </div>
     </div>
       
@@ -188,22 +239,22 @@
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>object ClicsArchiveCommand :</span>
-<span>    DumpFileCommand(</span>
-<span>        name = &quot;clics-archive&quot;,</span>
-<span>        help = &quot;Dump CLICS contest archive (zip)&quot;,</span>
-<span>        defaultFileName = &quot;contest-archive.zip&quot;,</span>
-<span>        outputHelp = &quot;Path to new zip file&quot;,</span>
-<span>    ) {}</span></pre>
+        <pre><code class="language-kotlin" data-over="">object ClicsArchiveCommand :
+    DumpFileCommand(
+        name = &quot;clics-archive&quot;,
+        help = &quot;Dump CLICS contest archive (zip)&quot;,
+        defaultFileName = &quot;contest-archive.zip&quot;,
+        outputHelp = &quot;Path to new zip file&quot;,
+    ) {}</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
-        <pre><span>object ClicsArchiveCommand : DumpFileCommand(</span>
-<span>    name = &quot;clics-archive&quot;,</span>
-<span>    help = &quot;Dump CLICS contest archive (zip)&quot;,</span>
-<span>    defaultFileName = &quot;contest-archive.zip&quot;,</span>
-<span>    outputHelp = &quot;Path to new zip file&quot;</span>
-<span>) {}</span></pre>
+        <pre><code class="language-kotlin" data-over="">object ClicsArchiveCommand : DumpFileCommand(
+    name = &quot;clics-archive&quot;,
+    help = &quot;Dump CLICS contest archive (zip)&quot;,
+    defaultFileName = &quot;contest-archive.zip&quot;,
+    outputHelp = &quot;Path to new zip file&quot;
+) {}</code></pre>
       </div>
     </div>
       
@@ -216,30 +267,30 @@
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>fun f() {</span>
-<span>    val teamsAffected =</span>
-<span>        when (val event = state.lastEvent) {</span>
-<span>            is CommentaryMessagesUpdate -&gt; emptyList()</span>
-<span>            is InfoUpdate -&gt; info.teams.keys.toList()</span>
-<span>            is RunUpdate -&gt; {</span>
-<span>                lastSubmissionTime = maxOf(lastSubmissionTime, event.newInfo.time)</span>
-<span>                runsByTeamId.applyEvent(state)</span>
-<span>            }</span>
-<span>        }</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val teamsAffected =
+        when (val event = state.lastEvent) {
+            is CommentaryMessagesUpdate -&gt; emptyList()
+            is InfoUpdate -&gt; info.teams.keys.toList()
+            is RunUpdate -&gt; {
+                lastSubmissionTime = maxOf(lastSubmissionTime, event.newInfo.time)
+                runsByTeamId.applyEvent(state)
+            }
+        }
+}</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
-        <pre><span>fun f() {</span>
-<span>    val teamsAffected = when (val event = state.lastEvent) {</span>
-<span>        is CommentaryMessagesUpdate -&gt; emptyList()</span>
-<span>        is InfoUpdate -&gt; info.teams.keys.toList()</span>
-<span>        is RunUpdate -&gt; {</span>
-<span>            lastSubmissionTime = maxOf(lastSubmissionTime, event.newInfo.time)</span>
-<span>            runsByTeamId.applyEvent(state)</span>
-<span>        }</span>
-<span>    }</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val teamsAffected = when (val event = state.lastEvent) {
+        is CommentaryMessagesUpdate -&gt; emptyList()
+        is InfoUpdate -&gt; info.teams.keys.toList()
+        is RunUpdate -&gt; {
+            lastSubmissionTime = maxOf(lastSubmissionTime, event.newInfo.time)
+            runsByTeamId.applyEvent(state)
+        }
+    }
+}</code></pre>
       </div>
     </div>
       
@@ -248,24 +299,24 @@
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>fun f() {</span>
-<span>    val builder =</span>
-<span>        if (!builders.isEmpty()) {</span>
-<span>            builders.peek()</span>
-<span>        } else {</span>
-<span>            null</span>
-<span>        }</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val builder =
+        if (!builders.isEmpty()) {
+            builders.peek()
+        } else {
+            null
+        }
+}</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
-        <pre><span>fun f() {</span>
-<span>    val builder = if (!builders.isEmpty()) {</span>
-<span>        builders.peek()</span>
-<span>    } else {</span>
-<span>        null</span>
-<span>    }</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val builder = if (!builders.isEmpty()) {
+        builders.peek()
+    } else {
+        null
+    }
+}</code></pre>
       </div>
     </div>
       </div>
@@ -278,30 +329,30 @@
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>fun f() {</span>
-<span>    val testDataDir: Path =</span>
-<span>        Path.of(&quot;&quot;)</span>
-<span>            .absolute()</span>
-<span>            .parent</span>
-<span>            .parent</span>
-<span>            .resolve(&quot;tests&quot;)</span>
-<span>            .resolve(&quot;testData&quot;)</span>
-<span>            .resolve(&quot;loaders&quot;)</span>
-<span>            .relativeTo(Path.of(&quot;&quot;).absolute())</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val testDataDir: Path =
+        Path.of(&quot;&quot;)
+            .absolute()
+            .parent
+            .parent
+            .resolve(&quot;tests&quot;)
+            .resolve(&quot;testData&quot;)
+            .resolve(&quot;loaders&quot;)
+            .relativeTo(Path.of(&quot;&quot;).absolute())
+}</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
-        <pre><span>fun f() {</span>
-<span>    val testDataDir: Path = Path.of(&quot;&quot;)</span>
-<span>        .absolute()</span>
-<span>        .parent</span>
-<span>        .parent</span>
-<span>        .resolve(&quot;tests&quot;)</span>
-<span>        .resolve(&quot;testData&quot;)</span>
-<span>        .resolve(&quot;loaders&quot;)</span>
-<span>        .relativeTo(Path.of(&quot;&quot;).absolute())</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val testDataDir: Path = Path.of(&quot;&quot;)
+        .absolute()
+        .parent
+        .parent
+        .resolve(&quot;tests&quot;)
+        .resolve(&quot;testData&quot;)
+        .resolve(&quot;loaders&quot;)
+        .relativeTo(Path.of(&quot;&quot;).absolute())
+}</code></pre>
       </div>
     </div>
       
@@ -314,29 +365,29 @@
       <div class="cols3">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>fun run() {</span>
-<span>    executeWithRetryPolicy(</span>
-<span>        maximumRetryCount,</span>
-<span>        backoffStrategy,</span>
-<span>        { requestContext: RequestContext -&gt; requestContext.proceed() },</span>
-<span>    )</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun run() {
+    executeWithRetryPolicy(
+        maximumRetryCount,
+        backoffStrategy,
+        { requestContext: RequestContext -&gt; requestContext.proceed() },
+    )
+}</code></pre>
       </div>
       <div class="col">
         <div class="hd optofmt">optofmt &middot; optimizing</div>
-        <pre><span>fun run() {</span>
-<span>    executeWithRetryPolicy(maximumRetryCount, backoffStrategy, { requestContext: RequestContext -&gt;</span>
-<span>        requestContext.proceed()</span>
-<span>    })</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun run() {
+    executeWithRetryPolicy(maximumRetryCount, backoffStrategy, { requestContext: RequestContext -&gt;
+        requestContext.proceed()
+    })
+}</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd third">idiomatic — trailing lambda outside () <span class="best">idiomatic</span></div>
-        <pre><span>fun run() {</span>
-<span>    executeWithRetryPolicy(maximumRetryCount, backoffStrategy) { requestContext -&gt;</span>
-<span>        requestContext.proceed()</span>
-<span>    }</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun run() {
+    executeWithRetryPolicy(maximumRetryCount, backoffStrategy) { requestContext -&gt;
+        requestContext.proceed()
+    }
+}</code></pre>
       </div>
     </div>
       
@@ -349,19 +400,19 @@
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>public class SharedFlowSubscriptionScope&lt;T&gt;</span>
-<span>@PublishedApi</span>
-<span>internal constructor(</span>
-<span>    @PublishedApi internal val flow: SharedFlow&lt;T&gt;,</span>
-<span>    private val subscriptionWaitingFlow: MutableStateFlow&lt;Int&gt;,</span>
-<span>) {}</span></pre>
+        <pre><code class="language-kotlin" data-over="">public class SharedFlowSubscriptionScope&lt;T&gt;
+@PublishedApi
+internal constructor(
+    @PublishedApi internal val flow: SharedFlow&lt;T&gt;,
+    private val subscriptionWaitingFlow: MutableStateFlow&lt;Int&gt;,
+) {}</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
-        <pre><span>public class SharedFlowSubscriptionScope&lt;T&gt; @PublishedApi internal constructor(</span>
-<span>    @PublishedApi internal val flow: SharedFlow&lt;T&gt;,</span>
-<span>    private val subscriptionWaitingFlow: MutableStateFlow&lt;Int&gt;</span>
-<span>) {}</span></pre>
+        <pre><code class="language-kotlin" data-over="">public class SharedFlowSubscriptionScope&lt;T&gt; @PublishedApi internal constructor(
+    @PublishedApi internal val flow: SharedFlow&lt;T&gt;,
+    private val subscriptionWaitingFlow: MutableStateFlow&lt;Int&gt;
+) {}</code></pre>
       </div>
     </div>
       
@@ -374,21 +425,21 @@
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>/**</span>
-<span> * Ideally, all this information should be received from the contest system. Unfortunately, in the</span>
-<span> * real world, it is not always possible, or information can be not fully correct or convenient to</span>
-<span> * display.</span>
-<span> */</span>
-<span>class ContestConfigOverrides</span></pre>
+        <pre><code class="language-kotlin" data-over="">/**
+ * Ideally, all this information should be received from the contest system. Unfortunately, in the
+ * real world, it is not always possible, or information can be not fully correct or convenient to
+ * display.
+ */
+class ContestConfigOverrides</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
-        <pre><span>/**</span>
-<span> * Ideally, all this information should be received from the contest system.</span>
-<span> * Unfortunately, in the real world, it is not always possible, or information</span>
-<span> * can be not fully correct or convenient to display.</span>
-<span> */</span>
-<span>class ContestConfigOverrides</span></pre>
+        <pre><code class="language-kotlin" data-over="">/**
+ * Ideally, all this information should be received from the contest system.
+ * Unfortunately, in the real world, it is not always possible, or information
+ * can be not fully correct or convenient to display.
+ */
+class ContestConfigOverrides</code></pre>
       </div>
     </div>
       
@@ -401,17 +452,17 @@
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>typealias TeamId = StrongId&lt;TeamTag&gt;</span>
-<span>&nbsp;</span>
-<span>typealias RunId = StrongId&lt;RunTag&gt;</span>
-<span>&nbsp;</span>
-<span>typealias MessageId = StrongId&lt;MessageTag&gt;</span></pre>
+        <pre><code class="language-kotlin" data-over="">typealias TeamId = StrongId&lt;TeamTag&gt;
+
+typealias RunId = StrongId&lt;RunTag&gt;
+
+typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
-        <pre><span>typealias TeamId = StrongId&lt;TeamTag&gt;</span>
-<span>typealias RunId = StrongId&lt;RunTag&gt;</span>
-<span>typealias MessageId = StrongId&lt;MessageTag&gt;</span></pre>
+        <pre><code class="language-kotlin" data-over="">typealias TeamId = StrongId&lt;TeamTag&gt;
+typealias RunId = StrongId&lt;RunTag&gt;
+typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
       </div>
     </div>
       
@@ -424,23 +475,23 @@
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>fun registerEventListener(</span>
-<span>    eventType: EventType,</span>
-<span>    listenerPriority: ListenerPriority,</span>
-<span>    listenerCallback: EventListener,</span>
-<span>) {</span>
-<span>    installListener()</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun registerEventListener(
+    eventType: EventType,
+    listenerPriority: ListenerPriority,
+    listenerCallback: EventListener,
+) {
+    installListener()
+}</code></pre>
       </div>
       <div class="col">
         <div class="hd optofmt">optofmt &middot; optimizing</div>
-        <pre><span>fun registerEventListener(</span>
-<span>    eventType: EventType,</span>
-<span>    listenerPriority: ListenerPriority,</span>
-<span>    listenerCallback: EventListener</span>
-<span>) {</span>
-<span>    installListener()</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun registerEventListener(
+    eventType: EventType,
+    listenerPriority: ListenerPriority,
+    listenerCallback: EventListener
+) {
+    installListener()
+}</code></pre>
       </div>
     </div>
       
@@ -453,17 +504,17 @@
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>fun f(): PetType {</span>
-<span>    return findPetTypes.find { it.name == text }</span>
-<span>        ?: throw ParseException(&quot;type not found: &quot; + text, 0)</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f(): PetType {
+    return findPetTypes.find { it.name == text }
+        ?: throw ParseException(&quot;type not found: &quot; + text, 0)
+}</code></pre>
       </div>
       <div class="col">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="same">&equiv; identical</span></div>
-        <pre><span>fun f(): PetType {</span>
-<span>    return findPetTypes.find { it.name == text }</span>
-<span>        ?: throw ParseException(&quot;type not found: &quot; + text, 0)</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f(): PetType {
+    return findPetTypes.find { it.name == text }
+        ?: throw ParseException(&quot;type not found: &quot; + text, 0)
+}</code></pre>
       </div>
     </div>
       
@@ -476,12 +527,12 @@
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>@JvmName(&quot;other&quot;) fun testSomething() {}</span></pre>
+        <pre><code class="language-kotlin" data-over="">@JvmName(&quot;other&quot;) fun testSomething() {}</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
-        <pre><span>@JvmName(&quot;other&quot;)</span>
-<span>fun testSomething() {}</span></pre>
+        <pre><code class="language-kotlin" data-over="">@JvmName(&quot;other&quot;)
+fun testSomething() {}</code></pre>
       </div>
     </div>
       
@@ -494,12 +545,12 @@
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>val placeOfGetter: String</span>
-<span>    get() = &quot;hello&quot;</span></pre>
+        <pre><code class="language-kotlin" data-over="">val placeOfGetter: String
+    get() = &quot;hello&quot;</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
-        <pre><span>val placeOfGetter: String get() = &quot;hello&quot;</span></pre>
+        <pre><code class="language-kotlin" data-over="">val placeOfGetter: String get() = &quot;hello&quot;</code></pre>
       </div>
     </div>
       
@@ -512,17 +563,17 @@
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>fun lambdasWithReturns(nullableString: String?) {</span>
-<span>    nullableString?.let {</span>
-<span>        return</span>
-<span>    }</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun lambdasWithReturns(nullableString: String?) {
+    nullableString?.let {
+        return
+    }
+}</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
-        <pre><span>fun lambdasWithReturns(nullableString: String?) {</span>
-<span>    nullableString?.let { return }</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun lambdasWithReturns(nullableString: String?) {
+    nullableString?.let { return }
+}</code></pre>
       </div>
     </div>
       
@@ -535,20 +586,20 @@
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>fun f(x: Int) {</span>
-<span>    when (x) {</span>
-<span>        0,</span>
-<span>        1 -&gt; println(&quot;a or b&quot;)</span>
-<span>    }</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f(x: Int) {
+    when (x) {
+        0,
+        1 -&gt; println(&quot;a or b&quot;)
+    }
+}</code></pre>
       </div>
       <div class="col idiomatic">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
-        <pre><span>fun f(x: Int) {</span>
-<span>    when (x) {</span>
-<span>        0, 1 -&gt; println(&quot;a or b&quot;)</span>
-<span>    }</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f(x: Int) {
+    when (x) {
+        0, 1 -&gt; println(&quot;a or b&quot;)
+    }
+}</code></pre>
       </div>
     </div>
       
@@ -557,25 +608,25 @@
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; greedy</div>
-        <pre><span>fun f() {</span>
-<span>    when (it.resolvedCall.resultingDescriptor) {</span>
-<span>        is LocalVariableDescriptor,</span>
-<span>        is ValueParameterDescriptor,</span>
-<span>        is ReceiverParameterDescriptor -&gt; true</span>
-<span>        else -&gt; false</span>
-<span>    }</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    when (it.resolvedCall.resultingDescriptor) {
+        is LocalVariableDescriptor,
+        is ValueParameterDescriptor,
+        is ReceiverParameterDescriptor -&gt; true
+        else -&gt; false
+    }
+}</code></pre>
       </div>
       <div class="col">
         <div class="hd optofmt">optofmt &middot; optimizing <span class="same">&equiv; identical</span></div>
-        <pre><span>fun f() {</span>
-<span>    when (it.resolvedCall.resultingDescriptor) {</span>
-<span>        is LocalVariableDescriptor,</span>
-<span>        is ValueParameterDescriptor,</span>
-<span>        is ReceiverParameterDescriptor -&gt; true</span>
-<span>        else -&gt; false</span>
-<span>    }</span>
-<span>}</span></pre>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    when (it.resolvedCall.resultingDescriptor) {
+        is LocalVariableDescriptor,
+        is ValueParameterDescriptor,
+        is ReceiverParameterDescriptor -&gt; true
+        else -&gt; false
+    }
+}</code></pre>
       </div>
     </div>
       </div>
@@ -583,4 +634,62 @@
     </section></main>
 <footer>Generated by <code>python3 generate.py</code> from <code>snippets.py</code>;
   optofmt rules live in <code>RULES.md</code>.</footer>
+
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/languages/kotlin.min.js"></script>
+<script>
+  (function () {
+    if (!window.hljs) return;
+    // Highlight the whole block (so multi-line strings/comments keep context), then split the
+    // result into per-line spans, reopening any spans that cross a newline, and re-apply the
+    // amber "over 100 columns" marking from data-over.
+    function splitLines(htmlStr) {
+      var lines = [], open = [], buf = "";
+      var re = /(<span\b[^>]*>)|(<\/span>)|(\n)|([^<\n]+)/g, m;
+      while ((m = re.exec(htmlStr))) {
+        if (m[1]) { buf += m[1]; open.push(m[1]); }
+        else if (m[2]) { buf += "</span>"; open.pop(); }
+        else if (m[3]) { buf += "</span>".repeat(open.length); lines.push(buf); buf = open.join(""); }
+        else { buf += m[4]; }
+      }
+      lines.push(buf);
+      return lines;
+    }
+    document.querySelectorAll("pre > code.language-kotlin").forEach(function (code) {
+      var over = (code.getAttribute("data-over") || "").split(",").filter(Boolean);
+      var overSet = {};
+      over.forEach(function (i) { overSet[i] = true; });
+      var res = hljs.highlight(code.textContent, { language: "kotlin", ignoreIllegals: true });
+      code.innerHTML = splitLines(res.value).map(function (ln, i) {
+        return '<span class="line' + (overSet[i] ? " over" : "") + '">' + ln + "</span>";
+      }).join("");
+      code.classList.add("hljs");
+    });
+  })();
+</script>
+
+<script>
+  (function () {
+    var LABELS = { system: "◐ System", light: "☀ Light", dark: "☾ Dark" };
+    var root = document.documentElement;
+    var btn = document.getElementById("theme-toggle");
+    function stored() {
+      var t = localStorage.getItem("theme");
+      return (t === "light" || t === "dark") ? t : null;
+    }
+    function effective() {
+      return stored() || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    }
+    function apply() {
+      var s = stored();
+      root.setAttribute("data-theme", s || "system");
+      btn.textContent = LABELS[s || "system"];
+    }
+    apply();
+    btn.addEventListener("click", function () {
+      localStorage.setItem("theme", effective() === "light" ? "dark" : "light");
+      apply();
+    });
+  })();
+</script>
 </body></html>

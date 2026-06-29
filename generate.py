@@ -29,11 +29,12 @@ def esc(t):
 
 
 def code_block(text):
-    rows = []
-    for ln in text.splitlines():
-        over = ' class="over"' if len(ln) > LIMIT else ""
-        rows.append(f"<span{over}>{esc(ln) or '&nbsp;'}</span>")
-    return "<pre>" + "\n".join(rows) + "</pre>"
+    """Emit raw Kotlin for highlight.js. The over-100-column line indices are passed via
+    data-over so the client can re-apply the amber marking after highlighting + line split."""
+    lines = text.splitlines() or [""]
+    over = ",".join(str(i) for i, ln in enumerate(lines) if len(ln) > LIMIT)
+    code = esc("\n".join(lines))
+    return (f'<pre><code class="language-kotlin" data-over="{over}">{code}</code></pre>')
 
 
 def columns(panes, idiomatic):
@@ -83,8 +84,33 @@ def card(s):
 
 
 STYLE = """
-  :root { --bg:#0f1115; --panel:#171a21; --line:#262b36; --txt:#d7dce5; --mut:#8b94a7;
-          --grn:#3fb950; --red:#f85149; --amb:#d29922; --acc:#58a6ff; --pur:#bc8cff; }
+  /* Dark is the base palette; light overrides below. */
+  :root, :root[data-theme="dark"] {
+          --bg:#0f1115; --panel:#171a21; --line:#262b36; --txt:#d7dce5; --mut:#8b94a7;
+          --grn:#3fb950; --red:#f85149; --amb:#d29922; --acc:#58a6ff; --pur:#bc8cff;
+          --code-bg:#222733;
+          --grn-bg:rgba(63,185,80,.16); --mut-bg:rgba(139,148,167,.16); --over:rgba(210,153,34,.18);
+          /* IntelliJ Darcula editor scheme */
+          --pre-bg:#2b2b2b; --syn-fg:#a9b7c6; --syn-kw:#cc7832; --syn-num:#6897bb; --syn-str:#6a8759;
+          --syn-comment:#808080; --syn-fn:#ffc66d; --syn-annot:#bbb529; --syn-prop:#9876aa; }
+  :root[data-theme="light"] {
+          --bg:#ffffff; --panel:#f6f8fa; --line:#d0d7de; --txt:#1f2328; --mut:#656d76;
+          --grn:#1a7f37; --red:#cf222e; --amb:#9a6700; --acc:#0969da; --pur:#8250df;
+          --code-bg:#eaeef2;
+          --grn-bg:rgba(26,127,55,.12); --mut-bg:rgba(101,109,118,.12); --over:rgba(154,103,0,.16);
+          /* IntelliJ Light editor scheme */
+          --pre-bg:#ffffff; --syn-fg:#080808; --syn-kw:#0033b3; --syn-num:#1750eb; --syn-str:#067d17;
+          --syn-comment:#8c8c8c; --syn-fn:#00627a; --syn-annot:#9e880d; --syn-prop:#871094; }
+  @media (prefers-color-scheme: light) {
+    :root[data-theme="system"] {
+          --bg:#ffffff; --panel:#f6f8fa; --line:#d0d7de; --txt:#1f2328; --mut:#656d76;
+          --grn:#1a7f37; --red:#cf222e; --amb:#9a6700; --acc:#0969da; --pur:#8250df;
+          --code-bg:#eaeef2;
+          --grn-bg:rgba(26,127,55,.12); --mut-bg:rgba(101,109,118,.12); --over:rgba(154,103,0,.16);
+          /* IntelliJ Light editor scheme */
+          --pre-bg:#ffffff; --syn-fg:#080808; --syn-kw:#0033b3; --syn-num:#1750eb; --syn-str:#067d17;
+          --syn-comment:#8c8c8c; --syn-fn:#00627a; --syn-annot:#9e880d; --syn-prop:#871094; }
+  }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--txt);
          font:15px/1.55 -apple-system,Segoe UI,Roboto,sans-serif; }
@@ -104,10 +130,10 @@ STYLE = """
          font-weight:400; margin-left:6px; }
   .verdict { font-size:11px; padding:2px 8px; border-radius:6px; margin-left:8px;
              vertical-align:2px; font-weight:600; }
-  .verdict.win { background:rgba(63,185,80,.16); color:var(--grn); }
-  .verdict.parity { background:rgba(139,148,167,.16); color:var(--mut); }
+  .verdict.win { background:var(--grn-bg); color:var(--grn); }
+  .verdict.parity { background:var(--mut-bg); color:var(--mut); }
   .thesis { color:var(--txt); margin:6px 0 14px; }
-  code { background:#222733; padding:1px 5px; border-radius:4px; font-size:.92em; }
+  code { background:var(--code-bg); padding:1px 5px; border-radius:4px; font-size:.92em; }
   .cols { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   .cols3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
   @media (max-width:900px) { .cols,.cols3 { grid-template-columns:1fr; } }
@@ -126,23 +152,115 @@ STYLE = """
   .extra .thesis { margin:0 0 12px; }
   .same-rule { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--acc);
           border:1px solid var(--acc); border-radius:5px; padding:1px 5px; margin-right:6px; }
-  pre { margin:0; background:#0c0e13; border:1px solid var(--line); border-radius:0 0 7px 7px;
+  pre { margin:0; background:var(--pre-bg); border:1px solid var(--line); border-radius:0 0 7px 7px;
         padding:12px 14px; overflow-x:auto; font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; }
-  pre span { display:block; white-space:pre; }
-  pre span.over { background:rgba(210,153,34,.18); }
+  pre code { background:none; padding:0; border-radius:0; font:inherit; color:var(--syn-fg); }
+  pre .line { display:block; white-space:pre; }
+  pre .line:empty::after { content:" "; }
+  pre .line.over { background:var(--over); }
+  /* highlight.js token colors matching IntelliJ (Darcula dark / IntelliJ Light). */
+  .hljs-keyword, .hljs-literal { color:var(--syn-kw); font-weight:bold; }
+  .hljs-built_in, .hljs-operator, .hljs-punctuation, .hljs-params, .hljs-variable { color:var(--syn-fg); }
+  .hljs-string, .hljs-char, .hljs-regexp, .hljs-subst { color:var(--syn-str); }
+  .hljs-number, .hljs-symbol { color:var(--syn-num); }
+  .hljs-title.function_, .hljs-section { color:var(--syn-fn); }
+  .hljs-title, .hljs-title.class_, .hljs-type, .hljs-built_in.class_ { color:var(--syn-fg); }
+  .hljs-attr, .hljs-attribute, .hljs-property { color:var(--syn-prop); }
+  .hljs-comment, .hljs-quote { color:var(--syn-comment); }
+  .hljs-meta, .hljs-meta .hljs-keyword { color:var(--syn-annot); font-weight:normal; }
+  .hljs-meta .hljs-string { color:var(--syn-str); }
   details { margin-top:8px; }
   summary { cursor:pointer; color:var(--acc); font-size:13px; }
   details p { color:var(--mut); margin:8px 0 2px; max-width:92ch; }
+  .theme-toggle { position:fixed; top:16px; right:18px; z-index:10; cursor:pointer;
+        font:13px/1 -apple-system,Segoe UI,Roboto,sans-serif; padding:7px 13px; border-radius:99px;
+        border:1px solid var(--line); background:var(--panel); color:var(--mut); }
+  .theme-toggle:hover { color:var(--txt); border-color:var(--mut); }
 """
+
+
+THEME_HEAD = """
+<script>
+  // Apply saved theme before first paint to avoid a flash. Default is system; the
+  // picker toggles between light and dark.
+  (function () {
+    var t = localStorage.getItem("theme");
+    document.documentElement.setAttribute("data-theme", (t === "light" || t === "dark") ? t : "system");
+  })();
+</script>"""
+
+THEME_SCRIPT = """
+<script>
+  (function () {
+    var LABELS = { system: "◐ System", light: "☀ Light", dark: "☾ Dark" };
+    var root = document.documentElement;
+    var btn = document.getElementById("theme-toggle");
+    function stored() {
+      var t = localStorage.getItem("theme");
+      return (t === "light" || t === "dark") ? t : null;
+    }
+    function effective() {
+      return stored() || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    }
+    function apply() {
+      var s = stored();
+      root.setAttribute("data-theme", s || "system");
+      btn.textContent = LABELS[s || "system"];
+    }
+    apply();
+    btn.addEventListener("click", function () {
+      localStorage.setItem("theme", effective() === "light" ? "dark" : "light");
+      apply();
+    });
+  })();
+</script>"""
+
+
+HLJS = "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build"
+
+HIGHLIGHT_SCRIPT = f"""
+<script src="{HLJS}/highlight.min.js"></script>
+<script src="{HLJS}/languages/kotlin.min.js"></script>
+<script>
+  (function () {{
+    if (!window.hljs) return;
+    // Highlight the whole block (so multi-line strings/comments keep context), then split the
+    // result into per-line spans, reopening any spans that cross a newline, and re-apply the
+    // amber "over 100 columns" marking from data-over.
+    function splitLines(htmlStr) {{
+      var lines = [], open = [], buf = "";
+      var re = /(<span\\b[^>]*>)|(<\\/span>)|(\\n)|([^<\\n]+)/g, m;
+      while ((m = re.exec(htmlStr))) {{
+        if (m[1]) {{ buf += m[1]; open.push(m[1]); }}
+        else if (m[2]) {{ buf += "</span>"; open.pop(); }}
+        else if (m[3]) {{ buf += "</span>".repeat(open.length); lines.push(buf); buf = open.join(""); }}
+        else {{ buf += m[4]; }}
+      }}
+      lines.push(buf);
+      return lines;
+    }}
+    document.querySelectorAll("pre > code.language-kotlin").forEach(function (code) {{
+      var over = (code.getAttribute("data-over") || "").split(",").filter(Boolean);
+      var overSet = {{}};
+      over.forEach(function (i) {{ overSet[i] = true; }});
+      var res = hljs.highlight(code.textContent, {{ language: "kotlin", ignoreIllegals: true }});
+      code.innerHTML = splitLines(res.value).map(function (ln, i) {{
+        return '<span class="line' + (overSet[i] ? " over" : "") + '">' + ln + "</span>";
+      }}).join("");
+      code.classList.add("hljs");
+    }});
+  }})();
+</script>"""
 
 
 def page(title, intro, body, pills=""):
     return f"""<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
+<html lang="en" data-theme="system"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-<style>{STYLE}</style></head>
+<style>{STYLE}</style>{THEME_HEAD}</head>
 <body>
+<button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">System</button>
 <header class="b">
   <h1>{title}</h1>
   {intro}
@@ -151,6 +269,8 @@ def page(title, intro, body, pills=""):
 <main>{body}</main>
 <footer>Generated by <code>python3 generate.py</code> from <code>snippets.py</code>;
   optofmt rules live in <code>RULES.md</code>.</footer>
+{HIGHLIGHT_SCRIPT}
+{THEME_SCRIPT}
 </body></html>"""
 
 
