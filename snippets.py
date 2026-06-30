@@ -518,4 +518,32 @@ typealias MessageId = StrongId<MessageTag>""",
             "idiomatic": "parity",
         }],
     },
+    {
+        "id": "generic-type-arg-economy",
+        "name": "Long generic type-argument list",
+        "source": "Exposed · EntityCache.kt",
+        "thesis": "optofmt extends its paren indent-economy to angle brackets — keeping the head on the `=` line and breaking inside `<…>` with the `>()` stacked like a closer — but here that splits an intact generic type across three lines where ktfmt's break-after-`=` keeps it whole in two.",
+        "why": "This is the angle-bracket analogue of the indent-economy rule: optofmt would rather keep "
+               "<code>val x = IdentityHashMap&lt;</code> on the assignment line and break <em>inside</em> "
+               "the type argument list, stacking the closing <code>&gt;()</code> on its own line, than "
+               "break after <code>=</code>. For parenthesised argument lists that collapsing is a clear "
+               "win, but a generic type is a single conceptual unit: tearing it open leaves a dangling "
+               "<code>&lt;</code> and a lonely <code>&gt;()</code>, and costs a line. ktfmt breaks after "
+               "<code>=</code> and keeps <code>IdentityHashMap&lt;…&gt;()</code> intact on one "
+               "continuation line — fewer lines and the type stays readable, so it reads as the more "
+               "idiomatic choice here. A case where optofmt's economy instinct overreaches; the same "
+               "mechanism applied to a long extension-receiver type produces genuinely broken output.",
+        "input": "class C {\ninternal val pendingInitializationLambdas = "
+                 "IdentityHashMap<Entity<Any>, MutableList<(Entity<Any>) -> Unit>>()\n}",
+        "ktfmt": """class C {
+    internal val pendingInitializationLambdas =
+        IdentityHashMap<Entity<Any>, MutableList<(Entity<Any>) -> Unit>>()
+}""",
+        "optofmt": """class C {
+    internal val pendingInitializationLambdas = IdentityHashMap<
+        Entity<Any>, MutableList<(Entity<Any>) -> Unit>
+    >()
+}""",
+        "idiomatic": "ktfmt",
+    },
 ]
