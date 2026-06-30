@@ -109,7 +109,7 @@
 <header class="b">
   <h1>ktfmt vs optofmt</h1>
   <p>Each snippet is the same Kotlin formatted two ways: <b>ktfmt</b> (<code>--kotlinlang-style</code>, the greedy engine) on the left, and <b>optofmt</b> (the optimizing model in <code>RULES.md</code>) on the right. A third column appears when a strictly better option exists that neither formatter produces. Both use <b>4-space indent</b> and a <b>100-column limit</b>.</p><p>The <span style="color:var(--grn);font-weight:600">idiomatic</span> column is outlined in green; amber marks any line past 100 columns. ktfmt output is real; optofmt output is the layout entailed by the rules.</p>
-  <div class="pills"><span class="pill">17 patterns</span><span class="pill">13 optofmt wins</span><span class="pill">3 parity</span><span class="pill">0 ktfmt wins</span><span class="pill">1 better 3rd option</span></div>
+  <div class="pills"><span class="pill">18 patterns</span><span class="pill">14 optofmt wins</span><span class="pill">3 parity</span><span class="pill">0 ktfmt wins</span><span class="pill">1 better 3rd option</span></div>
 </header>
 <main>
     <section class="card">
@@ -201,6 +201,45 @@
     registerHandler(buildHandler(
         aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY
     ))
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> The boundary of §5: collapsing only applies when the expandable call is the outer call's <em>only</em> argument. Once it has siblings, the openers no longer touch, so there's nothing to share — optofmt just splits the outer list one item per line (§4) and lets <code>OverrideQueue(</code> expand in place. The result matches ktfmt line-for-line except for the trailing commas. So the collapse never over-applies to produce a ragged <code>add(arg1, arg2, OverrideQueue(</code>.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    add(
+        arg1,
+        arg2,
+        OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        ),
+        arg3,
+        arg4,
+    )
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">optofmt &middot; optimizing</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    add(
+        arg1,
+        arg2,
+        OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun
+        ),
+        arg3,
+        arg4
+    )
 }</code></pre>
       </div>
     </div>
@@ -315,6 +354,32 @@
         builders.peek()
     } else {
         null
+    }
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> What happens when the header itself overflows? Here the one-line <code>val teamsAffected = when (val event = …) {</code> is 101 columns, so the subject can't stay on the <code>=</code> line. optofmt still won't break after <code>=</code> (§3): it keeps <code>= when (</code> attached and wraps the <em>subject</em> inside the parens at one indent, so the branches stay at one indent. ktfmt breaks after <code>=</code> first, then nests the branches a second level. (More lines for optofmt here, but §3 forbids the break-after-<code>=</code> form regardless — flatter branches over fewer lines.)</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val teamsAffected =
+        when (val event = state.veryLooooooooooooooooooooooooooooongLastEventValue) {
+            is InfoUpdate -&gt; info.teams.keys.toList()
+            else -&gt; emptyList()
+        }
+}</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val teamsAffected = when (
+        val event = state.veryLooooooooooooooooooooooooooooongLastEventValue
+    ) {
+        is InfoUpdate -&gt; info.teams.keys.toList()
+        else -&gt; emptyList()
     }
 }</code></pre>
       </div>
@@ -555,6 +620,33 @@ fun testSomething() {}</code></pre>
     </div>
       
       <details><summary>Why</summary><p>ktfmt unconditionally moves a property accessor onto its own indented line, even when the whole declaration fits: <code>val placeOfGetter: String get() = "hello"</code> is well under 100 columns. optofmt follows the §1 objective — don't wrap what fits — and keeps the trivial accessor inline, the denser form kotlinx code favours for one-expression getters. (When the accessor body is long enough to overflow, optofmt moves it to its own line at one indent like any other wrap.)</p></details>
+    </section>
+    <section class="card">
+      <h2>Block-valued accessor (get() = when) stays on the property line <span class="src">kotlinx-knit · linked in review thread</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">optofmt keeps `… get() = when (…) {` on one line and the branches at one indent; ktfmt makes three break decisions — accessor, `=`, and block — stacking the branches three levels deep.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">val outText: MutableList&lt;String&gt;
+    get() =
+        when (inputTextPart) {
+            InputTextPart.PRE_TOC -&gt; preTocText
+            InputTextPart.POST_TOC -&gt; postTocText
+            else -&gt; throw IllegalStateException(&quot;Wrong state: $inputTextPart&quot;)
+        }</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">val outText: MutableList&lt;String&gt; get() = when (inputTextPart) {
+    InputTextPart.PRE_TOC -&gt; preTocText
+    InputTextPart.POST_TOC -&gt; postTocText
+    else -&gt; throw IllegalStateException(&quot;Wrong state: $inputTextPart&quot;)
+}</code></pre>
+      </div>
+    </div>
+      
+      <details><summary>Why</summary><p>This is the accessor case (§accessor) and the block-valued RHS case (§3) compounded. ktfmt force-breaks all three joints: it drops <code>get()</code> onto its own line, then breaks after <code>=</code>, then indents the <code>when</code> block again — so the branches land three levels in. Both the accessor and the <code>= when (…) {</code> header fit well under 100 columns, so optofmt keeps the whole header on the property line (don't wrap what fits, §1) and treats the assignment as an attached introducer, leaving the branches at a single indent. The denser form kotlinx code favours for an expression getter whose body is a <code>when</code>.</p></details>
     </section>
     <section class="card">
       <h2>Lambda that fits stays on one line (even with return) <span class="src">Kotlin project · ktfmt diff study</span>

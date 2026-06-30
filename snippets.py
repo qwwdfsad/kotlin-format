@@ -108,6 +108,42 @@ SNIPPETS = [
         aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY
     ))
 }""",
+        }, {
+            "note": "The boundary of §5: collapsing only applies when the expandable call is the outer "
+                    "call's <em>only</em> argument. Once it has siblings, the openers no longer touch, "
+                    "so there's nothing to share — optofmt just splits the outer list one item per line "
+                    "(§4) and lets <code>OverrideQueue(</code> expand in place. The result matches ktfmt "
+                    "line-for-line except for the trailing commas. So the collapse never over-applies to "
+                    "produce a ragged <code>add(arg1, arg2, OverrideQueue(</code>.",
+            "ktfmt": """fun f() {
+    add(
+        arg1,
+        arg2,
+        OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        ),
+        arg3,
+        arg4,
+    )
+}""",
+            "optofmt": """fun f() {
+    add(
+        arg1,
+        arg2,
+        OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun
+        ),
+        arg3,
+        arg4
+    )
+}""",
+            "idiomatic": "parity",
         }],
     },
     {
@@ -216,6 +252,30 @@ SNIPPETS = [
         builders.peek()
     } else {
         null
+    }
+}""",
+        }, {
+            "note": "What happens when the header itself overflows? Here the one-line "
+                    "<code>val teamsAffected = when (val event = …) {</code> is 101 columns, so the "
+                    "subject can't stay on the <code>=</code> line. optofmt still won't break after "
+                    "<code>=</code> (§3): it keeps <code>= when (</code> attached and wraps the "
+                    "<em>subject</em> inside the parens at one indent, so the branches stay at one "
+                    "indent. ktfmt breaks after <code>=</code> first, then nests the branches a second "
+                    "level. (More lines for optofmt here, but §3 forbids the break-after-<code>=</code> "
+                    "form regardless — flatter branches over fewer lines.)",
+            "ktfmt": """fun f() {
+    val teamsAffected =
+        when (val event = state.veryLooooooooooooooooooooooooooooongLastEventValue) {
+            is InfoUpdate -> info.teams.keys.toList()
+            else -> emptyList()
+        }
+}""",
+            "optofmt": """fun f() {
+    val teamsAffected = when (
+        val event = state.veryLooooooooooooooooooooooooooooongLastEventValue
+    ) {
+        is InfoUpdate -> info.teams.keys.toList()
+        else -> emptyList()
     }
 }""",
         }],
@@ -446,6 +506,36 @@ typealias MessageId = StrongId<MessageTag>""",
         "input": 'val placeOfGetter: String get() = "hello"',
         "ktfmt": 'val placeOfGetter: String\n    get() = "hello"',
         "optofmt": 'val placeOfGetter: String get() = "hello"',
+        "idiomatic": "optofmt",
+    },
+    {
+        "id": "accessor-block-body",
+        "name": "Block-valued accessor (`get() = when`) stays on the property line",
+        "source": "kotlinx-knit · linked in review thread",
+        "thesis": "optofmt keeps `… get() = when (…) {` on one line and the branches at one indent; ktfmt makes three break decisions — accessor, `=`, and block — stacking the branches three levels deep.",
+        "why": "This is the accessor case (§accessor) and the block-valued RHS case (§3) compounded. ktfmt "
+               "force-breaks all three joints: it drops <code>get()</code> onto its own line, then breaks "
+               "after <code>=</code>, then indents the <code>when</code> block again — so the branches "
+               "land three levels in. Both the accessor and the <code>= when (…) {</code> header fit "
+               "well under 100 columns, so optofmt keeps the whole header on the property line (don't "
+               "wrap what fits, §1) and treats the assignment as an attached introducer, leaving the "
+               "branches at a single indent. The denser form kotlinx code favours for an expression "
+               "getter whose body is a <code>when</code>.",
+        "input": "val outText: MutableList<String> get() = when (inputTextPart) {\n"
+                 "InputTextPart.PRE_TOC -> preTocText\nInputTextPart.POST_TOC -> postTocText\n"
+                 "else -> throw IllegalStateException(\"Wrong state: $inputTextPart\")\n}",
+        "ktfmt": """val outText: MutableList<String>
+    get() =
+        when (inputTextPart) {
+            InputTextPart.PRE_TOC -> preTocText
+            InputTextPart.POST_TOC -> postTocText
+            else -> throw IllegalStateException("Wrong state: $inputTextPart")
+        }""",
+        "optofmt": """val outText: MutableList<String> get() = when (inputTextPart) {
+    InputTextPart.PRE_TOC -> preTocText
+    InputTextPart.POST_TOC -> postTocText
+    else -> throw IllegalStateException("Wrong state: $inputTextPart")
+}""",
         "idiomatic": "optofmt",
     },
     {
