@@ -522,17 +522,21 @@ typealias MessageId = StrongId<MessageTag>""",
         "id": "generic-type-arg-economy",
         "name": "Long generic type-argument list",
         "source": "Exposed · EntityCache.kt",
-        "thesis": "optofmt extends its paren indent-economy to angle brackets — keeping the head on the `=` line and breaking inside `<…>` with the `>()` stacked like a closer — but here that splits an intact generic type across three lines where ktfmt's break-after-`=` keeps it whole in two.",
-        "why": "This is the angle-bracket analogue of the indent-economy rule: optofmt would rather keep "
-               "<code>val x = IdentityHashMap&lt;</code> on the assignment line and break <em>inside</em> "
-               "the type argument list, stacking the closing <code>&gt;()</code> on its own line, than "
-               "break after <code>=</code>. For parenthesised argument lists that collapsing is a clear "
-               "win, but a generic type is a single conceptual unit: tearing it open leaves a dangling "
-               "<code>&lt;</code> and a lonely <code>&gt;()</code>, and costs a line. ktfmt breaks after "
-               "<code>=</code> and keeps <code>IdentityHashMap&lt;…&gt;()</code> intact on one "
-               "continuation line — fewer lines and the type stays readable, so it reads as the more "
-               "idiomatic choice here. A case where optofmt's economy instinct overreaches; the same "
-               "mechanism applied to a long extension-receiver type produces genuinely broken output.",
+        "thesis": "A generic type-argument list is not a wrappable body, so optofmt keeps the type whole and breaks after `=` — landing on the same compact two-line layout as ktfmt. Parity.",
+        "why": "When the declaration overflows, §3 keeps the introducer (<code>=</code>) attached only when "
+               "the right-hand side has a wrappable <em>body</em> — and §4 names exactly which: call "
+               "arguments, parameters, collection literals, <code>when</code> entries. A generic "
+               "type-argument list <code>&lt;…&gt;</code> is none of those (nor a call chain, §7, nor a "
+               "nested call group, §5): <code>IdentityHashMap&lt;…&gt;()</code> is a single type applied "
+               "to an empty <code>()</code>. With no §3 body to wrap, the only break that clears the "
+               "overflow is after <code>=</code>. Among the legal layouts §1 then decides: break-after-"
+               "<code>=</code> keeps the type intact in <strong>two</strong> lines (the wrapped line is "
+               "74 cols, well within 100), whereas tearing the type open inside the angle brackets costs "
+               "<strong>three</strong> — so §1's fewest-lines tiebreaker picks the two-line form, and "
+               "optofmt and ktfmt agree. (The prototype currently tears the type across three lines, "
+               "leaving a dangling <code>&lt;</code> and a lonely <code>&gt;()</code> — it over-applies "
+               "§3/§5 to a construct they don't cover and violates §1's own line count. That is a bug in "
+               "the executable, not the layout the rules prescribe.)",
         "input": "class C {\ninternal val pendingInitializationLambdas = "
                  "IdentityHashMap<Entity<Any>, MutableList<(Entity<Any>) -> Unit>>()\n}",
         "ktfmt": """class C {
@@ -540,10 +544,9 @@ typealias MessageId = StrongId<MessageTag>""",
         IdentityHashMap<Entity<Any>, MutableList<(Entity<Any>) -> Unit>>()
 }""",
         "optofmt": """class C {
-    internal val pendingInitializationLambdas = IdentityHashMap<
-        Entity<Any>, MutableList<(Entity<Any>) -> Unit>
-    >()
+    internal val pendingInitializationLambdas =
+        IdentityHashMap<Entity<Any>, MutableList<(Entity<Any>) -> Unit>>()
 }""",
-        "idiomatic": "ktfmt",
+        "idiomatic": "parity",
     },
 ]

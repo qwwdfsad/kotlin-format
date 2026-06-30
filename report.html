@@ -109,7 +109,7 @@
 <header class="b">
   <h1>ktfmt vs optofmt</h1>
   <p>Each snippet is the same Kotlin formatted two ways: <b>ktfmt</b> (<code>--kotlinlang-style</code>, the greedy engine) on the left, and <b>optofmt</b> (the optimizing model in <code>RULES.md</code>) on the right. A third column appears when a strictly better option exists that neither formatter produces. Both use <b>4-space indent</b> and a <b>100-column limit</b>.</p><p>The <span style="color:var(--grn);font-weight:600">idiomatic</span> column is outlined in green; amber marks any line past 100 columns. ktfmt output is real; optofmt output is the layout entailed by the rules.</p>
-  <div class="pills"><span class="pill">17 patterns</span><span class="pill">13 optofmt wins</span><span class="pill">2 parity</span><span class="pill">1 ktfmt wins</span><span class="pill">1 better 3rd option</span></div>
+  <div class="pills"><span class="pill">17 patterns</span><span class="pill">13 optofmt wins</span><span class="pill">3 parity</span><span class="pill">0 ktfmt wins</span><span class="pill">1 better 3rd option</span></div>
 </header>
 <main>
     <section class="card">
@@ -634,27 +634,26 @@ fun testSomething() {}</code></pre>
     </section>
     <section class="card">
       <h2>Long generic type-argument list <span class="src">Exposed · EntityCache.kt</span>
-        <span class="verdict win">ktfmt wins</span></h2>
-      <p class="thesis">optofmt extends its paren indent-economy to angle brackets — keeping the head on the `=` line and breaking inside `<…>` with the `>()` stacked like a closer — but here that splits an intact generic type across three lines where ktfmt's break-after-`=` keeps it whole in two.</p>
+        <span class="verdict parity">parity</span></h2>
+      <p class="thesis">A generic type-argument list is not a wrappable body, so optofmt keeps the type whole and breaks after `=` — landing on the same compact two-line layout as ktfmt. Parity.</p>
       <div class="cols">
-      <div class="col idiomatic">
-        <div class="hd ktfmt">ktfmt &middot; greedy <span class="best">idiomatic</span></div>
-        <pre><span>class C {</span>
-<span>    internal val pendingInitializationLambdas =</span>
-<span>        IdentityHashMap&lt;Entity&lt;Any&gt;, MutableList&lt;(Entity&lt;Any&gt;) -&gt; Unit&gt;&gt;()</span>
-<span>}</span></pre>
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">class C {
+    internal val pendingInitializationLambdas =
+        IdentityHashMap&lt;Entity&lt;Any&gt;, MutableList&lt;(Entity&lt;Any&gt;) -&gt; Unit&gt;&gt;()
+}</code></pre>
       </div>
       <div class="col">
-        <div class="hd optofmt">optofmt &middot; optimizing</div>
-        <pre><span>class C {</span>
-<span>    internal val pendingInitializationLambdas = IdentityHashMap&lt;</span>
-<span>        Entity&lt;Any&gt;, MutableList&lt;(Entity&lt;Any&gt;) -&gt; Unit&gt;</span>
-<span>    &gt;()</span>
-<span>}</span></pre>
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="same">&equiv; identical</span></div>
+        <pre><code class="language-kotlin" data-over="">class C {
+    internal val pendingInitializationLambdas =
+        IdentityHashMap&lt;Entity&lt;Any&gt;, MutableList&lt;(Entity&lt;Any&gt;) -&gt; Unit&gt;&gt;()
+}</code></pre>
       </div>
     </div>
       
-      <details><summary>Why</summary><p>This is the angle-bracket analogue of the indent-economy rule: optofmt would rather keep <code>val x = IdentityHashMap&lt;</code> on the assignment line and break <em>inside</em> the type argument list, stacking the closing <code>&gt;()</code> on its own line, than break after <code>=</code>. For parenthesised argument lists that collapsing is a clear win, but a generic type is a single conceptual unit: tearing it open leaves a dangling <code>&lt;</code> and a lonely <code>&gt;()</code>, and costs a line. ktfmt breaks after <code>=</code> and keeps <code>IdentityHashMap&lt;…&gt;()</code> intact on one continuation line — fewer lines and the type stays readable, so it reads as the more idiomatic choice here. A case where optofmt's economy instinct overreaches; the same mechanism applied to a long extension-receiver type produces genuinely broken output.</p></details>
+      <details><summary>Why</summary><p>When the declaration overflows, §3 keeps the introducer (<code>=</code>) attached only when the right-hand side has a wrappable <em>body</em> — and §4 names exactly which: call arguments, parameters, collection literals, <code>when</code> entries. A generic type-argument list <code>&lt;…&gt;</code> is none of those (nor a call chain, §7, nor a nested call group, §5): <code>IdentityHashMap&lt;…&gt;()</code> is a single type applied to an empty <code>()</code>. With no §3 body to wrap, the only break that clears the overflow is after <code>=</code>. Among the legal layouts §1 then decides: break-after-<code>=</code> keeps the type intact in <strong>two</strong> lines (the wrapped line is 74 cols, well within 100), whereas tearing the type open inside the angle brackets costs <strong>three</strong> — so §1's fewest-lines tiebreaker picks the two-line form, and optofmt and ktfmt agree. (The prototype currently tears the type across three lines, leaving a dangling <code>&lt;</code> and a lonely <code>&gt;()</code> — it over-applies §3/§5 to a construct they don't cover and violates §1's own line count. That is a bug in the executable, not the layout the rules prescribe.)</p></details>
     </section></main>
 <footer>Generated by <code>python3 generate.py</code> from <code>snippets.py</code>;
   optofmt rules live in <code>RULES.md</code>.</footer>

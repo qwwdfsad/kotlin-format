@@ -15,5 +15,5 @@
   "accessor-placement": "val placeOfGetter: String get() = \"hello\"",
   "control-flow-lambda": "fun lambdasWithReturns(nullableString: String?) {\n    nullableString?.let { return }\n}",
   "when-comma-condition": "fun f(x: Int) {\n    when (x) {\n        0, 1 -> println(\"a or b\")\n    }\n}",
-  "generic-type-arg-economy": "class C {\n    internal val pendingInitializationLambdas = IdentityHashMap<\n        Entity<Any>, MutableList<(Entity<Any>) -> Unit>\n    >()\n}"
+  "generic-type-arg-economy": "class C {\n    internal val pendingInitializationLambdas =\n        IdentityHashMap<Entity<Any>, MutableList<(Entity<Any>) -> Unit>>()\n}"
 }
