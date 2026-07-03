@@ -326,6 +326,41 @@ SNIPPETS = [
         }],
     },
     {
+        "id": "long-call-chain",
+        "name": "Long call chain",
+        "source": "icpc/live-v3 · CdsLoadersTest",
+        "thesis": "optofmt keeps the receiver on the `=` line and breaks each call at one indent; ktfmt breaks after `=` and double-indents.",
+        "why": "A fluent chain that overflows breaks before each call. optofmt keeps the receiver on "
+               "the introducer's line and puts each subsequent call on its own line at one indent. "
+               "ktfmt first breaks after <code>=</code> (an extra line) and then indents the whole "
+               "chain a second level — more lines and deeper nesting for the same chain.",
+        "input": "fun f() { val testDataDir: Path = Path.of(\"\").absolute().parent.parent."
+                 "resolve(\"tests\").resolve(\"testData\").resolve(\"loaders\")."
+                 "relativeTo(Path.of(\"\").absolute()) }",
+        "ktfmt": """fun f() {
+    val testDataDir: Path =
+        Path.of("")
+            .absolute()
+            .parent
+            .parent
+            .resolve("tests")
+            .resolve("testData")
+            .resolve("loaders")
+            .relativeTo(Path.of("").absolute())
+}""",
+        "optofmt": """fun f() {
+    val testDataDir: Path = Path.of("")
+        .absolute()
+        .parent
+        .parent
+        .resolve("tests")
+        .resolve("testData")
+        .resolve("loaders")
+        .relativeTo(Path.of("").absolute())
+}""",
+        "idiomatic": "optofmt",
+    },
+    {
         "id": "block-rhs",
         "name": "Block-valued right-hand side (`when`/`if`/`try`) stays on the `=` line",
         "source": "icpc/live-v3 · AbstractScoreboardCalculator.kt:202",
@@ -414,41 +449,6 @@ SNIPPETS = [
     }
 }""",
         }],
-    },
-    {
-        "id": "long-call-chain",
-        "name": "Long call chain",
-        "source": "icpc/live-v3 · CdsLoadersTest",
-        "thesis": "optofmt keeps the receiver on the `=` line and breaks each call at one indent; ktfmt breaks after `=` and double-indents.",
-        "why": "A fluent chain that overflows breaks before each call. optofmt keeps the receiver on "
-               "the introducer's line and puts each subsequent call on its own line at one indent. "
-               "ktfmt first breaks after <code>=</code> (an extra line) and then indents the whole "
-               "chain a second level — more lines and deeper nesting for the same chain.",
-        "input": "fun f() { val testDataDir: Path = Path.of(\"\").absolute().parent.parent."
-                 "resolve(\"tests\").resolve(\"testData\").resolve(\"loaders\")."
-                 "relativeTo(Path.of(\"\").absolute()) }",
-        "ktfmt": """fun f() {
-    val testDataDir: Path =
-        Path.of("")
-            .absolute()
-            .parent
-            .parent
-            .resolve("tests")
-            .resolve("testData")
-            .resolve("loaders")
-            .relativeTo(Path.of("").absolute())
-}""",
-        "optofmt": """fun f() {
-    val testDataDir: Path = Path.of("")
-        .absolute()
-        .parent
-        .parent
-        .resolve("tests")
-        .resolve("testData")
-        .resolve("loaders")
-        .relativeTo(Path.of("").absolute())
-}""",
-        "idiomatic": "optofmt",
     },
     {
         "id": "trailing-lambda",
