@@ -451,6 +451,36 @@ SNIPPETS = [
         }],
     },
     {
+        "id": "accessor-block-body",
+        "name": "Block-valued accessor (`get() = when`) stays on the property line",
+        "source": "kotlinx-knit · linked in review thread",
+        "thesis": "optofmt keeps `… get() = when (…) {` on one line and the branches at one indent; ktfmt makes three break decisions — accessor, `=`, and block — stacking the branches three levels deep.",
+        "why": "This is the accessor case (§accessor) and the block-valued RHS case (§3) compounded. ktfmt "
+               "force-breaks all three joints: it drops <code>get()</code> onto its own line, then breaks "
+               "after <code>=</code>, then indents the <code>when</code> block again — so the branches "
+               "land three levels in. Both the accessor and the <code>= when (…) {</code> header fit "
+               "well under 100 columns, so optofmt keeps the whole header on the property line (don't "
+               "wrap what fits, §1) and treats the assignment as an attached introducer, leaving the "
+               "branches at a single indent. The denser form kotlinx code favours for an expression "
+               "getter whose body is a <code>when</code>.",
+        "input": "val outText: MutableList<String> get() = when (inputTextPart) {\n"
+                 "InputTextPart.PRE_TOC -> preTocText\nInputTextPart.POST_TOC -> postTocText\n"
+                 "else -> throw IllegalStateException(\"Wrong state: $inputTextPart\")\n}",
+        "ktfmt": """val outText: MutableList<String>
+    get() =
+        when (inputTextPart) {
+            InputTextPart.PRE_TOC -> preTocText
+            InputTextPart.POST_TOC -> postTocText
+            else -> throw IllegalStateException("Wrong state: $inputTextPart")
+        }""",
+        "optofmt": """val outText: MutableList<String> get() = when (inputTextPart) {
+    InputTextPart.PRE_TOC -> preTocText
+    InputTextPart.POST_TOC -> postTocText
+    else -> throw IllegalStateException("Wrong state: $inputTextPart")
+}""",
+        "idiomatic": "optofmt",
+    },
+    {
         "id": "trailing-lambda",
         "name": "Trailing lambda / last-argument expansion",
         "source": "synthetic",
@@ -641,36 +671,6 @@ typealias MessageId = StrongId<MessageTag>""",
         "input": 'val placeOfGetter: String get() = "hello"',
         "ktfmt": 'val placeOfGetter: String\n    get() = "hello"',
         "optofmt": 'val placeOfGetter: String get() = "hello"',
-        "idiomatic": "optofmt",
-    },
-    {
-        "id": "accessor-block-body",
-        "name": "Block-valued accessor (`get() = when`) stays on the property line",
-        "source": "kotlinx-knit · linked in review thread",
-        "thesis": "optofmt keeps `… get() = when (…) {` on one line and the branches at one indent; ktfmt makes three break decisions — accessor, `=`, and block — stacking the branches three levels deep.",
-        "why": "This is the accessor case (§accessor) and the block-valued RHS case (§3) compounded. ktfmt "
-               "force-breaks all three joints: it drops <code>get()</code> onto its own line, then breaks "
-               "after <code>=</code>, then indents the <code>when</code> block again — so the branches "
-               "land three levels in. Both the accessor and the <code>= when (…) {</code> header fit "
-               "well under 100 columns, so optofmt keeps the whole header on the property line (don't "
-               "wrap what fits, §1) and treats the assignment as an attached introducer, leaving the "
-               "branches at a single indent. The denser form kotlinx code favours for an expression "
-               "getter whose body is a <code>when</code>.",
-        "input": "val outText: MutableList<String> get() = when (inputTextPart) {\n"
-                 "InputTextPart.PRE_TOC -> preTocText\nInputTextPart.POST_TOC -> postTocText\n"
-                 "else -> throw IllegalStateException(\"Wrong state: $inputTextPart\")\n}",
-        "ktfmt": """val outText: MutableList<String>
-    get() =
-        when (inputTextPart) {
-            InputTextPart.PRE_TOC -> preTocText
-            InputTextPart.POST_TOC -> postTocText
-            else -> throw IllegalStateException("Wrong state: $inputTextPart")
-        }""",
-        "optofmt": """val outText: MutableList<String> get() = when (inputTextPart) {
-    InputTextPart.PRE_TOC -> preTocText
-    InputTextPart.POST_TOC -> postTocText
-    else -> throw IllegalStateException("Wrong state: $inputTextPart")
-}""",
         "idiomatic": "optofmt",
     },
     {
