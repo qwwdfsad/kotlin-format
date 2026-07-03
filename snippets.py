@@ -144,6 +144,88 @@ SNIPPETS = [
     )
 }""",
             "idiomatic": "parity",
+        }, {
+            "note": "Name the single argument (<code>add(queue = OverrideQueue(</code>) and ktfmt gets "
+                    "worse still: it now breaks after <code>queue =</code> <em>as well</em> before it "
+                    "staircases the call, so the arguments land at indent 16 — three levels deep. optofmt "
+                    "treats the named-argument <code>=</code> as an introducer (§3) and keeps it on the "
+                    "opener line, so the §5 collapse is untouched: <code>add(queue = OverrideQueue(</code> "
+                    "stays whole and the body still sits at a single indent.",
+            "ktfmt": """fun f() {
+    add(
+        queue =
+            OverrideQueue(
+                queueSettings.waitTime,
+                queueSettings.firstToSolveWaitTime,
+                queueSettings.featuredRunWaitTime,
+                queueSettings.inProgressRunWaitTime,
+                queueSettings.maxQueueSize,
+                queueSettings.maxUntestedRun,
+            )
+    )
+}""",
+            "optofmt": """fun f() {
+    add(queue = OverrideQueue(
+        queueSettings.waitTime,
+        queueSettings.firstToSolveWaitTime,
+        queueSettings.featuredRunWaitTime,
+        queueSettings.inProgressRunWaitTime,
+        queueSettings.maxQueueSize,
+        queueSettings.maxUntestedRun
+    ))
+}""",
+            "idiomatic": "optofmt",
+        }, {
+            "note": "Two named arguments, each an expandable call, combine the previous two boundaries. "
+                    "The §5 collapse cannot apply — neither call is the <em>only</em> argument, so the "
+                    "openers don't touch — yet unlike the positional-siblings case this is <em>not</em> "
+                    "parity: optofmt still keeps each named-argument <code>=</code> introducer attached "
+                    "(§3), so <code>queue = OverrideQueue(</code> stays whole and its body sits at indent "
+                    "12. ktfmt breaks after every <code>=</code>, staircasing each branch's arguments down "
+                    "to indent 16.",
+            "ktfmt": """fun f() {
+    add(
+        queue =
+            OverrideQueue(
+                queueSettings.waitTime,
+                queueSettings.firstToSolveWaitTime,
+                queueSettings.featuredRunWaitTime,
+                queueSettings.inProgressRunWaitTime,
+                queueSettings.maxQueueSize,
+                queueSettings.maxUntestedRun,
+            ),
+        foo =
+            OverrideQueue(
+                queueSettings.waitTime,
+                queueSettings.firstToSolveWaitTime,
+                queueSettings.featuredRunWaitTime,
+                queueSettings.inProgressRunWaitTime,
+                queueSettings.maxQueueSize,
+                queueSettings.maxUntestedRun,
+            ),
+    )
+}""",
+            "optofmt": """fun f() {
+    add(
+        queue = OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.featuredRunWaitTime,
+            queueSettings.inProgressRunWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun
+        ),
+        foo = OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.featuredRunWaitTime,
+            queueSettings.inProgressRunWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun
+        )
+    )
+}""",
+            "idiomatic": "optofmt",
         }],
     },
     {
@@ -169,6 +251,27 @@ SNIPPETS = [
     displayName = substituteRaw(displayName)
 )""",
         "idiomatic": "optofmt",
+        "extra": [{
+            "note": "Add an explicit type and the header no longer fits — "
+                    "<code>val pair: Pair&lt;…&gt; = orgInfo.id to OverrideOrganizations.Override(</code> "
+                    "is 110 columns. Even so, optofmt does <em>not</em> break after <code>=</code> (§3): "
+                    "it keeps the introducer and the first operand together and wraps at the infix "
+                    "operator instead (§6), <code>to</code> at the end of the line and the second operand "
+                    "at a single indent. ktfmt breaks after <em>both</em> <code>=</code> and "
+                    "<code>to</code>, staircasing the call three levels deep.",
+            "ktfmt": """val pair: Pair<OrganizationId, OverrideOrganizations.Override> =
+    orgInfo.id to
+        OverrideOrganizations.Override(
+            fullName = substituteRaw(fullName),
+            displayName = substituteRaw(displayName),
+        )""",
+            "optofmt": """val pair: Pair<OrganizationId, OverrideOrganizations.Override> = orgInfo.id to
+    OverrideOrganizations.Override(
+        fullName = substituteRaw(fullName),
+        displayName = substituteRaw(displayName)
+    )""",
+            "idiomatic": "optofmt",
+        }],
     },
     {
         "id": "supertype-attached",
@@ -196,6 +299,31 @@ SNIPPETS = [
     outputHelp = "Path to new zip file"
 ) {}""",
         "idiomatic": "optofmt",
+        "extra": [{
+            "note": "Add a few interfaces to the supertype list and ktfmt fragments it completely: it "
+                    "breaks after <code>:</code>, staircases the constructor an extra level, then drops "
+                    "each interface onto its own line. optofmt still keeps <code>:</code> attached (§3) "
+                    "and expands only the constructor's argument list; the short interfaces ride the "
+                    "closing <code>)</code> line — the §5 legality allows a closer line to carry trailing "
+                    "content — so the header reads as one supertype clause rather than a four-line ladder.",
+            "ktfmt": """object ClicsArchiveCommand :
+    DumpFileCommand(
+        name = "clics-archive",
+        help = "Dump CLICS contest archive (zip)",
+        defaultFileName = "contest-archive.zip",
+        outputHelp = "Path to new zip file",
+    ),
+    Runnable,
+    Closeable,
+    KoinComponent {}""",
+            "optofmt": """object ClicsArchiveCommand : DumpFileCommand(
+    name = "clics-archive",
+    help = "Dump CLICS contest archive (zip)",
+    defaultFileName = "contest-archive.zip",
+    outputHelp = "Path to new zip file"
+), Runnable, Closeable, KoinComponent {}""",
+            "idiomatic": "optofmt",
+        }],
     },
     {
         "id": "block-rhs",
@@ -638,5 +766,118 @@ typealias MessageId = StrongId<MessageTag>""",
         IdentityHashMap<Entity<Any>, MutableList<(Entity<Any>) -> Unit>>()
 }""",
         "idiomatic": "parity",
+    },
+    {
+        "id": "assign-introducer-attached",
+        "name": "Introducer `=` stays attached (try / scope-function / concatenation)",
+        "source": "okio \u00b7 Okio.kt:60",
+        "thesis": "optofmt keeps <code>= try {</code>, <code>= receiver.run {</code> or <code>= (\"\u2026\" +</code> on the assignment line and wraps only the body; ktfmt breaks right after <code>=</code> and adds a second indent level.",
+        "why": "\u00a73 says never break after an introducer just to give its right-hand side a fresh indented block. Pattern <em>block-valued RHS</em> covers only <code>when</code>/<code>if</code>; the real optofmt applies the same rule to every block- or call-valued RHS. It keeps the <code>=</code> and the opener (<code>try {</code>, <code>receiver.run {</code>, <code>(\"\u2026\" +</code>, <code>setOf(</code>) together and lays the body at a single indent, reproducing the hand-written kotlinx shape. ktfmt eagerly drops the whole right-hand side to a new line and indents it twice.",
+        "input": "fun <T> f(block: () -> T): T? {\n    var thrown: Throwable? = null\n    val result = try {\n        block()\n    } catch (t: Throwable) {\n        thrown = t\n        null\n    } finally {\n        cleanup()\n    }\n    return result\n}",
+        "ktfmt": "fun <T> f(block: () -> T): T? {\n    var thrown: Throwable? = null\n    val result =\n        try {\n            block()\n        } catch (t: Throwable) {\n            thrown = t\n            null\n        } finally {\n            cleanup()\n        }\n    return result\n}",
+        "optofmt": "fun <T> f(block: () -> T): T? {\n    var thrown: Throwable? = null\n    val result = try {\n        block()\n    } catch (t: Throwable) {\n        thrown = t\n        null\n    } finally {\n        cleanup()\n    }\n    return result\n}",
+        "idiomatic": "optofmt",
+        "extra": [
+            {
+                "note": "Same rule, a scope-function call whose trailing lambda is the RHS: <code>= MessageDigest.getInstance(algorithm).run {</code> stays on the assignment line; ktfmt drops the receiver chain and lambda to a doubly-indented block.",
+                "ktfmt": "fun digest(algorithm: String): ByteString {\n    val digestBytes =\n        MessageDigest.getInstance(algorithm).run {\n            update(data, 0, size)\n            digest()\n        }\n    return ByteString(digestBytes)\n}",
+                "optofmt": "fun digest(algorithm: String): ByteString {\n    val digestBytes = MessageDigest.getInstance(algorithm).run {\n        update(data, 0, size)\n        digest()\n    }\n    return ByteString(digestBytes)\n}",
+            },
+            {
+                "note": "Same rule, a parenthesised <code>+</code>-concatenation: optofmt keeps <code>= (\"\u2026\" +</code> on the line and stacks the remaining strings at one flat indent (\u00a76); ktfmt breaks after <code>=</code> and staircases the operands.",
+                "ktfmt": "fun f() {\n    val raw =\n        (\"Um, I'll tell you the problem with the scientific power that you're using here, \" +\n            \"it didn't require any discipline to attain it. You read what others had done and you \" +\n            \"took the next step. You didn't earn the knowledge for yourselves, so you don't take any \")\n}",
+                "optofmt": "fun f() {\n    val raw = (\"Um, I'll tell you the problem with the scientific power that you're using here, \" +\n        \"it didn't require any discipline to attain it. You read what others had done and you \" +\n        \"took the next step. You didn't earn the knowledge for yourselves, so you don't take any \")\n}",
+            },
+            {
+                "note": "Same rule, a collection literal that must fully explode: <code>= setOf(</code> stays attached with items one-per-line at a single indent and no trailing comma; ktfmt breaks after <code>=</code>, adds a second indent level and a trailing comma.",
+                "ktfmt": "package org.jetbrains.exposed.sql.vendors\n\nval ANSI_SQL_2003_KEYWORDS: Set<String> =\n    setOf(\n        \"A\",\n        \"ABS\",\n        \"ABSOLUTE\",\n        \"ACTION\",\n        \"ADA\",\n        \"ADD\",\n        \"ADMIN\",\n        \"AFTER\",\n        \"ALL\",\n        \"ALLOCATE\",\n        \"ALTER\",\n        \"ALWAYS\",\n        \"AND\",\n        \"ANY\",\n        \"ARE\",\n        \"ARRAY\",\n        \"AS\",\n        \"ASC\",\n    )",
+                "optofmt": "package org.jetbrains.exposed.sql.vendors\n\nval ANSI_SQL_2003_KEYWORDS: Set<String> = setOf(\n    \"A\",\n    \"ABS\",\n    \"ABSOLUTE\",\n    \"ACTION\",\n    \"ADA\",\n    \"ADD\",\n    \"ADMIN\",\n    \"AFTER\",\n    \"ALL\",\n    \"ALLOCATE\",\n    \"ALTER\",\n    \"ALWAYS\",\n    \"AND\",\n    \"ANY\",\n    \"ARE\",\n    \"ARRAY\",\n    \"AS\",\n    \"ASC\"\n)",
+            },
+        ],
+    },
+    {
+        "id": "argumentless-annotation-own-line",
+        "name": "Argument-less annotation on its own line",
+        "source": "sqldelight \u00b7 SqlDelightExtension.kt:6",
+        "thesis": "optofmt puts an argument-less annotation (outside a small interop allowlist) on its own line above the declaration; ktfmt keeps it inline whenever it fits under 100 columns.",
+        "why": "The <em>annotation-with-arguments</em> pattern already breaks a standalone annotation that carries arguments onto its own line. The real optofmt extends this to <em>argument-less</em> annotations: only a modifier-like allowlist (<code>@JvmStatic</code>, <code>@JvmInline</code>, <code>@JvmOverloads</code>, <code>@PublishedApi</code>) stays inline; every other annotation (<code>@DslMarker</code>, <code>@Test</code>, <code>@SpringBootApplication</code>, <code>@Serializable</code>, \u2026) goes on its own line, matching idiomatic Kotlin. ktfmt keeps any short annotation inline. This holds for classes, properties, and expression-body functions alike.",
+        "input": "@DslMarker\nannotation class SqlDelightDsl",
+        "ktfmt": "@DslMarker annotation class SqlDelightDsl",
+        "optofmt": "@DslMarker\nannotation class SqlDelightDsl",
+        "idiomatic": "optofmt",
+        "extra": [
+            {
+                "note": "The same split happens even on an <em>expression-body</em> function \u2014 <code>@Test</code> stays above <code>fun \u2026 = doTest(\u2026)</code>; ktfmt packs the annotation, <code>fun</code> and body onto one line.",
+                "ktfmt": "class FooTest {\n    @Test fun `kotlin-stdlib-1_9_20`(testInfo: TestInfo) = doTest(testInfo)\n}",
+                "optofmt": "class FooTest {\n    @Test\n    fun `kotlin-stdlib-1_9_20`(testInfo: TestInfo) = doTest(testInfo)\n}",
+            },
+            {
+                "note": "Multiple annotations each keep their own line above a bodyless accessor; ktfmt collapses them and the bare <code>set</code> onto one line because it fits.",
+                "ktfmt": "class Database private constructor(val config: DatabaseConfig) {\n    var useNestedTransactions: Boolean = config.useNestedTransactions\n        @Deprecated(\"Use DatabaseConfig to define the useNestedTransactions\") @TestOnly set\n}",
+                "optofmt": "class Database private constructor(val config: DatabaseConfig) {\n    var useNestedTransactions: Boolean = config.useNestedTransactions\n        @Deprecated(\"Use DatabaseConfig to define the useNestedTransactions\")\n        @TestOnly\n        set\n}",
+            },
+        ],
+    },
+    {
+        "id": "multi-supertype-list-one-per-line",
+        "name": "Multiple supertypes: one per line, never packed",
+        "source": "sqldelight \u00b7 ArrayValueExpressionMixin.kt:20",
+        "thesis": "When a class header is too long and must break after the supertype colon, optofmt puts each supertype on its own line (a fully-split list per \u00a74); ktfmt packs all supertypes onto the single continuation line.",
+        "why": "Distinct from <em>supertype constructor attached to <code>:</code></em>: here <strong>both</strong> formatters break after the colon; the divergence is list layout. optofmt treats the supertype list like any comma list \u2014 compact or fully split, never fill-packed (\u00a74) \u2014 so each supertype sits on its own line, matching the hand-written original. ktfmt packs every supertype onto a single continuation line.",
+        "input": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) :\n  SqlCompositeElementImpl(node),\n  SqlExpr,\n  PostgreSqlArrayValueExpression {\n  val x = 1\n}",
+        "ktfmt": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) :\n    SqlCompositeElementImpl(node), SqlExpr, PostgreSqlArrayValueExpression {\n    val x = 1\n}",
+        "optofmt": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) :\n    SqlCompositeElementImpl(node),\n    SqlExpr,\n    PostgreSqlArrayValueExpression {\n    val x = 1\n}",
+        "idiomatic": "optofmt",
+    },
+    {
+        "id": "supertype-by-delegation-attached",
+        "name": "Supertype `by` delegation attached to `:`, `as` cast wraps",
+        "source": "kotlinx.coroutines \u00b7 BufferedChannel.kt:239",
+        "thesis": "For a class header whose supertype list is an interface delegation, optofmt keeps `: Iface by delegate` on the header line and wraps only the trailing `as Cast` onto the next line at one indent; ktfmt breaks right after `:` and pushes the entire `Iface by delegate as Cast` down a level.",
+        "why": "<code>:</code> is an introducer (\u00a73): keep it and the delegate attached, and wrap only the overflowing tail. optofmt leaves <code>: Waiter by cont</code> on the header line and drops the trailing <code>as CancellableContinuationImpl&lt;Boolean&gt;</code> to one indent; ktfmt breaks right after <code>:</code> and re-indents the whole <code>Iface by delegate as Cast</code> clause even though only the cast needed room.",
+        "input": "private class SendBroadcast(val cont: CancellableContinuation<Boolean>) : Waiter by cont as CancellableContinuationImpl<Boolean>",
+        "ktfmt": "private class SendBroadcast(val cont: CancellableContinuation<Boolean>) :\n    Waiter by cont as CancellableContinuationImpl<Boolean>",
+        "optofmt": "private class SendBroadcast(val cont: CancellableContinuation<Boolean>) : Waiter by cont\n    as CancellableContinuationImpl<Boolean>",
+        "idiomatic": "optofmt",
+    },
+    {
+        "id": "small-overflow-tolerance",
+        "name": "Small overflow tolerated instead of exploding a compact signature",
+        "source": "sqldelight \u00b7 SqlDelightRefactoringSupportProvider.kt:8",
+        "thesis": "When a signature spills only 1\u20132 columns past 100, optofmt keeps it on one line (matching the hand-written source); ktfmt explodes the parameter list one-per-line the instant it crosses 100.",
+        "why": "The real optofmt applies a small, <em>bounded</em> overflow tolerance (~2 columns): rather than fragment a short signature into a five-line block for the sake of two characters, it keeps the authorial single line. Beyond ~102 columns it does explode, so the slack is bounded. Note this trades against \u00a71's strict \u201cno overflowing line\u201d objective \u2014 it is a pragmatic convergence with how these signatures are actually written in the stdlib and elsewhere; the amber mark shows the residual one-column overflow.",
+        "input": "class C : RefactoringSupportProvider() {\n  override fun isMemberInplaceRenameAvailable(element: PsiElement, context: PsiElement?): Boolean {\n    return element is NamedElement\n  }\n}",
+        "ktfmt": "class C : RefactoringSupportProvider() {\n    override fun isMemberInplaceRenameAvailable(\n        element: PsiElement,\n        context: PsiElement?,\n    ): Boolean {\n        return element is NamedElement\n    }\n}",
+        "optofmt": "class C : RefactoringSupportProvider() {\n    override fun isMemberInplaceRenameAvailable(element: PsiElement, context: PsiElement?): Boolean {\n        return element is NamedElement\n    }\n}",
+        "idiomatic": "optofmt",
+        "extra": [
+            {
+                "note": "Same tolerance on a generic stdlib signature: <code>buildList(\u2026): List&lt;E&gt;</code> sits at 102 columns on one line; ktfmt splits the single parameter across three lines.",
+                "ktfmt": "public inline fun <E> buildList(\n    @BuilderInference builderAction: MutableList<E>.() -> Unit\n): List<E> {\n    return listOf()\n}",
+                "optofmt": "public inline fun <E> buildList(@BuilderInference builderAction: MutableList<E>.() -> Unit): List<E> {\n    return listOf()\n}",
+            },
+        ],
+    },
+    {
+        "id": "trailing-comment-excluded-from-wrap",
+        "name": "Trailing line-comment does not force a wrap",
+        "source": "kotlinx.coroutines \u00b7 DebugCoroutineInfo.kt:18",
+        "thesis": "When only a trailing <code>// comment</code> pushes a line past 100, optofmt keeps the whole line intact (matching the author); ktfmt wraps the value onto a new line to fit.",
+        "why": "The code itself \u2014 <code>internal val \u2026 = source.creationStackBottom</code> \u2014 is well within 100 columns; only the trailing <code>// comment</code> spills over. optofmt does not count a trailing end-of-line comment toward the column limit, so it sees no reason to break a one-line property in two, and reproduces the hand-written kotlinx source verbatim. ktfmt measures the raw character count (comment included) and breaks after <code>=</code> to bring the code under 100 \u2014 scattering a single logical line across two. This is a deliberate trailing-comment exemption from \u00a71's width objective; the amber mark on the optofmt line is the comment overflow it chooses to keep.",
+        "input": "class DebugCoroutineInfo {\n    internal val creationStackBottom: CoroutineStackFrame? = source.creationStackBottom // field is used as of 1.4-M3\n}",
+        "ktfmt": "class DebugCoroutineInfo {\n    internal val creationStackBottom: CoroutineStackFrame? =\n        source.creationStackBottom // field is used as of 1.4-M3\n}",
+        "optofmt": "class DebugCoroutineInfo {\n    internal val creationStackBottom: CoroutineStackFrame? = source.creationStackBottom // field is used as of 1.4-M3\n}",
+        "idiomatic": "optofmt",
+    },
+    {
+        "id": "raw-string-sole-arg-attached",
+        "name": "Triple-quoted string as sole call argument stays attached",
+        "source": "kotlinx.coroutines \u00b7 CoroutineExceptionHandlerImpl.kt:17",
+        "thesis": "When a multiline raw (\"\"\"\u2026\"\"\") string is the only argument of a call, optofmt keeps the opening `(\"\"\"` on the call line and the closing `\"\"\")` on the string's last line (indent economy \u00a75); ktfmt puts the `(` and `\"\"\"` on separate stacked lines and stacks a lone `)` below.",
+        "why": "The whole raw string is a single indivisible token; breaking around the parentheses only adds two lines and an extra indent level without helping the width objective. optofmt keeps the opening <code>(\"\"\"</code> on the call line and the closing <code>\"\"\")</code> on the string's last line, reusing one body indent (\u00a75); ktfmt stacks <code>(</code>, <code>\"\"\"</code> and a lonely <code>)</code> on separate lines.",
+        "input": "fun f() {\n    js(\"\"\"\n        var error = new Error();\n        error.message = message;\n    \"\"\")\n}",
+        "ktfmt": "fun f() {\n    js(\n        \"\"\"\n        var error = new Error();\n        error.message = message;\n    \"\"\"\n    )\n}",
+        "optofmt": "fun f() {\n    js(\"\"\"\n        var error = new Error();\n        error.message = message;\n    \"\"\")\n}",
+        "idiomatic": "optofmt",
     },
 ]

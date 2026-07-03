@@ -109,7 +109,7 @@
 <header class="b">
   <h1>ktfmt vs optofmt</h1>
   <p>Each snippet is the same Kotlin formatted two ways: <b>ktfmt</b> (<code>--kotlinlang-style</code>, the greedy engine) on the left, and <b>optofmt</b> (the optimizing model in <code>RULES.md</code>) on the right. A third column appears when a strictly better option exists that neither formatter produces. Both use <b>4-space indent</b> and a <b>100-column limit</b>.</p><p>The <span style="color:var(--grn);font-weight:600">idiomatic</span> column is outlined in green; amber marks any line past 100 columns. ktfmt output is real; optofmt output is the layout entailed by the rules.</p>
-  <div class="pills"><span class="pill">18 patterns</span><span class="pill">14 optofmt wins</span><span class="pill">3 parity</span><span class="pill">0 ktfmt wins</span><span class="pill">1 better 3rd option</span></div>
+  <div class="pills"><span class="pill">25 patterns</span><span class="pill">21 optofmt wins</span><span class="pill">3 parity</span><span class="pill">0 ktfmt wins</span><span class="pill">1 better 3rd option</span></div>
 </header>
 <main>
     <section class="card">
@@ -244,6 +244,93 @@
       </div>
     </div>
       </div>
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> Name the single argument (<code>add(queue = OverrideQueue(</code>) and ktfmt gets worse still: it now breaks after <code>queue =</code> <em>as well</em> before it staircases the call, so the arguments land at indent 16 — three levels deep. optofmt treats the named-argument <code>=</code> as an introducer (§3) and keeps it on the opener line, so the §5 collapse is untouched: <code>add(queue = OverrideQueue(</code> stays whole and the body still sits at a single indent.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    add(
+        queue =
+            OverrideQueue(
+                queueSettings.waitTime,
+                queueSettings.firstToSolveWaitTime,
+                queueSettings.featuredRunWaitTime,
+                queueSettings.inProgressRunWaitTime,
+                queueSettings.maxQueueSize,
+                queueSettings.maxUntestedRun,
+            )
+    )
+}</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    add(queue = OverrideQueue(
+        queueSettings.waitTime,
+        queueSettings.firstToSolveWaitTime,
+        queueSettings.featuredRunWaitTime,
+        queueSettings.inProgressRunWaitTime,
+        queueSettings.maxQueueSize,
+        queueSettings.maxUntestedRun
+    ))
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> Two named arguments, each an expandable call, combine the previous two boundaries. The §5 collapse cannot apply — neither call is the <em>only</em> argument, so the openers don't touch — yet unlike the positional-siblings case this is <em>not</em> parity: optofmt still keeps each named-argument <code>=</code> introducer attached (§3), so <code>queue = OverrideQueue(</code> stays whole and its body sits at indent 12. ktfmt breaks after every <code>=</code>, staircasing each branch's arguments down to indent 16.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    add(
+        queue =
+            OverrideQueue(
+                queueSettings.waitTime,
+                queueSettings.firstToSolveWaitTime,
+                queueSettings.featuredRunWaitTime,
+                queueSettings.inProgressRunWaitTime,
+                queueSettings.maxQueueSize,
+                queueSettings.maxUntestedRun,
+            ),
+        foo =
+            OverrideQueue(
+                queueSettings.waitTime,
+                queueSettings.firstToSolveWaitTime,
+                queueSettings.featuredRunWaitTime,
+                queueSettings.inProgressRunWaitTime,
+                queueSettings.maxQueueSize,
+                queueSettings.maxUntestedRun,
+            ),
+    )
+}</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    add(
+        queue = OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.featuredRunWaitTime,
+            queueSettings.inProgressRunWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun
+        ),
+        foo = OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.featuredRunWaitTime,
+            queueSettings.inProgressRunWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun
+        )
+    )
+}</code></pre>
+      </div>
+    </div>
+      </div>
       <details><summary>Why</summary><p>When an outer call's single argument is itself a call that must split, optofmt lets the two openers share a line (<code>add(OverrideQueue(</code>) and the closers collapse onto one line (<code>))</code>) — the arguments sit one level in. ktfmt cannot share indentation: each opener gets its own line and a deeper indent, and each closer gets a line of its own, leaving orphaned parens and an extra indentation level.</p></details>
     </section>
     <section class="card">
@@ -269,6 +356,28 @@
       </div>
     </div>
       
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> Add an explicit type and the header no longer fits — <code>val pair: Pair&lt;…&gt; = orgInfo.id to OverrideOrganizations.Override(</code> is 110 columns. Even so, optofmt does <em>not</em> break after <code>=</code> (§3): it keeps the introducer and the first operand together and wraps at the infix operator instead (§6), <code>to</code> at the end of the line and the second operand at a single indent. ktfmt breaks after <em>both</em> <code>=</code> and <code>to</code>, staircasing the call three levels deep.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">val pair: Pair&lt;OrganizationId, OverrideOrganizations.Override&gt; =
+    orgInfo.id to
+        OverrideOrganizations.Override(
+            fullName = substituteRaw(fullName),
+            displayName = substituteRaw(displayName),
+        )</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">val pair: Pair&lt;OrganizationId, OverrideOrganizations.Override&gt; = orgInfo.id to
+    OverrideOrganizations.Override(
+        fullName = substituteRaw(fullName),
+        displayName = substituteRaw(displayName)
+    )</code></pre>
+      </div>
+    </div>
+      </div>
       <details><summary>Why</summary><p>ktfmt breaks after the infix <code>to</code> and indents the call an extra level, leaving <code>to</code> dangling at the end of a line. optofmt keeps the introducer attached to the opener it introduces — <code>orgInfo.id to OverrideOrganizations.Override(</code> stays on one line and only the argument list wraps, exactly as a human writes a key/value pair.</p></details>
     </section>
     <section class="card">
@@ -297,6 +406,33 @@
       </div>
     </div>
       
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> Add a few interfaces to the supertype list and ktfmt fragments it completely: it breaks after <code>:</code>, staircases the constructor an extra level, then drops each interface onto its own line. optofmt still keeps <code>:</code> attached (§3) and expands only the constructor's argument list; the short interfaces ride the closing <code>)</code> line — the §5 legality allows a closer line to carry trailing content — so the header reads as one supertype clause rather than a four-line ladder.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">object ClicsArchiveCommand :
+    DumpFileCommand(
+        name = &quot;clics-archive&quot;,
+        help = &quot;Dump CLICS contest archive (zip)&quot;,
+        defaultFileName = &quot;contest-archive.zip&quot;,
+        outputHelp = &quot;Path to new zip file&quot;,
+    ),
+    Runnable,
+    Closeable,
+    KoinComponent {}</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">object ClicsArchiveCommand : DumpFileCommand(
+    name = &quot;clics-archive&quot;,
+    help = &quot;Dump CLICS contest archive (zip)&quot;,
+    defaultFileName = &quot;contest-archive.zip&quot;,
+    outputHelp = &quot;Path to new zip file&quot;
+), Runnable, Closeable, KoinComponent {}</code></pre>
+      </div>
+    </div>
+      </div>
       <details><summary>Why</summary><p><code>object X : DumpFileCommand(</code> fits on one line, but ktfmt breaks after the supertype <code>:</code> and indents the constructor call an extra level, leaving the supertype name alone on its own line. optofmt keeps the introducer attached and wraps only the argument list — same family as not breaking after <code>=</code>.</p></details>
     </section>
     <section class="card">
@@ -746,6 +882,349 @@ fun testSomething() {}</code></pre>
     </div>
       
       <details><summary>Why</summary><p>When the declaration overflows, §3 keeps the introducer (<code>=</code>) attached only when the right-hand side has a wrappable <em>body</em> — and §4 names exactly which: call arguments, parameters, collection literals, <code>when</code> entries. A generic type-argument list <code>&lt;…&gt;</code> is none of those (nor a call chain, §7, nor a nested call group, §5): <code>IdentityHashMap&lt;…&gt;()</code> is a single type applied to an empty <code>()</code>. With no §3 body to wrap, the only break that clears the overflow is after <code>=</code>. Among the legal layouts §1 then decides: break-after-<code>=</code> keeps the type intact in <strong>two</strong> lines (the wrapped line is 74 cols, well within 100), whereas tearing the type open inside the angle brackets costs <strong>three</strong> — so §1's fewest-lines tiebreaker picks the two-line form, and optofmt and ktfmt agree. (The prototype currently tears the type across three lines, leaving a dangling <code>&lt;</code> and a lonely <code>&gt;()</code> — it over-applies §3/§5 to a construct they don't cover and violates §1's own line count. That is a bug in the executable, not the layout the rules prescribe.)</p></details>
+    </section>
+    <section class="card">
+      <h2>Introducer = stays attached (try / scope-function / concatenation) <span class="src">okio · Okio.kt:60</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">optofmt keeps <code>= try {</code>, <code>= receiver.run {</code> or <code>= ("…" +</code> on the assignment line and wraps only the body; ktfmt breaks right after <code>=</code> and adds a second indent level.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">fun &lt;T&gt; f(block: () -&gt; T): T? {
+    var thrown: Throwable? = null
+    val result =
+        try {
+            block()
+        } catch (t: Throwable) {
+            thrown = t
+            null
+        } finally {
+            cleanup()
+        }
+    return result
+}</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">fun &lt;T&gt; f(block: () -&gt; T): T? {
+    var thrown: Throwable? = null
+    val result = try {
+        block()
+    } catch (t: Throwable) {
+        thrown = t
+        null
+    } finally {
+        cleanup()
+    }
+    return result
+}</code></pre>
+      </div>
+    </div>
+      
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> Same rule, a scope-function call whose trailing lambda is the RHS: <code>= MessageDigest.getInstance(algorithm).run {</code> stays on the assignment line; ktfmt drops the receiver chain and lambda to a doubly-indented block.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">fun digest(algorithm: String): ByteString {
+    val digestBytes =
+        MessageDigest.getInstance(algorithm).run {
+            update(data, 0, size)
+            digest()
+        }
+    return ByteString(digestBytes)
+}</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">fun digest(algorithm: String): ByteString {
+    val digestBytes = MessageDigest.getInstance(algorithm).run {
+        update(data, 0, size)
+        digest()
+    }
+    return ByteString(digestBytes)
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> Same rule, a parenthesised <code>+</code>-concatenation: optofmt keeps <code>= ("…" +</code> on the line and stacks the remaining strings at one flat indent (§6); ktfmt breaks after <code>=</code> and staircases the operands.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="3,4">fun f() {
+    val raw =
+        (&quot;Um, I&#x27;ll tell you the problem with the scientific power that you&#x27;re using here, &quot; +
+            &quot;it didn&#x27;t require any discipline to attain it. You read what others had done and you &quot; +
+            &quot;took the next step. You didn&#x27;t earn the knowledge for yourselves, so you don&#x27;t take any &quot;)
+}</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val raw = (&quot;Um, I&#x27;ll tell you the problem with the scientific power that you&#x27;re using here, &quot; +
+        &quot;it didn&#x27;t require any discipline to attain it. You read what others had done and you &quot; +
+        &quot;took the next step. You didn&#x27;t earn the knowledge for yourselves, so you don&#x27;t take any &quot;)
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> Same rule, a collection literal that must fully explode: <code>= setOf(</code> stays attached with items one-per-line at a single indent and no trailing comma; ktfmt breaks after <code>=</code>, adds a second indent level and a trailing comma.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">package org.jetbrains.exposed.sql.vendors
+
+val ANSI_SQL_2003_KEYWORDS: Set&lt;String&gt; =
+    setOf(
+        &quot;A&quot;,
+        &quot;ABS&quot;,
+        &quot;ABSOLUTE&quot;,
+        &quot;ACTION&quot;,
+        &quot;ADA&quot;,
+        &quot;ADD&quot;,
+        &quot;ADMIN&quot;,
+        &quot;AFTER&quot;,
+        &quot;ALL&quot;,
+        &quot;ALLOCATE&quot;,
+        &quot;ALTER&quot;,
+        &quot;ALWAYS&quot;,
+        &quot;AND&quot;,
+        &quot;ANY&quot;,
+        &quot;ARE&quot;,
+        &quot;ARRAY&quot;,
+        &quot;AS&quot;,
+        &quot;ASC&quot;,
+    )</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">package org.jetbrains.exposed.sql.vendors
+
+val ANSI_SQL_2003_KEYWORDS: Set&lt;String&gt; = setOf(
+    &quot;A&quot;,
+    &quot;ABS&quot;,
+    &quot;ABSOLUTE&quot;,
+    &quot;ACTION&quot;,
+    &quot;ADA&quot;,
+    &quot;ADD&quot;,
+    &quot;ADMIN&quot;,
+    &quot;AFTER&quot;,
+    &quot;ALL&quot;,
+    &quot;ALLOCATE&quot;,
+    &quot;ALTER&quot;,
+    &quot;ALWAYS&quot;,
+    &quot;AND&quot;,
+    &quot;ANY&quot;,
+    &quot;ARE&quot;,
+    &quot;ARRAY&quot;,
+    &quot;AS&quot;,
+    &quot;ASC&quot;
+)</code></pre>
+      </div>
+    </div>
+      </div>
+      <details><summary>Why</summary><p>§3 says never break after an introducer just to give its right-hand side a fresh indented block. Pattern <em>block-valued RHS</em> covers only <code>when</code>/<code>if</code>; the real optofmt applies the same rule to every block- or call-valued RHS. It keeps the <code>=</code> and the opener (<code>try {</code>, <code>receiver.run {</code>, <code>("…" +</code>, <code>setOf(</code>) together and lays the body at a single indent, reproducing the hand-written kotlinx shape. ktfmt eagerly drops the whole right-hand side to a new line and indents it twice.</p></details>
+    </section>
+    <section class="card">
+      <h2>Argument-less annotation on its own line <span class="src">sqldelight · SqlDelightExtension.kt:6</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">optofmt puts an argument-less annotation (outside a small interop allowlist) on its own line above the declaration; ktfmt keeps it inline whenever it fits under 100 columns.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">@DslMarker annotation class SqlDelightDsl</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">@DslMarker
+annotation class SqlDelightDsl</code></pre>
+      </div>
+    </div>
+      
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> The same split happens even on an <em>expression-body</em> function — <code>@Test</code> stays above <code>fun … = doTest(…)</code>; ktfmt packs the annotation, <code>fun</code> and body onto one line.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">class FooTest {
+    @Test fun `kotlin-stdlib-1_9_20`(testInfo: TestInfo) = doTest(testInfo)
+}</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">class FooTest {
+    @Test
+    fun `kotlin-stdlib-1_9_20`(testInfo: TestInfo) = doTest(testInfo)
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> Multiple annotations each keep their own line above a bodyless accessor; ktfmt collapses them and the bare <code>set</code> onto one line because it fits.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">class Database private constructor(val config: DatabaseConfig) {
+    var useNestedTransactions: Boolean = config.useNestedTransactions
+        @Deprecated(&quot;Use DatabaseConfig to define the useNestedTransactions&quot;) @TestOnly set
+}</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">class Database private constructor(val config: DatabaseConfig) {
+    var useNestedTransactions: Boolean = config.useNestedTransactions
+        @Deprecated(&quot;Use DatabaseConfig to define the useNestedTransactions&quot;)
+        @TestOnly
+        set
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      <details><summary>Why</summary><p>The <em>annotation-with-arguments</em> pattern already breaks a standalone annotation that carries arguments onto its own line. The real optofmt extends this to <em>argument-less</em> annotations: only a modifier-like allowlist (<code>@JvmStatic</code>, <code>@JvmInline</code>, <code>@JvmOverloads</code>, <code>@PublishedApi</code>) stays inline; every other annotation (<code>@DslMarker</code>, <code>@Test</code>, <code>@SpringBootApplication</code>, <code>@Serializable</code>, …) goes on its own line, matching idiomatic Kotlin. ktfmt keeps any short annotation inline. This holds for classes, properties, and expression-body functions alike.</p></details>
+    </section>
+    <section class="card">
+      <h2>Multiple supertypes: one per line, never packed <span class="src">sqldelight · ArrayValueExpressionMixin.kt:20</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">When a class header is too long and must break after the supertype colon, optofmt puts each supertype on its own line (a fully-split list per §4); ktfmt packs all supertypes onto the single continuation line.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">internal abstract class ArrayValueExpressionMixin(node: ASTNode) :
+    SqlCompositeElementImpl(node), SqlExpr, PostgreSqlArrayValueExpression {
+    val x = 1
+}</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">internal abstract class ArrayValueExpressionMixin(node: ASTNode) :
+    SqlCompositeElementImpl(node),
+    SqlExpr,
+    PostgreSqlArrayValueExpression {
+    val x = 1
+}</code></pre>
+      </div>
+    </div>
+      
+      <details><summary>Why</summary><p>Distinct from <em>supertype constructor attached to <code>:</code></em>: here <strong>both</strong> formatters break after the colon; the divergence is list layout. optofmt treats the supertype list like any comma list — compact or fully split, never fill-packed (§4) — so each supertype sits on its own line, matching the hand-written original. ktfmt packs every supertype onto a single continuation line.</p></details>
+    </section>
+    <section class="card">
+      <h2>Supertype by delegation attached to :, as cast wraps <span class="src">kotlinx.coroutines · BufferedChannel.kt:239</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">For a class header whose supertype list is an interface delegation, optofmt keeps `: Iface by delegate` on the header line and wraps only the trailing `as Cast` onto the next line at one indent; ktfmt breaks right after `:` and pushes the entire `Iface by delegate as Cast` down a level.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">private class SendBroadcast(val cont: CancellableContinuation&lt;Boolean&gt;) :
+    Waiter by cont as CancellableContinuationImpl&lt;Boolean&gt;</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">private class SendBroadcast(val cont: CancellableContinuation&lt;Boolean&gt;) : Waiter by cont
+    as CancellableContinuationImpl&lt;Boolean&gt;</code></pre>
+      </div>
+    </div>
+      
+      <details><summary>Why</summary><p><code>:</code> is an introducer (§3): keep it and the delegate attached, and wrap only the overflowing tail. optofmt leaves <code>: Waiter by cont</code> on the header line and drops the trailing <code>as CancellableContinuationImpl&lt;Boolean&gt;</code> to one indent; ktfmt breaks right after <code>:</code> and re-indents the whole <code>Iface by delegate as Cast</code> clause even though only the cast needed room.</p></details>
+    </section>
+    <section class="card">
+      <h2>Small overflow tolerated instead of exploding a compact signature <span class="src">sqldelight · SqlDelightRefactoringSupportProvider.kt:8</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">When a signature spills only 1–2 columns past 100, optofmt keeps it on one line (matching the hand-written source); ktfmt explodes the parameter list one-per-line the instant it crosses 100.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">class C : RefactoringSupportProvider() {
+    override fun isMemberInplaceRenameAvailable(
+        element: PsiElement,
+        context: PsiElement?,
+    ): Boolean {
+        return element is NamedElement
+    }
+}</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="1">class C : RefactoringSupportProvider() {
+    override fun isMemberInplaceRenameAvailable(element: PsiElement, context: PsiElement?): Boolean {
+        return element is NamedElement
+    }
+}</code></pre>
+      </div>
+    </div>
+      
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> Same tolerance on a generic stdlib signature: <code>buildList(…): List&lt;E&gt;</code> sits at 102 columns on one line; ktfmt splits the single parameter across three lines.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">public inline fun &lt;E&gt; buildList(
+    @BuilderInference builderAction: MutableList&lt;E&gt;.() -&gt; Unit
+): List&lt;E&gt; {
+    return listOf()
+}</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="0">public inline fun &lt;E&gt; buildList(@BuilderInference builderAction: MutableList&lt;E&gt;.() -&gt; Unit): List&lt;E&gt; {
+    return listOf()
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      <details><summary>Why</summary><p>The real optofmt applies a small, <em>bounded</em> overflow tolerance (~2 columns): rather than fragment a short signature into a five-line block for the sake of two characters, it keeps the authorial single line. Beyond ~102 columns it does explode, so the slack is bounded. Note this trades against §1's strict “no overflowing line” objective — it is a pragmatic convergence with how these signatures are actually written in the stdlib and elsewhere; the amber mark shows the residual one-column overflow.</p></details>
+    </section>
+    <section class="card">
+      <h2>Trailing line-comment does not force a wrap <span class="src">kotlinx.coroutines · DebugCoroutineInfo.kt:18</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">When only a trailing <code>// comment</code> pushes a line past 100, optofmt keeps the whole line intact (matching the author); ktfmt wraps the value onto a new line to fit.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">class DebugCoroutineInfo {
+    internal val creationStackBottom: CoroutineStackFrame? =
+        source.creationStackBottom // field is used as of 1.4-M3
+}</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="1">class DebugCoroutineInfo {
+    internal val creationStackBottom: CoroutineStackFrame? = source.creationStackBottom // field is used as of 1.4-M3
+}</code></pre>
+      </div>
+    </div>
+      
+      <details><summary>Why</summary><p>The code itself — <code>internal val … = source.creationStackBottom</code> — is well within 100 columns; only the trailing <code>// comment</code> spills over. optofmt does not count a trailing end-of-line comment toward the column limit, so it sees no reason to break a one-line property in two, and reproduces the hand-written kotlinx source verbatim. ktfmt measures the raw character count (comment included) and breaks after <code>=</code> to bring the code under 100 — scattering a single logical line across two. This is a deliberate trailing-comment exemption from §1's width objective; the amber mark on the optofmt line is the comment overflow it chooses to keep.</p></details>
+    </section>
+    <section class="card">
+      <h2>Triple-quoted string as sole call argument stays attached <span class="src">kotlinx.coroutines · CoroutineExceptionHandlerImpl.kt:17</span>
+        <span class="verdict win">optofmt wins</span></h2>
+      <p class="thesis">When a multiline raw ("""…""") string is the only argument of a call, optofmt keeps the opening `("""` on the call line and the closing `""")` on the string's last line (indent economy §5); ktfmt puts the `(` and `"""` on separate stacked lines and stacks a lone `)` below.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; greedy</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    js(
+        &quot;&quot;&quot;
+        var error = new Error();
+        error.message = message;
+    &quot;&quot;&quot;
+    )
+}</code></pre>
+      </div>
+      <div class="col idiomatic">
+        <div class="hd optofmt">optofmt &middot; optimizing <span class="best">idiomatic</span></div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    js(&quot;&quot;&quot;
+        var error = new Error();
+        error.message = message;
+    &quot;&quot;&quot;)
+}</code></pre>
+      </div>
+    </div>
+      
+      <details><summary>Why</summary><p>The whole raw string is a single indivisible token; breaking around the parentheses only adds two lines and an extra indent level without helping the width objective. optofmt keeps the opening <code>("""</code> on the call line and the closing <code>""")</code> on the string's last line, reusing one body indent (§5); ktfmt stacks <code>(</code>, <code>"""</code> and a lonely <code>)</code> on separate lines.</p></details>
     </section></main>
 <footer>Generated by <code>python3 generate.py</code> from <code>snippets.py</code>;
   optofmt rules live in <code>RULES.md</code>.</footer>

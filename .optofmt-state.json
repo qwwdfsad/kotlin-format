@@ -16,5 +16,12 @@
   "accessor-block-body": "val outText: MutableList<String> get() = when (inputTextPart) {\n    InputTextPart.PRE_TOC -> preTocText\n    InputTextPart.POST_TOC -> postTocText\n    else -> throw IllegalStateException(\"Wrong state: $inputTextPart\")\n}",
   "control-flow-lambda": "fun lambdasWithReturns(nullableString: String?) {\n    nullableString?.let { return }\n}",
   "when-comma-condition": "fun f(x: Int) {\n    when (x) {\n        0, 1 -> println(\"a or b\")\n    }\n}",
-  "generic-type-arg-economy": "class C {\n    internal val pendingInitializationLambdas =\n        IdentityHashMap<Entity<Any>, MutableList<(Entity<Any>) -> Unit>>()\n}"
+  "generic-type-arg-economy": "class C {\n    internal val pendingInitializationLambdas =\n        IdentityHashMap<Entity<Any>, MutableList<(Entity<Any>) -> Unit>>()\n}",
+  "assign-introducer-attached": "fun <T> f(block: () -> T): T? {\n    var thrown: Throwable? = null\n    val result = try {\n        block()\n    } catch (t: Throwable) {\n        thrown = t\n        null\n    } finally {\n        cleanup()\n    }\n    return result\n}",
+  "argumentless-annotation-own-line": "@DslMarker\nannotation class SqlDelightDsl",
+  "multi-supertype-list-one-per-line": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) :\n    SqlCompositeElementImpl(node),\n    SqlExpr,\n    PostgreSqlArrayValueExpression {\n    val x = 1\n}",
+  "supertype-by-delegation-attached": "private class SendBroadcast(val cont: CancellableContinuation<Boolean>) : Waiter by cont\n    as CancellableContinuationImpl<Boolean>",
+  "small-overflow-tolerance": "class C : RefactoringSupportProvider() {\n    override fun isMemberInplaceRenameAvailable(element: PsiElement, context: PsiElement?): Boolean {\n        return element is NamedElement\n    }\n}",
+  "trailing-comment-excluded-from-wrap": "class DebugCoroutineInfo {\n    internal val creationStackBottom: CoroutineStackFrame? = source.creationStackBottom // field is used as of 1.4-M3\n}",
+  "raw-string-sole-arg-attached": "fun f() {\n    js(\"\"\"\n        var error = new Error();\n        error.message = message;\n    \"\"\")\n}"
 }
