@@ -17,7 +17,7 @@
   "control-flow-lambda": "fun lambdasWithReturns(nullableString: String?) {\n    nullableString?.let { return }\n}",
   "when-comma-condition": "fun f(x: Int) {\n    when (x) {\n        0, 1 -> println(\"a or b\")\n    }\n}",
   "generic-type-arg-economy": "class C {\n    internal val pendingInitializationLambdas =\n        IdentityHashMap<Entity<Any>, MutableList<(Entity<Any>) -> Unit>>()\n}",
-  "assign-introducer-attached": "fun <T> f(block: () -> T): T? {\n    var thrown: Throwable? = null\n    val result = try {\n        block()\n    } catch (t: Throwable) {\n        thrown = t\n        null\n    } finally {\n        cleanup()\n    }\n    return result\n}",
+  "assign-introducer-attached": "fun digest(algorithm: String): ByteString {\n    val digestBytes = MessageDigest.getInstance(algorithm).run {\n        update(data, 0, size)\n        digest()\n    }\n    return ByteString(digestBytes)\n}",
   "argumentless-annotation-own-line": "@DslMarker\nannotation class SqlDelightDsl",
   "multi-supertype-list-one-per-line": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) :\n    SqlCompositeElementImpl(node),\n    SqlExpr,\n    PostgreSqlArrayValueExpression {\n    val x = 1\n}",
   "supertype-by-delegation-attached": "private class SendBroadcast(val cont: CancellableContinuation<Boolean>) : Waiter by cont\n    as CancellableContinuationImpl<Boolean>",

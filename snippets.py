@@ -327,7 +327,7 @@ SNIPPETS = [
     },
     {
         "id": "block-rhs",
-        "name": "Block-valued right-hand side (`when`/`if`) stays on the `=` line",
+        "name": "Block-valued right-hand side (`when`/`if`/`try`) stays on the `=` line",
         "source": "icpc/live-v3 · AbstractScoreboardCalculator.kt:202",
         "thesis": "optofmt keeps `val x = when (…) {` attached; ktfmt pushes the block below `=` and indents every branch deeper.",
         "why": "ktfmt breaks after <code>=</code> and indents the whole block-valued right-hand side an "
@@ -382,6 +382,13 @@ SNIPPETS = [
         null
     }
 }""",
+        }, {
+            "note": "A <code>try</code>/<code>catch</code>/<code>finally</code> used as an expression is the "
+                    "same case — a block-valued RHS. ktfmt breaks after <code>=</code> and indents the whole "
+                    "<code>try</code> an extra level; optofmt keeps <code>val result = try {</code> attached. "
+                    "(okio · Okio.kt:60)",
+            "ktfmt": "fun <T> f(block: () -> T): T? {\n    var thrown: Throwable? = null\n    val result =\n        try {\n            block()\n        } catch (t: Throwable) {\n            thrown = t\n            null\n        } finally {\n            cleanup()\n        }\n    return result\n}",
+            "optofmt": "fun <T> f(block: () -> T): T? {\n    var thrown: Throwable? = null\n    val result = try {\n        block()\n    } catch (t: Throwable) {\n        thrown = t\n        null\n    } finally {\n        cleanup()\n    }\n    return result\n}",
         }, {
             "note": "What happens when the header itself overflows? Here the one-line "
                     "<code>val teamsAffected = when (val event = …) {</code> is 101 columns, so the "
@@ -769,20 +776,15 @@ typealias MessageId = StrongId<MessageTag>""",
     },
     {
         "id": "assign-introducer-attached",
-        "name": "Introducer `=` stays attached (try / scope-function / concatenation)",
+        "name": "Introducer `=` stays attached (scope-function / concatenation / collection)",
         "source": "okio \u00b7 Okio.kt:60",
-        "thesis": "optofmt keeps <code>= try {</code>, <code>= receiver.run {</code> or <code>= (\"\u2026\" +</code> on the assignment line and wraps only the body; ktfmt breaks right after <code>=</code> and adds a second indent level.",
-        "why": "\u00a73 says never break after an introducer just to give its right-hand side a fresh indented block. Pattern <em>block-valued RHS</em> covers only <code>when</code>/<code>if</code>; the real optofmt applies the same rule to every block- or call-valued RHS. It keeps the <code>=</code> and the opener (<code>try {</code>, <code>receiver.run {</code>, <code>(\"\u2026\" +</code>, <code>setOf(</code>) together and lays the body at a single indent, reproducing the hand-written kotlinx shape. ktfmt eagerly drops the whole right-hand side to a new line and indents it twice.",
-        "input": "fun <T> f(block: () -> T): T? {\n    var thrown: Throwable? = null\n    val result = try {\n        block()\n    } catch (t: Throwable) {\n        thrown = t\n        null\n    } finally {\n        cleanup()\n    }\n    return result\n}",
-        "ktfmt": "fun <T> f(block: () -> T): T? {\n    var thrown: Throwable? = null\n    val result =\n        try {\n            block()\n        } catch (t: Throwable) {\n            thrown = t\n            null\n        } finally {\n            cleanup()\n        }\n    return result\n}",
-        "optofmt": "fun <T> f(block: () -> T): T? {\n    var thrown: Throwable? = null\n    val result = try {\n        block()\n    } catch (t: Throwable) {\n        thrown = t\n        null\n    } finally {\n        cleanup()\n    }\n    return result\n}",
+        "thesis": "optofmt keeps <code>= receiver.run {</code>, <code>= setOf(</code> or <code>= (\"\u2026\" +</code> on the assignment line and wraps only the body; ktfmt breaks right after <code>=</code> and adds a second indent level.",
+        "why": "\u00a73 says never break after an introducer just to give its right-hand side a fresh indented block. Pattern <em>block-valued RHS</em> covers only <code>when</code>/<code>if</code>; the real optofmt applies the same rule to every block- or call-valued RHS. It keeps the <code>=</code> and the opener (<code>receiver.run {</code>, <code>(\"\u2026\" +</code>, <code>setOf(</code>) together and lays the body at a single indent, reproducing the hand-written kotlinx shape. ktfmt eagerly drops the whole right-hand side to a new line and indents it twice.",
+        "input": "fun digest(algorithm: String): ByteString {\nval digestBytes = MessageDigest.getInstance(algorithm).run {\nupdate(data, 0, size)\ndigest()\n}\nreturn ByteString(digestBytes)\n}",
+        "ktfmt": "fun digest(algorithm: String): ByteString {\n    val digestBytes =\n        MessageDigest.getInstance(algorithm).run {\n            update(data, 0, size)\n            digest()\n        }\n    return ByteString(digestBytes)\n}",
+        "optofmt": "fun digest(algorithm: String): ByteString {\n    val digestBytes = MessageDigest.getInstance(algorithm).run {\n        update(data, 0, size)\n        digest()\n    }\n    return ByteString(digestBytes)\n}",
         "idiomatic": "optofmt",
         "extra": [
-            {
-                "note": "Same rule, a scope-function call whose trailing lambda is the RHS: <code>= MessageDigest.getInstance(algorithm).run {</code> stays on the assignment line; ktfmt drops the receiver chain and lambda to a doubly-indented block.",
-                "ktfmt": "fun digest(algorithm: String): ByteString {\n    val digestBytes =\n        MessageDigest.getInstance(algorithm).run {\n            update(data, 0, size)\n            digest()\n        }\n    return ByteString(digestBytes)\n}",
-                "optofmt": "fun digest(algorithm: String): ByteString {\n    val digestBytes = MessageDigest.getInstance(algorithm).run {\n        update(data, 0, size)\n        digest()\n    }\n    return ByteString(digestBytes)\n}",
-            },
             {
                 "note": "Same rule, a parenthesised <code>+</code>-concatenation: optofmt keeps <code>= (\"\u2026\" +</code> on the line and stacks the remaining strings at one flat indent (\u00a76); ktfmt breaks after <code>=</code> and staircases the operands.",
                 "ktfmt": "fun f() {\n    val raw =\n        (\"Um, I'll tell you the problem with the scientific power that you're using here, \" +\n            \"it didn't require any discipline to attain it. You read what others had done and you \" +\n            \"took the next step. You didn't earn the knowledge for yourselves, so you don't take any \")\n}",
