@@ -103,7 +103,7 @@
 <header class="b">
   <h1>ktfmt rectangle vs ergonomics</h1>
   <p>Each snippet is the same Kotlin formatted two ways: <b>ktfmt rectangle</b> (<code>--kotlinlang-style</code>) on the left, and <b>ktfmt ergonomics</b> (per <code>RULES.md</code>) on the right. A third column appears when a strictly better option exists that neither produces. Both use <b>4-space indent</b> and a <b>100-column limit</b>.</p><p>Amber marks any line past 100 columns. ktfmt rectangle output is real; ktfmt ergonomics output is the layout entailed by the rules.</p>
-  <div class="pills"><span class="pill">25 patterns</span></div>
+  <div class="pills"><span class="pill">26 patterns</span></div>
 </header>
 <main>
     <section class="card">
@@ -726,7 +726,7 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
     </section>
     <section class="card">
       <h2>Long parameter list <span class="src">synthetic</span></h2>
-      <p class="thesis">Parity — both split parameters one per line and keep `) {` together (ktfmt adds a trailing comma).</p>
+      <p class="thesis">Parity — both split parameters one per line and keep `) {` together (ktfmt rectangle adds a trailing comma).</p>
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -751,7 +751,7 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
     </div>
       
       
-      <details><summary>Why</summary><p>Included to show the comparison is fair: on the bread-and-butter case the two engines agree. The only difference is ktfmt's added trailing comma. The wins elsewhere are specific structural cases, not a blanket claim.</p></details>
+      <details><summary>Why</summary><p>Included to show the comparison is fair: on the bread-and-butter case the two engines agree. The only difference is ktfmt rectangle's added trailing comma. The wins elsewhere are specific structural cases, not a blanket claim.</p></details>
     </section>
     <section class="card">
       <h2>Elvis (?:) operator wrap <span class="src">kotlin-toolchain · PetTypeFormatter.kt:44</span></h2>
@@ -775,6 +775,47 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
       
       
       <details><summary>Why</summary><p>Elvis is one of the operators that reads best with the operator leading the continuation line, and both engines agree: keep the left side on the first line and start the wrapped line with <code>?:</code> at one indent. (This is the opposite of the chain operators like <code>&amp;&amp;</code>, which trail.)</p></details>
+    </section>
+    <section class="card">
+      <h2>Elvis (?:) stays inline when it fits <span class="src">null-fallback idiom · §6</span></h2>
+      <p class="thesis">ktfmt ergonomics keeps `?:` on the same line while the expression fits (§1); only when it overflows does it wrap — and then it keeps `=` attached and the operator at a single indent, where ktfmt rectangle also breaks after `=` and drifts a level deeper.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val entry = registry.lookup(requestedName) ?: registry.defaultFor(requestedName)
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics <span class="same">&equiv; identical</span></div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val entry = registry.lookup(requestedName) ?: registry.defaultFor(requestedName)
+}</code></pre>
+      </div>
+    </div>
+      
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> Lengthen the operands until the line overflows and the fit-driven choice flips to a wrap. ktfmt ergonomics keeps the <code>=</code> introducer attached (§3) and starts the continuation with <code>?:</code> at one indent (§2/§6). ktfmt rectangle breaks after <code>=</code> too, so the left operand lands at indent 8 and the <code>?:</code> fallback at indent 12 — a level deeper than ktfmt ergonomics.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val entry =
+        registry.lookupByQualifiedName(requestedName, currentScope)
+            ?: registry.defaultEntryForScope(currentScope)
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val entry = registry.lookupByQualifiedName(requestedName, currentScope)
+        ?: registry.defaultEntryForScope(currentScope)
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      
+      <details><summary>Why</summary><p>A null-fallback that fits on one line reads best inline, and ktfmt ergonomics keeps it there — the elvis break is a candidate, not a forced one (§6/§1), so both engines agree while it fits. The difference appears only once the operands overflow: ktfmt ergonomics keeps the introducer attached (§3), so <code>val entry =</code> stays on the first line, and drops <code>?:</code> to the start of the next line at a single indent (§2/§6). ktfmt rectangle breaks after <code>=</code> as well, then indents the <code>?:</code> a further level, so the fallback drifts two levels deep.</p></details>
     </section>
     <section class="card">
       <h2>Annotation with arguments on its own line <span class="src">Kotlin project · ktfmt diff study</span></h2>
