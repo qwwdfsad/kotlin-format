@@ -100,6 +100,24 @@ execute(retryCount, backoff, { ctx: Ctx ->
 (`optofmt` is layout-only: it does not *move* a trailing lambda outside the parentheses, even
 though that is the most idiomatic Kotlin. That is a refactor left to the author.)
 
+**Custom formatting — author-directed expansion.** The compact-or-split choice is normally decided
+by fit (§1: don't wrap if it fits). But the author may *force* the split: **a line break placed
+immediately after the opening `(` (call or declaration parameter list) or `[` (collection literal)
+keeps that list one item per line**, even when the whole thing would fit on a single line. Removing
+the break (joining the opener and first element onto one line) lets the list collapse again — so the
+author toggles the layout by where they put the first newline. (A lambda body has the same
+author-directed control off its `->`/`{` — see §13.)
+
+```kotlin
+foo(a, b, c)          // one line — collapses
+
+foo(                  // newline right after `(` → stays exploded, even though it would fit
+    a,
+    b,
+    c,
+)
+```
+
 A trailing lambda's own header (`{ params ->`) is atomic and never splits — see **§13**.
 
 ## 5. Indent economy — collapse openers, stack closers
@@ -250,6 +268,20 @@ internal suspend fun sendBroadcast(element: E): Boolean =
     suspendCancellableCoroutine { cont ->
         …
     }
+```
+
+**Custom formatting — author-directed body expansion.** Whether a lambda body collapses onto its
+header line (`{ … }`) is normally decided by fit (§1). But the author may *force* it open: **a line
+break right after `->` (or after `{` when the lambda has no parameters) keeps the body on its own
+line(s)**, even when it would fit. Removing that break lets the body collapse again — the mirror of
+the list rule in §4.
+
+```kotlin
+run { doThing() }     // one line — collapses
+
+run {                 // newline right after `{`/`->` → body stays on its own line
+    doThing()
+}
 ```
 
 ## 14. Trailing comma on multi-line lists
