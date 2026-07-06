@@ -563,6 +563,32 @@
     </div>
       </div>
       <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> Same evolution for the <code>if</code>/<code>else</code> expression: give <code>builder</code> an explicit type and ktfmt ergonomics still keeps <code>= if (</code> attached with the type glued to its <code>:</code>; ktfmt rectangle breaks after <code>=</code>, dropping both branches a level deeper.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val builder: InstructionBuilder? =
+        if (!builders.isEmpty()) {
+            builders.peek()
+        } else {
+            null
+        }
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val builder: InstructionBuilder? = if (!builders.isEmpty()) {
+        builders.peek()
+    } else {
+        null
+    }
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
         <p class="thesis"><span class="same-rule">same rule</span> A <code>try</code>/<code>catch</code>/<code>finally</code> used as an expression is the same case — a block-valued RHS. ktfmt rectangle breaks after <code>=</code> and indents the whole <code>try</code> an extra level; ktfmt ergonomics keeps <code>val result = try {</code> attached. (okio · Okio.kt:60)</p>
         <div class="cols">
       <div class="col">
@@ -586,6 +612,42 @@
         <pre><code class="language-kotlin" data-over="">fun &lt;T&gt; f(block: () -&gt; T): T? {
     var thrown: Throwable? = null
     val result = try {
+        block()
+    } catch (t: Throwable) {
+        thrown = t
+        null
+    } finally {
+        cleanup()
+    }
+    return result
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> And the <code>try</code> expression: add the explicit <code>T?</code> type and <code>= try {</code> stays attached; ktfmt rectangle drops the whole <code>try</code> below <code>=</code>, its clauses a level deeper.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">fun &lt;T&gt; f(block: () -&gt; T): T? {
+    var thrown: Throwable? = null
+    val result: T? =
+        try {
+            block()
+        } catch (t: Throwable) {
+            thrown = t
+            null
+        } finally {
+            cleanup()
+        }
+    return result
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">fun &lt;T&gt; f(block: () -&gt; T): T? {
+    var thrown: Throwable? = null
+    val result: T? = try {
         block()
     } catch (t: Throwable) {
         thrown = t
@@ -1151,7 +1213,7 @@ annotation class SqlDelightDsl</code></pre>
     </section>
     <section class="card">
       <h2>Multiple supertypes: one per line, never packed <span class="src">sqldelight · ArrayValueExpressionMixin.kt:20</span></h2>
-      <p class="thesis">When a class header is too long and must break after the supertype colon, ktfmt ergonomics puts each supertype on its own line (a fully-split list per §4); ktfmt rectangle packs all supertypes onto the single continuation line.</p>
+      <p class="thesis">ktfmt ergonomics keeps the first supertype attached to `:` (§3) and drops each remaining supertype to its own line (§4); ktfmt rectangle breaks right after `:` and packs every supertype onto one continuation line.</p>
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -1162,8 +1224,7 @@ annotation class SqlDelightDsl</code></pre>
       </div>
       <div class="col">
         <div class="hd optofmt">ktfmt &middot; ergonomics</div>
-        <pre><code class="language-kotlin" data-over="">internal abstract class ArrayValueExpressionMixin(node: ASTNode) :
-    SqlCompositeElementImpl(node),
+        <pre><code class="language-kotlin" data-over="">internal abstract class ArrayValueExpressionMixin(node: ASTNode) : SqlCompositeElementImpl(node),
     SqlExpr,
     PostgreSqlArrayValueExpression {
     val x = 1
@@ -1172,7 +1233,7 @@ annotation class SqlDelightDsl</code></pre>
     </div>
       
       
-      <details><summary>Why</summary><p>Distinct from <em>supertype constructor attached to <code>:</code></em>: here <strong>both</strong> formatters break after the colon; the divergence is list layout. ktfmt ergonomics treats the supertype list like any comma list — compact or fully split, never fill-packed (§4) — so each supertype sits on its own line, matching the hand-written original. ktfmt rectangle packs every supertype onto a single continuation line.</p></details>
+      <details><summary>Why</summary><p>The supertype <code>:</code> is an introducer (§3): ktfmt ergonomics keeps <code>) : SqlCompositeElementImpl(node)</code> on the header line and puts each <em>remaining</em> supertype on its own line at one indent (§4 — a comma list is compact or one-per-line). ktfmt rectangle instead breaks right after <code>:</code> and then fill-packs every supertype onto the single continuation line, so the list reads as one dense run rather than an aligned column.</p></details>
     </section>
     <section class="card">
       <h2>Supertype by delegation attached to :, as cast wraps <span class="src">kotlinx.coroutines · BufferedChannel.kt:239</span></h2>
