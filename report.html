@@ -505,6 +505,38 @@
     </div>
       
       <div class="extra">
+        <p class="thesis"><span class="same-rule">same rule</span> Time passes and someone adds an explicit type. ktfmt ergonomics is unmoved: the type glues to its <code>:</code> (§9) and <code>= when (</code> stays attached (§3), so the branches keep their single indent — the layout barely changes as the code evolves. ktfmt rectangle breaks after <code>=</code> as before, so the whole <code>when</code> now drops a level and its branches sit at indent 12.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val teamsAffected: List&lt;TeamId&gt; =
+        when (val event = state.lastEvent) {
+            is CommentaryMessagesUpdate -&gt; emptyList()
+            is InfoUpdate -&gt; info.teams.keys.toList()
+            is RunUpdate -&gt; {
+                lastSubmissionTime = maxOf(lastSubmissionTime, event.newInfo.time)
+                runsByTeamId.applyEvent(state)
+            }
+        }
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    val teamsAffected: List&lt;TeamId&gt; = when (val event = state.lastEvent) {
+        is CommentaryMessagesUpdate -&gt; emptyList()
+        is InfoUpdate -&gt; info.teams.keys.toList()
+        is RunUpdate -&gt; {
+            lastSubmissionTime = maxOf(lastSubmissionTime, event.newInfo.time)
+            runsByTeamId.applyEvent(state)
+        }
+    }
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
         <p class="thesis"><span class="same-rule">same rule</span> An <code>if</code>/<code>else</code> used as an expression is the same case — a block-valued RHS. ktfmt rectangle breaks after <code>=</code> and indents both branches an extra level; ktfmt ergonomics keeps <code>val builder = if (!builders.isEmpty()) {</code> attached. (Kotlin · ControlFlowInstructionsGenerator)</p>
         <div class="cols">
       <div class="col">

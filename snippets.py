@@ -414,6 +414,38 @@ SNIPPETS = [
 }""",
         "idiomatic": "optofmt",
         "extra": [{
+            "note": "Time passes and someone adds an explicit type. ktfmt ergonomics is unmoved: the type glues "
+                    "to its <code>:</code> (§9) and <code>= when (</code> stays attached (§3), so the "
+                    "branches keep their single indent — the layout barely changes as the code evolves. "
+                    "ktfmt rectangle breaks after <code>=</code> as before, so the whole <code>when</code> now "
+                    "drops a level and its branches sit at indent 12.",
+            "input": "fun f() {\nval teamsAffected: List<TeamId> = when (val event = state.lastEvent) {\n"
+                     "is CommentaryMessagesUpdate -> emptyList()\nis InfoUpdate -> info.teams.keys.toList()\n"
+                     "is RunUpdate -> {\nlastSubmissionTime = maxOf(lastSubmissionTime, event.newInfo.time)\n"
+                     "runsByTeamId.applyEvent(state)\n}\n}\n}",
+            "ktfmt": """fun f() {
+    val teamsAffected: List<TeamId> =
+        when (val event = state.lastEvent) {
+            is CommentaryMessagesUpdate -> emptyList()
+            is InfoUpdate -> info.teams.keys.toList()
+            is RunUpdate -> {
+                lastSubmissionTime = maxOf(lastSubmissionTime, event.newInfo.time)
+                runsByTeamId.applyEvent(state)
+            }
+        }
+}""",
+            "optofmt": """fun f() {
+    val teamsAffected: List<TeamId> = when (val event = state.lastEvent) {
+        is CommentaryMessagesUpdate -> emptyList()
+        is InfoUpdate -> info.teams.keys.toList()
+        is RunUpdate -> {
+            lastSubmissionTime = maxOf(lastSubmissionTime, event.newInfo.time)
+            runsByTeamId.applyEvent(state)
+        }
+    }
+}""",
+            "idiomatic": "optofmt",
+        }, {
             "note": "An <code>if</code>/<code>else</code> used as an expression is the same case — a "
                     "block-valued RHS. ktfmt rectangle breaks after <code>=</code> and indents both branches an "
                     "extra level; ktfmt ergonomics keeps <code>val builder = if (!builders.isEmpty()) {</code> "
