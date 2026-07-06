@@ -466,12 +466,44 @@ SNIPPETS = [
     }
 }""",
         }, {
+            "note": "Same evolution for the <code>if</code>/<code>else</code> expression: give "
+                    "<code>builder</code> an explicit type and ktfmt ergonomics still keeps <code>= if (</code> "
+                    "attached with the type glued to its <code>:</code>; ktfmt rectangle breaks after <code>=</code>, "
+                    "dropping both branches a level deeper.",
+            "input": "fun f() {\nval builder: InstructionBuilder? = if (!builders.isEmpty()) {\n"
+                     "builders.peek()\n} else {\nnull\n}\n}",
+            "ktfmt": """fun f() {
+    val builder: InstructionBuilder? =
+        if (!builders.isEmpty()) {
+            builders.peek()
+        } else {
+            null
+        }
+}""",
+            "optofmt": """fun f() {
+    val builder: InstructionBuilder? = if (!builders.isEmpty()) {
+        builders.peek()
+    } else {
+        null
+    }
+}""",
+            "idiomatic": "optofmt",
+        }, {
             "note": "A <code>try</code>/<code>catch</code>/<code>finally</code> used as an expression is the "
                     "same case — a block-valued RHS. ktfmt rectangle breaks after <code>=</code> and indents the whole "
                     "<code>try</code> an extra level; ktfmt ergonomics keeps <code>val result = try {</code> attached. "
                     "(okio · Okio.kt:60)",
             "ktfmt": "fun <T> f(block: () -> T): T? {\n    var thrown: Throwable? = null\n    val result =\n        try {\n            block()\n        } catch (t: Throwable) {\n            thrown = t\n            null\n        } finally {\n            cleanup()\n        }\n    return result\n}",
             "optofmt": "fun <T> f(block: () -> T): T? {\n    var thrown: Throwable? = null\n    val result = try {\n        block()\n    } catch (t: Throwable) {\n        thrown = t\n        null\n    } finally {\n        cleanup()\n    }\n    return result\n}",
+        }, {
+            "note": "And the <code>try</code> expression: add the explicit <code>T?</code> type and "
+                    "<code>= try {</code> stays attached; ktfmt rectangle drops the whole <code>try</code> below "
+                    "<code>=</code>, its clauses a level deeper.",
+            "input": "fun <T> f(block: () -> T): T? {\nvar thrown: Throwable? = null\nval result: T? = try {\n"
+                     "block()\n} catch (t: Throwable) {\nthrown = t\nnull\n} finally {\ncleanup()\n}\nreturn result\n}",
+            "ktfmt": "fun <T> f(block: () -> T): T? {\n    var thrown: Throwable? = null\n    val result: T? =\n        try {\n            block()\n        } catch (t: Throwable) {\n            thrown = t\n            null\n        } finally {\n            cleanup()\n        }\n    return result\n}",
+            "optofmt": "fun <T> f(block: () -> T): T? {\n    var thrown: Throwable? = null\n    val result: T? = try {\n        block()\n    } catch (t: Throwable) {\n        thrown = t\n        null\n    } finally {\n        cleanup()\n    }\n    return result\n}",
+            "idiomatic": "optofmt",
         }, {
             "note": "What happens when the header itself overflows? Here the one-line "
                     "<code>val teamsAffected = when (val event = …) {</code> is 101 columns, so the "
@@ -906,11 +938,11 @@ typealias MessageId = StrongId<MessageTag>""",
         "id": "multi-supertype-list-one-per-line",
         "name": "Multiple supertypes: one per line, never packed",
         "source": "sqldelight \u00b7 ArrayValueExpressionMixin.kt:20",
-        "thesis": "When a class header is too long and must break after the supertype colon, ktfmt ergonomics puts each supertype on its own line (a fully-split list per \u00a74); ktfmt rectangle packs all supertypes onto the single continuation line.",
-        "why": "Distinct from <em>supertype constructor attached to <code>:</code></em>: here <strong>both</strong> formatters break after the colon; the divergence is list layout. ktfmt ergonomics treats the supertype list like any comma list \u2014 compact or fully split, never fill-packed (\u00a74) \u2014 so each supertype sits on its own line, matching the hand-written original. ktfmt rectangle packs every supertype onto a single continuation line.",
+        "thesis": "ktfmt ergonomics keeps the first supertype attached to `:` (\u00a73) and drops each remaining supertype to its own line (\u00a74); ktfmt rectangle breaks right after `:` and packs every supertype onto one continuation line.",
+        "why": "The supertype <code>:</code> is an introducer (\u00a73): ktfmt ergonomics keeps <code>) : SqlCompositeElementImpl(node)</code> on the header line and puts each <em>remaining</em> supertype on its own line at one indent (\u00a74 \u2014 a comma list is compact or one-per-line). ktfmt rectangle instead breaks right after <code>:</code> and then fill-packs every supertype onto the single continuation line, so the list reads as one dense run rather than an aligned column.",
         "input": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) :\n  SqlCompositeElementImpl(node),\n  SqlExpr,\n  PostgreSqlArrayValueExpression {\n  val x = 1\n}",
         "ktfmt": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) :\n    SqlCompositeElementImpl(node), SqlExpr, PostgreSqlArrayValueExpression {\n    val x = 1\n}",
-        "optofmt": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) :\n    SqlCompositeElementImpl(node),\n    SqlExpr,\n    PostgreSqlArrayValueExpression {\n    val x = 1\n}",
+        "optofmt": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) : SqlCompositeElementImpl(node),\n    SqlExpr,\n    PostgreSqlArrayValueExpression {\n    val x = 1\n}",
         "idiomatic": "optofmt",
     },
     {

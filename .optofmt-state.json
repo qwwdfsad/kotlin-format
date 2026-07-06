@@ -20,7 +20,7 @@
   "generic-type-arg-economy": "class C {\n    internal val pendingInitializationLambdas =\n        IdentityHashMap<Entity<Any>, MutableList<(Entity<Any>) -> Unit>>()\n}",
   "assign-introducer-attached": "fun digest(algorithm: String): ByteString {\n    val digestBytes = MessageDigest.getInstance(algorithm).run {\n        update(data, 0, size)\n        digest()\n    }\n    return ByteString(digestBytes)\n}",
   "argumentless-annotation-own-line": "@DslMarker\nannotation class SqlDelightDsl",
-  "multi-supertype-list-one-per-line": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) :\n    SqlCompositeElementImpl(node),\n    SqlExpr,\n    PostgreSqlArrayValueExpression {\n    val x = 1\n}",
+  "multi-supertype-list-one-per-line": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) : SqlCompositeElementImpl(node),\n    SqlExpr,\n    PostgreSqlArrayValueExpression {\n    val x = 1\n}",
   "supertype-by-delegation-attached": "private class SendBroadcast(val cont: CancellableContinuation<Boolean>) : Waiter by cont\n    as CancellableContinuationImpl<Boolean>",
   "small-overflow-tolerance": "class C : RefactoringSupportProvider() {\n    override fun isMemberInplaceRenameAvailable(element: PsiElement, context: PsiElement?): Boolean {\n        return element is NamedElement\n    }\n}",
   "trailing-comment-excluded-from-wrap": "class DebugCoroutineInfo {\n    internal val creationStackBottom: CoroutineStackFrame? = source.creationStackBottom // field is used as of 1.4-M3\n}",
