@@ -56,12 +56,15 @@ body or argument list wrap instead. Introducers include:
 - assignment `=`
 - the supertype colon `:` in a class/object header
 - an infix call such as `to`
+- the delegation keyword `by` — both a property delegate (`val x by provideDelegate(…)`) and a
+  class delegate (`class C : I by impl`)
 
 ```kotlin
 // optofmt
 val teams = when (val e = state.lastEvent) { … }          // not: val teams =\n    when (…) {
 object X : DumpFileCommand(name = "a", help = "b") { … }   // not: object X :\n    DumpFileCommand(
 val pair = key to Override(fullName = a, displayName = b)  // not: key to\n    Override(
+val cfg by provideDelegate(firstArgument, secondArgument)  // not: val cfg by\n    provideDelegate(
 ```
 
 When the right-hand side is itself too long, keep the introducer + opener on the first line
