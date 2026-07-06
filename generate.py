@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Build report.html from snippets.py.
 
-Each snippet renders two columns by default — ktfmt (greedy) and optofmt (optimizing, per
-RULES.md) — plus an optional third column when a strictly better option exists. The most
-idiomatic column is highlighted in red.
+Each snippet renders two columns by default — ktfmt rectangle (--kotlinlang-style) and
+ktfmt ergonomics (per RULES.md) — plus an optional third column when a strictly better
+option exists.
 
-On every run the current optofmt layouts are saved to .optofmt-state.json. If a previous
-state exists and some snippets' optofmt changed (e.g. after editing RULES.md and reformatting),
-a diff.html is also written showing before/after for only the changed snippets.
+On every run the current ktfmt ergonomics layouts are saved to .optofmt-state.json. If a
+previous state exists and some snippets' ergonomics layout changed (e.g. after editing
+RULES.md and reformatting), a diff.html is also written showing before/after for only the
+changed snippets.
 
     python3 generate.py
 """
@@ -21,7 +22,7 @@ HERE = Path(__file__).resolve().parent
 STATE = HERE / ".optofmt-state.json"
 LIMIT = 100
 
-COL_LABEL = {"ktfmt": "ktfmt &middot; greedy", "optofmt": "optofmt &middot; optimizing"}
+COL_LABEL = {"ktfmt": "ktfmt &middot; rectangle", "optofmt": "ktfmt &middot; ergonomics"}
 
 
 def esc(t):
@@ -37,18 +38,15 @@ def code_block(text):
     return (f'<pre><code class="language-kotlin" data-over="{over}">{code}</code></pre>')
 
 
-def columns(panes, idiomatic):
-    """panes: list of (key, label, code). idiomatic: key to highlight red, or 'parity'."""
+def columns(panes):
+    """panes: list of (key, label, code)."""
     texts = [c for _, _, c in panes]
     cells = []
     for i, (key, label, code) in enumerate(panes):
         earlier = next((panes[j][1] for j in range(i) if texts[j] == code), None)
         same = ' <span class="same">&equiv; identical</span>' if earlier else ""
-        is_idio = key == idiomatic
-        tag = ' <span class="best">idiomatic</span>' if is_idio else ""
-        cls = "col" + (" idiomatic" if is_idio else "")
-        cells.append(f'''<div class="{cls}">
-        <div class="hd {key}">{label}{tag}{same}</div>
+        cells.append(f'''<div class="col">
+        <div class="hd {key}">{label}{same}</div>
         {code_block(code)}
       </div>''')
     grid = "cols3" if len(panes) == 3 else "cols"
@@ -62,23 +60,19 @@ def card(s):
         panes.append(("third", s["third"]["label"], s["third"]["code"]))
     why = f'<details><summary>Why</summary><p>{s["why"]}</p></details>' if s.get("why") else ""
     note = f'<p class="note">{s["note"]}</p>' if s.get("note") else ""
-    verdict = {"optofmt": "optofmt wins", "ktfmt": "ktfmt wins",
-               "third": "neither — see column 3", "parity": "parity"}[s["idiomatic"]]
-    vcls = "parity" if s["idiomatic"] == "parity" else "win"
     extras = "".join(
         f'''
       <div class="extra">
         <p class="thesis"><span class="same-rule">same rule</span> {ex["note"]}</p>
         {columns([("ktfmt", COL_LABEL["ktfmt"], ex["ktfmt"]),
-                  ("optofmt", COL_LABEL["optofmt"], ex["optofmt"])], ex.get("idiomatic", s["idiomatic"]))}
+                  ("optofmt", COL_LABEL["optofmt"], ex["optofmt"])])}
       </div>'''
         for ex in s.get("extra", []))
     return f'''
     <section class="card">
-      <h2>{esc(s["name"]).replace("`", "")} <span class="src">{s["source"]}</span>
-        <span class="verdict {vcls}">{verdict}</span></h2>
+      <h2>{esc(s["name"]).replace("`", "")} <span class="src">{s["source"]}</span></h2>
       <p class="thesis">{s["thesis"]}</p>
-      {columns(panes, s["idiomatic"])}
+      {columns(panes)}
       {extras}
       {note}
       {why}
@@ -130,10 +124,6 @@ STYLE = """
   h2 { font-size:18px; margin:2px 0 8px; font-weight:600; }
   .src { font:12px ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--mut);
          font-weight:400; margin-left:6px; }
-  .verdict { font-size:11px; padding:2px 8px; border-radius:6px; margin-left:8px;
-             vertical-align:2px; font-weight:600; }
-  .verdict.win { background:var(--grn-bg); color:var(--grn); }
-  .verdict.parity { background:var(--mut-bg); color:var(--mut); }
   .thesis { color:var(--txt); margin:6px 0 14px; }
   .note { color:var(--txt); margin:14px 0 0; padding:10px 14px; border-radius:7px;
           background:var(--over); border-left:3px solid var(--amb); font-size:14px; }
@@ -147,10 +137,6 @@ STYLE = """
   .hd.ktfmt { color:var(--amb); }
   .hd.optofmt { color:var(--acc); }
   .hd.third { color:var(--pur); }
-  .col.idiomatic .hd { color:var(--grn); border-color:var(--grn); }
-  .col.idiomatic pre { border-color:var(--grn); box-shadow:inset 3px 0 0 var(--grn); }
-  .best { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--grn);
-          border:1px solid var(--grn); border-radius:5px; padding:1px 5px; margin-left:6px; }
   .same { font-size:11px; color:var(--mut); margin-left:6px; font-weight:400; }
   .extra { margin-top:16px; padding-top:14px; border-top:1px dashed var(--line); }
   .extra .thesis { margin:0 0 12px; }
@@ -272,34 +258,24 @@ def page(title, intro, body, pills=""):
 </header>
 <main>{body}</main>
 <footer>Generated by <code>python3 generate.py</code> from <code>snippets.py</code>;
-  optofmt rules live in <code>RULES.md</code>.</footer>
+  ktfmt ergonomics rules live in <code>RULES.md</code>.</footer>
 {HIGHLIGHT_SCRIPT}
 {THEME_SCRIPT}
 </body></html>"""
 
 
 def build_report():
-    wins = sum(1 for s in SNIPPETS if s["idiomatic"] == "optofmt")
-    parity = sum(1 for s in SNIPPETS if s["idiomatic"] == "parity")
-    ktwins = sum(1 for s in SNIPPETS if s["idiomatic"] == "ktfmt")
-    thirds = sum(1 for s in SNIPPETS if s["idiomatic"] == "third")
     intro = (
-        '<p>Each snippet is the same Kotlin formatted two ways: <b>ktfmt</b> '
-        '(<code>--kotlinlang-style</code>, the greedy engine) on the left, and <b>optofmt</b> '
-        '(the optimizing model in <code>RULES.md</code>) on the right. A third column appears '
-        'when a strictly better option exists that neither formatter produces. Both use '
+        '<p>Each snippet is the same Kotlin formatted two ways: <b>ktfmt rectangle</b> '
+        '(<code>--kotlinlang-style</code>) on the left, and <b>ktfmt ergonomics</b> '
+        '(per <code>RULES.md</code>) on the right. A third column appears '
+        'when a strictly better option exists that neither produces. Both use '
         '<b>4-space indent</b> and a <b>100-column limit</b>.</p>'
-        '<p>The <span style="color:var(--grn);font-weight:600">idiomatic</span> column is '
-        'outlined in green; amber marks any line past 100 columns. ktfmt output is real; optofmt '
-        'output is the layout entailed by the rules.</p>')
-    pills = (f'<div class="pills"><span class="pill">{len(SNIPPETS)} patterns</span>'
-             f'<span class="pill">{wins} optofmt wins</span>'
-             f'<span class="pill">{parity} parity</span>'
-             f'<span class="pill">{ktwins} ktfmt wins</span>'
-             f'<span class="pill">{thirds} better 3rd option</span></div>')
+        '<p>Amber marks any line past 100 columns. ktfmt rectangle output is real; ktfmt '
+        'ergonomics output is the layout entailed by the rules.</p>')
+    pills = f'<div class="pills"><span class="pill">{len(SNIPPETS)} patterns</span></div>'
     body = "".join(card(s) for s in SNIPPETS)
-    (HERE / "report.html").write_text(page("ktfmt vs optofmt", intro, body, pills))
-    return wins, parity, ktwins
+    (HERE / "report.html").write_text(page("ktfmt rectangle vs ergonomics", intro, body, pills))
 
 
 def build_diff():
@@ -318,23 +294,23 @@ def build_diff():
     cards = []
     for sid in changed:
         s = by_id[sid]
-        panes = [("ktfmt", "optofmt &middot; before", prev[sid]),
-                 ("optofmt", "optofmt &middot; after", cur[sid])]
+        panes = [("ktfmt", "ktfmt ergonomics &middot; before", prev[sid]),
+                 ("optofmt", "ktfmt ergonomics &middot; after", cur[sid])]
         cards.append(f'''
     <section class="card">
       <h2>{esc(s["name"]).replace("`", "")} <span class="src">{s["source"]}</span></h2>
-      {columns(panes, "optofmt")}
+      {columns(panes)}
     </section>''')
-    intro = ('<p>optofmt layouts that changed since the last run (e.g. after editing '
+    intro = ('<p>ktfmt ergonomics layouts that changed since the last run (e.g. after editing '
              '<code>RULES.md</code> and reformatting). Only changed snippets are shown.</p>')
-    (HERE / "diff.html").write_text(page("optofmt diff — before / after", intro, "".join(cards)))
+    (HERE / "diff.html").write_text(page("ktfmt ergonomics diff — before / after", intro, "".join(cards)))
     return len(changed)
 
 
 if __name__ == "__main__":
-    wins, parity, ktwins = build_report()
+    build_report()
     n_changed = build_diff()
-    msg = f"Wrote report.html ({len(SNIPPETS)} patterns: {wins} optofmt, {parity} parity, {ktwins} ktfmt)"
+    msg = f"Wrote report.html ({len(SNIPPETS)} patterns)"
     if n_changed:
         msg += f"; wrote diff.html ({n_changed} changed)"
     print(msg)
