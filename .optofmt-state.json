@@ -12,6 +12,7 @@
   "grouped-declarations": "typealias TeamId = StrongId<TeamTag>\ntypealias RunId = StrongId<RunTag>\ntypealias MessageId = StrongId<MessageTag>",
   "long-parameter-list": "fun registerEventListener(\n    eventType: EventType,\n    listenerPriority: ListenerPriority,\n    listenerCallback: EventListener,\n) {\n    installListener()\n}\n",
   "elvis-wrap": "fun f(): PetType {\n    return findPetTypes.find { it.name == text }\n        ?: throw ParseException(\"type not found: \" + text, 0)\n}",
+  "elvis-fits": "fun f() {\n    val entry = registry.lookup(requestedName) ?: registry.defaultFor(requestedName)\n}",
   "annotation-placement": "@JvmName(\"other\")\nfun testSomething() {}",
   "accessor-placement": "val placeOfGetter: String get() = \"hello\"",
   "control-flow-lambda": "fun lambdasWithReturns(nullableString: String?) {\n    nullableString?.let { return }\n}",

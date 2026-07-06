@@ -606,9 +606,9 @@ typealias MessageId = StrongId<MessageTag>""",
         "id": "long-parameter-list",
         "name": "Long parameter list",
         "source": "synthetic",
-        "thesis": "Parity — both split parameters one per line and keep `) {` together (ktfmt adds a trailing comma).",
+        "thesis": "Parity — both split parameters one per line and keep `) {` together (ktfmt rectangle adds a trailing comma).",
         "why": "Included to show the comparison is fair: on the bread-and-butter case the two engines "
-               "agree. The only difference is ktfmt's added trailing comma. The wins elsewhere are "
+               "agree. The only difference is ktfmt rectangle's added trailing comma. The wins elsewhere are "
                "specific structural cases, not a blanket claim.",
         "input": "fun registerEventListener(eventType: EventType, listenerPriority: ListenerPriority, "
                  "listenerCallback: EventListener) { installListener() }",
@@ -649,6 +649,45 @@ typealias MessageId = StrongId<MessageTag>""",
         ?: throw ParseException("type not found: " + text, 0)
 }""",
         "idiomatic": "parity",
+    },
+    {
+        "id": "elvis-fits",
+        "name": "Elvis (`?:`) stays inline when it fits",
+        "source": "null-fallback idiom · §6",
+        "thesis": "ktfmt ergonomics keeps `?:` on the same line while the expression fits (§1); only when it overflows does it wrap — and then it keeps `=` attached and the operator at a single indent, where ktfmt rectangle also breaks after `=` and drifts a level deeper.",
+        "why": "A null-fallback that fits on one line reads best inline, and ktfmt ergonomics keeps it there — the "
+               "elvis break is a candidate, not a forced one (§6/§1), so both engines agree while it "
+               "fits. The difference appears only once the operands overflow: ktfmt ergonomics keeps the "
+               "introducer attached (§3), so <code>val entry =</code> stays on the first line, and drops "
+               "<code>?:</code> to the start of the next line at a single indent (§2/§6). ktfmt rectangle breaks "
+               "after <code>=</code> as well, then indents the <code>?:</code> a further level, so the "
+               "fallback drifts two levels deep.",
+        "input": "fun f() { val entry = registry.lookup(requestedName) ?: registry.defaultFor(requestedName) }",
+        "ktfmt": """fun f() {
+    val entry = registry.lookup(requestedName) ?: registry.defaultFor(requestedName)
+}""",
+        "optofmt": """fun f() {
+    val entry = registry.lookup(requestedName) ?: registry.defaultFor(requestedName)
+}""",
+        "idiomatic": "parity",
+        "extra": [{
+            "note": "Lengthen the operands until the line overflows and the fit-driven choice flips to a "
+                    "wrap. ktfmt ergonomics keeps the <code>=</code> introducer attached (§3) and starts the "
+                    "continuation with <code>?:</code> at one indent (§2/§6). ktfmt rectangle breaks after "
+                    "<code>=</code> too, so the left operand lands at indent 8 and the <code>?:</code> "
+                    "fallback at indent 12 — a level deeper than ktfmt ergonomics.",
+            "input": "fun f() { val entry = registry.lookupByQualifiedName(requestedName, currentScope) ?: registry.defaultEntryForScope(currentScope) }",
+            "ktfmt": """fun f() {
+    val entry =
+        registry.lookupByQualifiedName(requestedName, currentScope)
+            ?: registry.defaultEntryForScope(currentScope)
+}""",
+            "optofmt": """fun f() {
+    val entry = registry.lookupByQualifiedName(requestedName, currentScope)
+        ?: registry.defaultEntryForScope(currentScope)
+}""",
+            "idiomatic": "optofmt",
+        }],
     },
     {
         "id": "annotation-placement",
