@@ -103,7 +103,7 @@
 <header class="b">
   <h1>ktfmt rectangle vs ergonomics</h1>
   <p>Each snippet is the same Kotlin formatted two ways: <b>ktfmt rectangle</b> (<code>--kotlinlang-style</code>) on the left, and <b>ktfmt ergonomics</b> (per <code>RULES.md</code>) on the right. A third column appears when a strictly better option exists that neither produces. Both use <b>4-space indent</b> and a <b>100-column limit</b>.</p><p>Amber marks any line past 100 columns. ktfmt rectangle output is real; ktfmt ergonomics output is the layout entailed by the rules.</p>
-  <div class="pills"><span class="pill">24 patterns</span></div>
+  <div class="pills"><span class="pill">25 patterns</span></div>
 </header>
 <main>
     <section class="card">
@@ -142,8 +142,8 @@
       <details><summary>Why</summary><p>A condition too long for one line must wrap to stacked operands. ktfmt ergonomics opens the paren and lays every operand at the same body indent — one indentation size, so the operands form a clean rectangular block. ktfmt rectangle adds a continuation indent on top of the block indent, so operand 2+ drift one step further right than operand 1, with no structural meaning a reader can attach to.</p></details>
     </section>
     <section class="card">
-      <h2>Nested call wrapping (indent economy) <span class="src">icpc/live-v3 · Rules.kt:219</span></h2>
-      <p class="thesis">ktfmt ergonomics collapses the wrapper openers and stacks the closers; ktfmt rectangle staircases with lonely parens.</p>
+      <h2>Nested call argument wrapping <span class="src">icpc/live-v3 · Rules.kt:219</span></h2>
+      <p class="thesis">For a positional nested call ktfmt ergonomics and ktfmt rectangle agree; the win shows once the argument is named — ktfmt ergonomics keeps <code>name =</code> on the call-opener line (§3) where ktfmt rectangle breaks after it.</p>
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -163,20 +163,22 @@
       <div class="col">
         <div class="hd optofmt">ktfmt &middot; ergonomics</div>
         <pre><code class="language-kotlin" data-over="">fun f() {
-    add(OverrideQueue(
-        queueSettings.waitTime,
-        queueSettings.firstToSolveWaitTime,
-        queueSettings.featuredRunWaitTime,
-        queueSettings.inProgressRunWaitTime,
-        queueSettings.maxQueueSize,
-        queueSettings.maxUntestedRun
-    ))
+    add(
+        OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.featuredRunWaitTime,
+            queueSettings.inProgressRunWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        )
+    )
 }</code></pre>
       </div>
     </div>
       
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> Here collapsing isn't cosmetic — it decides fit vs. overflow. The single argument is one unbreakable token. Staircased (ktfmt rectangle) it lands at indent 12 and hits column 101; with the openers collapsed it sits at indent 8 and fits in 97. Same §5 mechanism, now arbitrating §1's “minimize the worst overflow.”</p>
+        <p class="thesis"><span class="same-rule">same rule</span> A single unbreakable argument: ktfmt ergonomics and ktfmt rectangle lay it out identically — the inner call on its own line at one indent — differing only in ktfmt ergonomics's trailing comma (§14). (An earlier ktfmt ergonomics collapsed the openers here to save an indent level; that heuristic is gone — a nested call now always hangs on its own line.)</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -190,16 +192,18 @@
       </div>
       <div class="col">
         <div class="hd optofmt">ktfmt &middot; ergonomics</div>
-        <pre><code class="language-kotlin" data-over="">fun f() {
-    registerHandler(buildHandler(
-        aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY
-    ))
+        <pre><code class="language-kotlin" data-over="3">fun f() {
+    registerHandler(
+        buildHandler(
+            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY,
+        )
+    )
 }</code></pre>
       </div>
     </div>
       </div>
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> The boundary of §5: collapsing only applies when the expandable call is the outer call's <em>only</em> argument. Once it has siblings, the openers no longer touch, so there's nothing to share — ktfmt ergonomics just splits the outer list one item per line (§4) and lets <code>OverrideQueue(</code> expand in place. The result matches ktfmt rectangle line-for-line except for the trailing commas. So the collapse never over-applies to produce a ragged <code>add(arg1, arg2, OverrideQueue(</code>.</p>
+        <p class="thesis"><span class="same-rule">same rule</span> With multiple arguments the outer list simply splits one item per line (§4) and the nested <code>OverrideQueue(</code> expands in place. ktfmt ergonomics matches ktfmt rectangle line-for-line, both including trailing commas (§14) — a positional nested call is laid out the same by either formatter.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -228,17 +232,17 @@
             queueSettings.waitTime,
             queueSettings.firstToSolveWaitTime,
             queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun
+            queueSettings.maxUntestedRun,
         ),
         arg3,
-        arg4
+        arg4,
     )
 }</code></pre>
       </div>
     </div>
       </div>
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> Name the single argument (<code>add(queue = OverrideQueue(</code>) and ktfmt rectangle gets worse still: it now breaks after <code>queue =</code> <em>as well</em> before it staircases the call, so the arguments land at indent 16 — three levels deep. ktfmt ergonomics treats the named-argument <code>=</code> as an introducer (§3) and keeps it on the opener line, so the §5 collapse is untouched: <code>add(queue = OverrideQueue(</code> stays whole and the body still sits at a single indent.</p>
+        <p class="thesis"><span class="same-rule">same rule</span> Name the single argument (<code>add(queue = OverrideQueue(</code>) and ktfmt rectangle breaks after <code>queue =</code> <em>as well</em> before it staircases the call, so the arguments land at indent 16 — three levels deep. ktfmt ergonomics treats the named-argument <code>=</code> as an introducer (§3) and keeps <code>queue = OverrideQueue(</code> on one line, so the body sits at a single indent — the one place a nested call argument diverges from ktfmt rectangle.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -259,20 +263,22 @@
       <div class="col">
         <div class="hd optofmt">ktfmt &middot; ergonomics</div>
         <pre><code class="language-kotlin" data-over="">fun f() {
-    add(queue = OverrideQueue(
-        queueSettings.waitTime,
-        queueSettings.firstToSolveWaitTime,
-        queueSettings.featuredRunWaitTime,
-        queueSettings.inProgressRunWaitTime,
-        queueSettings.maxQueueSize,
-        queueSettings.maxUntestedRun
-    ))
+    add(
+        queue = OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.featuredRunWaitTime,
+            queueSettings.inProgressRunWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        )
+    )
 }</code></pre>
       </div>
     </div>
       </div>
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> Two named arguments, each an expandable call, combine the previous two boundaries. The §5 collapse cannot apply — neither call is the <em>only</em> argument, so the openers don't touch — yet unlike the positional-siblings case this is <em>not</em> parity: ktfmt ergonomics still keeps each named-argument <code>=</code> introducer attached (§3), so <code>queue = OverrideQueue(</code> stays whole and its body sits at indent 12. ktfmt rectangle breaks after every <code>=</code>, staircasing each branch's arguments down to indent 16.</p>
+        <p class="thesis"><span class="same-rule">same rule</span> Two named arguments, each an expandable call. The outer list splits one item per line (§4) — but unlike the positional-siblings case this is <em>not</em> parity: ktfmt ergonomics keeps each named-argument <code>=</code> introducer attached (§3), so <code>queue = OverrideQueue(</code> stays whole and its body sits at indent 12, while ktfmt rectangle breaks after every <code>=</code>, staircasing each branch's arguments down to indent 16.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -309,7 +315,7 @@
             queueSettings.featuredRunWaitTime,
             queueSettings.inProgressRunWaitTime,
             queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun
+            queueSettings.maxUntestedRun,
         ),
         foo = OverrideQueue(
             queueSettings.waitTime,
@@ -317,15 +323,15 @@
             queueSettings.featuredRunWaitTime,
             queueSettings.inProgressRunWaitTime,
             queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun
-        )
+            queueSettings.maxUntestedRun,
+        ),
     )
 }</code></pre>
       </div>
     </div>
       </div>
       
-      <details><summary>Why</summary><p>When an outer call's single argument is itself a call that must split, ktfmt ergonomics lets the two openers share a line (<code>add(OverrideQueue(</code>) and the closers collapse onto one line (<code>))</code>) — the arguments sit one level in. ktfmt rectangle cannot share indentation: each opener gets its own line and a deeper indent, and each closer gets a line of its own, leaving orphaned parens and an extra indentation level.</p></details>
+      <details><summary>Why</summary><p>When an outer call's single argument is itself a call that must wrap, ktfmt ergonomics breaks after the outer <code>(</code>, hangs the inner call on its own indented line, and lets it wrap one further level in; it does <em>not</em> collapse the two openers onto one line (an earlier ktfmt ergonomics did — §5 now reserves opener-hugging for block bodies such as trailing lambdas and <code>object</code> expressions). So a positional nested call matches ktfmt rectangle line-for-line. The difference appears once the argument is <em>named</em>: ktfmt ergonomics treats the argument's <code>=</code> as an introducer (§3) and keeps <code>queue = OverrideQueue(</code> whole, so the body sits at a single indent; ktfmt rectangle breaks after <code>queue =</code> first, pushing the body a further level right.</p></details>
     </section>
     <section class="card">
       <h2>Infix call (to) stays attached <span class="src">icpc/live-v3 · OverrideOrganizations</span></h2>
@@ -344,7 +350,7 @@
         <div class="hd optofmt">ktfmt &middot; ergonomics</div>
         <pre><code class="language-kotlin" data-over="">val pair = orgInfo.id to OverrideOrganizations.Override(
     fullName = substituteRaw(fullName),
-    displayName = substituteRaw(displayName)
+    displayName = substituteRaw(displayName),
 )</code></pre>
       </div>
     </div>
@@ -394,7 +400,7 @@
     name = &quot;clics-archive&quot;,
     help = &quot;Dump CLICS contest archive (zip)&quot;,
     defaultFileName = &quot;contest-archive.zip&quot;,
-    outputHelp = &quot;Path to new zip file&quot;
+    outputHelp = &quot;Path to new zip file&quot;,
 ) {}</code></pre>
       </div>
     </div>
@@ -421,7 +427,7 @@
     name = &quot;clics-archive&quot;,
     help = &quot;Dump CLICS contest archive (zip)&quot;,
     defaultFileName = &quot;contest-archive.zip&quot;,
-    outputHelp = &quot;Path to new zip file&quot;
+    outputHelp = &quot;Path to new zip file&quot;,
 ), Runnable, Closeable, KoinComponent {}</code></pre>
       </div>
     </div>
@@ -660,7 +666,7 @@ internal constructor(
         <div class="hd optofmt">ktfmt &middot; ergonomics</div>
         <pre><code class="language-kotlin" data-over="">public class SharedFlowSubscriptionScope&lt;T&gt; @PublishedApi internal constructor(
     @PublishedApi internal val flow: SharedFlow&lt;T&gt;,
-    private val subscriptionWaitingFlow: MutableStateFlow&lt;Int&gt;
+    private val subscriptionWaitingFlow: MutableStateFlow&lt;Int&gt;,
 ) {}</code></pre>
       </div>
     </div>
@@ -717,6 +723,35 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
       
       
       <details><summary>Why</summary><p>ktfmt rectangle injects a blank line between consecutive one-line <code>typealias</code> (and <code>fun</code>) declarations, doubling the height of a tight family of related one-liners. ktfmt ergonomics preserves the author's grouping: consecutive same-kind declarations stay together, multiple blank lines collapse to one, and a blank is inserted only between declarations of different kinds.</p></details>
+    </section>
+    <section class="card">
+      <h2>Long parameter list <span class="src">synthetic</span></h2>
+      <p class="thesis">Parity — both split parameters one per line and keep `) {` together (ktfmt adds a trailing comma).</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">fun registerEventListener(
+    eventType: EventType,
+    listenerPriority: ListenerPriority,
+    listenerCallback: EventListener,
+) {
+    installListener()
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">fun registerEventListener(
+    eventType: EventType,
+    listenerPriority: ListenerPriority,
+    listenerCallback: EventListener,
+) {
+    installListener()
+}</code></pre>
+      </div>
+    </div>
+      
+      
+      <details><summary>Why</summary><p>Included to show the comparison is fair: on the bread-and-butter case the two engines agree. The only difference is ktfmt's added trailing comma. The wins elsewhere are specific structural cases, not a blanket claim.</p></details>
     </section>
     <section class="card">
       <h2>Elvis (?:) operator wrap <span class="src">kotlin-toolchain · PetTypeFormatter.kt:44</span></h2>
@@ -976,7 +1011,7 @@ val ANSI_SQL_2003_KEYWORDS: Set&lt;String&gt; = setOf(
     &quot;ARE&quot;,
     &quot;ARRAY&quot;,
     &quot;AS&quot;,
-    &quot;ASC&quot;
+    &quot;ASC&quot;,
 )</code></pre>
       </div>
     </div>
