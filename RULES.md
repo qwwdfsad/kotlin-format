@@ -144,12 +144,16 @@ argument is a call/constructor that itself has to wrap.
 - **Chained operators** — `&&`, `||`, `+`, `*`, and the like — wrap with the operator at the
   **end** of the line, every operand at a single shared indent (§2). Keep the first operand on
   the introducer's line when it fits.
-- **Elvis `?:`** wraps with the operator at the **start** of the continuation line (this reads
-  best for null-fallbacks, and matches kotlinx usage):
+- **Elvis `?:`** stays on the **same line** as its left-hand side **when the expression fits**
+  (§1). Only when it does not fit does it wrap — and then with the operator at the **start** of the
+  continuation line (this reads best for null-fallbacks, and matches kotlinx usage):
 
   ```kotlin
-  val name = findName()
-      ?: error("missing")
+  val name = findName() ?: error("missing")            // fits → stays on one line
+
+  // too long to fit → `?:` starts the continuation line, at one indent:
+  val displayName = lookupPreferredDisplayName(userId, localeSettings)
+      ?: error("no display name is available for the requested user")
   ```
 
 ## 7. Call chains
