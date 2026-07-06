@@ -120,24 +120,44 @@ foo(                  // newline right after `(` → stays exploded, even though
 
 A trailing lambda's own header (`{ params ->`) is atomic and never splits — see **§13**.
 
-## 5. Indent economy — collapse openers, stack closers
+## 5. Indent economy — hug block bodies, expand nested calls
 
-When delimiter groups nest and must split, let the opening delimiters **share one line** and
-let the closing delimiters **stack together**, so the nested groups share a single body
-indent instead of staircasing.
+When a call's **sole argument is a block body** — a trailing lambda, or an `object` expression —
+let the opener share the call's line and let the closers **stack together**, so the body sits at a
+single indent instead of staircasing:
 
 ```kotlin
-// optofmt
-add(OverrideQueue(
-    waitTime,
-    firstToSolveWaitTime,
-    maxQueueSize
-))
+// optofmt — the object body hugs the call opener; `})` stacks:
+onSubscribe(object : Subscription {
+    override fun request(n: Long) { … }
+})
 ```
 
-Legality: the opening line ends with the opener(s); the closing line begins with all the
-matching closers (then any trailing `{`, `,`, etc.). Use this whenever an outer call's only
-argument is a call/constructor that itself has to wrap.
+But when a call's sole argument is **itself a call or constructor** that must wrap, the openers are
+**not** collapsed. The outer call breaks after its `(`, the inner call **hangs on its own indented
+line**, and each `)` closes on its own line. Because the outer call carries a single block-like
+value — not a one-per-line split — it takes **no outer trailing comma**; the inner list wraps and
+commas normally (§14). A named sole argument behaves the same, with `name =` kept on the argument's
+line (§3):
+
+```kotlin
+// optofmt — nested call expands; no `))` stacking, no outer comma:
+add(
+    OverrideQueue(
+        waitTime,
+        firstToSolveWaitTime,
+        maxQueueSize,
+    )
+)
+
+add(
+    queue = OverrideQueue(
+        waitTime,
+        firstToSolveWaitTime,
+        maxQueueSize,
+    )
+)
+```
 
 ## 6. Operator wrapping
 
@@ -193,7 +213,7 @@ together — never break right before the `:` or right after it just to move the
 // optofmt — the return type rides with `)`, it does not get its own line:
 override fun isMemberInplaceRenameAvailable(
     element: PsiElement,
-    context: PsiElement?
+    context: PsiElement?,
 ): Boolean {
     …
 }
@@ -210,7 +230,7 @@ wrapped:
 ```kotlin
 object X : Base(
     a = 1,
-    b = 2
+    b = 2,
 ) {}
 ```
 
@@ -255,7 +275,7 @@ val instance = create()                               // argument-less, on a (re
 
 public class Scope<T> @PublishedApi internal constructor(   // argument-less, on the constructor → inline
     @PublishedApi internal val flow: SharedFlow<T>,         // argument-less, on a parameter-property → inline
-    private val waiting: MutableStateFlow<Int>
+    private val waiting: MutableStateFlow<Int>,
 ) { … }
 ```
 
@@ -319,8 +339,9 @@ rule supersedes that.)
 ## Differences from ktfmt to expect
 
 - optofmt uses one indent level where ktfmt stacks block + continuation indents (no drift).
-- optofmt keeps introducers (`=`, `:`, infix) attached; ktfmt eagerly breaks after them.
-- optofmt collapses nested openers (indent economy); ktfmt staircases.
+- optofmt keeps introducers (`=`, `:`, infix, `by`) attached; ktfmt eagerly breaks after them —
+  including a named argument's `=` (`add(queue = OverrideQueue(…`), which ktfmt drops onto its own
+  line.
 - optofmt keeps leading args inline with an expanding final item; ktfmt explodes all args.
 - optofmt never reflows comment prose; ktfmt rewraps KDoc.
 - optofmt keeps grouped one-liners tight; ktfmt inserts blank lines between them.

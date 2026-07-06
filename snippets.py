@@ -58,14 +58,18 @@ SNIPPETS = [
     },
     {
         "id": "indent-economy",
-        "name": "Nested call wrapping (indent economy)",
+        "name": "Nested call argument wrapping",
         "source": "icpc/live-v3 · Rules.kt:219",
-        "thesis": "ktfmt ergonomics collapses the wrapper openers and stacks the closers; ktfmt rectangle staircases with lonely parens.",
-        "why": "When an outer call's single argument is itself a call that must split, ktfmt ergonomics lets the "
-               "two openers share a line (<code>add(OverrideQueue(</code>) and the closers collapse "
-               "onto one line (<code>))</code>) — the arguments sit one level in. ktfmt rectangle cannot share "
-               "indentation: each opener gets its own line and a deeper indent, and each closer gets a "
-               "line of its own, leaving orphaned parens and an extra indentation level.",
+        "thesis": "For a positional nested call ktfmt ergonomics and ktfmt rectangle agree; the win shows once the argument is named — ktfmt ergonomics keeps <code>name =</code> on the call-opener line (§3) where ktfmt rectangle breaks after it.",
+        "why": "When an outer call's single argument is itself a call that must wrap, ktfmt ergonomics breaks "
+               "after the outer <code>(</code>, hangs the inner call on its own indented line, and lets "
+               "it wrap one further level in; it does <em>not</em> collapse the two openers onto one "
+               "line (an earlier ktfmt ergonomics did — §5 now reserves opener-hugging for block bodies such as "
+               "trailing lambdas and <code>object</code> expressions). So a positional nested call "
+               "matches ktfmt rectangle line-for-line. The difference appears once the argument is "
+               "<em>named</em>: ktfmt ergonomics treats the argument's <code>=</code> as an introducer (§3) and "
+               "keeps <code>queue = OverrideQueue(</code> whole, so the body sits at a single indent; "
+               "ktfmt rectangle breaks after <code>queue =</code> first, pushing the body a further level right.",
         "input": "fun f() { add(OverrideQueue(queueSettings.waitTime, queueSettings.firstToSolveWaitTime, "
                  "queueSettings.featuredRunWaitTime, queueSettings.inProgressRunWaitTime, "
                  "queueSettings.maxQueueSize, queueSettings.maxUntestedRun)) }",
@@ -82,23 +86,24 @@ SNIPPETS = [
     )
 }""",
         "optofmt": """fun f() {
-    add(OverrideQueue(
-        queueSettings.waitTime,
-        queueSettings.firstToSolveWaitTime,
-        queueSettings.featuredRunWaitTime,
-        queueSettings.inProgressRunWaitTime,
-        queueSettings.maxQueueSize,
-        queueSettings.maxUntestedRun,
-    ))
+    add(
+        OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.featuredRunWaitTime,
+            queueSettings.inProgressRunWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        )
+    )
 }
 """,
-        "idiomatic": "optofmt",
+        "idiomatic": "parity",
         "extra": [{
-            "note": "Here collapsing isn't cosmetic — it decides fit vs. overflow. The single "
-                    "argument is one unbreakable token. Staircased (ktfmt rectangle) it lands at indent 12 "
-                    "and hits column 101; with the openers collapsed it sits at indent 8 and "
-                    "fits in 97. Same §5 mechanism, now arbitrating §1's “minimize the worst "
-                    "overflow.”",
+            "note": "A single unbreakable argument: ktfmt ergonomics and ktfmt rectangle lay it out identically — the "
+                    "inner call on its own line at one indent — differing only in ktfmt ergonomics's trailing "
+                    "comma (§14). (An earlier ktfmt ergonomics collapsed the openers here to save an indent "
+                    "level; that heuristic is gone — a nested call now always hangs on its own line.)",
             "ktfmt": """fun f() {
     registerHandler(
         buildHandler(
@@ -107,18 +112,18 @@ SNIPPETS = [
     )
 }""",
             "optofmt": """fun f() {
-    registerHandler(buildHandler(
-        aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY,
-    ))
+    registerHandler(
+        buildHandler(
+            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY,
+        )
+    )
 }
 """,
         }, {
-            "note": "The boundary of §5: collapsing only applies when the expandable call is the outer "
-                    "call's <em>only</em> argument. Once it has siblings, the openers no longer touch, "
-                    "so there's nothing to share — ktfmt ergonomics just splits the outer list one item per line "
-                    "(§4) and lets <code>OverrideQueue(</code> expand in place. The result matches ktfmt rectangle "
-                    "line-for-line except for the trailing commas. So the collapse never over-applies to "
-                    "produce a ragged <code>add(arg1, arg2, OverrideQueue(</code>.",
+            "note": "With multiple arguments the outer list simply splits one item per line (§4) and "
+                    "the nested <code>OverrideQueue(</code> expands in place. ktfmt ergonomics matches ktfmt rectangle "
+                    "line-for-line, both including trailing commas (§14) — a positional nested call is "
+                    "laid out the same by either formatter.",
             "ktfmt": """fun f() {
     add(
         arg1,
@@ -150,12 +155,12 @@ SNIPPETS = [
 """,
             "idiomatic": "parity",
         }, {
-            "note": "Name the single argument (<code>add(queue = OverrideQueue(</code>) and ktfmt rectangle gets "
-                    "worse still: it now breaks after <code>queue =</code> <em>as well</em> before it "
-                    "staircases the call, so the arguments land at indent 16 — three levels deep. ktfmt ergonomics "
-                    "treats the named-argument <code>=</code> as an introducer (§3) and keeps it on the "
-                    "opener line, so the §5 collapse is untouched: <code>add(queue = OverrideQueue(</code> "
-                    "stays whole and the body still sits at a single indent.",
+            "note": "Name the single argument (<code>add(queue = OverrideQueue(</code>) and ktfmt rectangle "
+                    "breaks after <code>queue =</code> <em>as well</em> before it staircases the call, so "
+                    "the arguments land at indent 16 — three levels deep. ktfmt ergonomics treats the "
+                    "named-argument <code>=</code> as an introducer (§3) and keeps "
+                    "<code>queue = OverrideQueue(</code> on one line, so the body sits at a single indent — "
+                    "the one place a nested call argument diverges from ktfmt rectangle.",
             "ktfmt": """fun f() {
     add(
         queue =
@@ -170,25 +175,26 @@ SNIPPETS = [
     )
 }""",
             "optofmt": """fun f() {
-    add(queue = OverrideQueue(
-        queueSettings.waitTime,
-        queueSettings.firstToSolveWaitTime,
-        queueSettings.featuredRunWaitTime,
-        queueSettings.inProgressRunWaitTime,
-        queueSettings.maxQueueSize,
-        queueSettings.maxUntestedRun,
-    ))
+    add(
+        queue = OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.featuredRunWaitTime,
+            queueSettings.inProgressRunWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        )
+    )
 }
 """,
             "idiomatic": "optofmt",
         }, {
-            "note": "Two named arguments, each an expandable call, combine the previous two boundaries. "
-                    "The §5 collapse cannot apply — neither call is the <em>only</em> argument, so the "
-                    "openers don't touch — yet unlike the positional-siblings case this is <em>not</em> "
-                    "parity: ktfmt ergonomics still keeps each named-argument <code>=</code> introducer attached "
-                    "(§3), so <code>queue = OverrideQueue(</code> stays whole and its body sits at indent "
-                    "12. ktfmt rectangle breaks after every <code>=</code>, staircasing each branch's arguments down "
-                    "to indent 16.",
+            "note": "Two named arguments, each an expandable call. The outer list splits one item per "
+                    "line (§4) — but unlike the positional-siblings case this is <em>not</em> parity: "
+                    "ktfmt ergonomics keeps each named-argument <code>=</code> introducer attached (§3), so "
+                    "<code>queue = OverrideQueue(</code> stays whole and its body sits at indent 12, while "
+                    "ktfmt rectangle breaks after every <code>=</code>, staircasing each branch's arguments down to "
+                    "indent 16.",
             "ktfmt": """fun f() {
     add(
         queue =
