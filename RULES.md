@@ -97,6 +97,8 @@ execute(retryCount, backoff, { ctx: Ctx ->
 (`optofmt` is layout-only: it does not *move* a trailing lambda outside the parentheses, even
 though that is the most idiomatic Kotlin. That is a refactor left to the author.)
 
+A trailing lambda's own header (`{ params ->`) is atomic and never splits — see **§13**.
+
 ## 5. Indent economy — collapse openers, stack closers
 
 When delimiter groups nest and must split, let the opening delimiters **share one line** and
@@ -151,24 +153,27 @@ comment blocks, tables, and lists are preserved exactly.
 
 ## 9. Declaration headers stay compact
 
-Keep a declaration's **modifiers** and **argument-less annotations** (`internal`, `public`,
-`@PublishedApi`, `@JvmStatic`) on the same line as the declared name; when the header is too
-long, wrap **only** the parameter list (§4), not the modifier run.
+Keep a declaration's **modifiers** (`internal`, `public`, `private`, `open`, `override`, …) on the
+same line as the declared name; when the header is too long, wrap **only** the parameter list (§4),
+not the modifier run.
 
-A standalone **annotation that carries arguments** (`@JvmName("other")`, `@Test`,
-`@Deprecated(...)`) goes on its **own line** directly above the declaration — matching Kotlin
-convention. ktfmt keeps it inline; optofmt breaks after it.
+Annotation placement is its own concern — see **§12**.
 
-```kotlin
-@JvmName("other")
-fun testSomething() {}
-```
+**Types glue to their colon.** A function's return type and an explicit property type stay attached
+to the `:` that introduces them; the type is never pushed onto a line by itself. When the header is
+too long, wrap the parameter list (§4) and keep the closing `): ReturnType` (and `name: Type`)
+together — never break right before the `:` or right after it just to move the type down.
 
 ```kotlin
-public class Scope<T> @PublishedApi internal constructor(
-    @PublishedApi internal val flow: SharedFlow<T>,
-    private val waiting: MutableStateFlow<Int>
-) { … }
+// optofmt — the return type rides with `)`, it does not get its own line:
+override fun isMemberInplaceRenameAvailable(
+    element: PsiElement,
+    context: PsiElement?
+): Boolean {
+    …
+}
+
+val subscriptionWaitingFlow: MutableStateFlow<Int> = MutableStateFlow(0)   // not: name\n    : Type
 ```
 
 ## 10. Empty bodies are compact
@@ -196,6 +201,54 @@ typealias RunId = StrongId<RunTag>
 typealias MessageId = StrongId<MessageTag>
 ```
 
+## 12. Annotation placement
+
+Where an annotation sits depends on whether it takes arguments and on what it annotates:
+
+- An **argument-less** annotation (`@PublishedApi`, `@JvmStatic`, `@Volatile`, `@BuilderInference`)
+  stays **inline** on the declaration's line when it annotates a **function or constructor value
+  parameter** (including a `val`/`var` parameter-property) or a **primary constructor**
+  (`@Inject constructor(…)`). For every other target — a regular (standalone) **property**, a
+  **function**, a **class** / `object` / `interface`, a property **accessor** — it goes on its
+  **own line** directly above the declaration.
+- An annotation that **carries arguments** (`@JvmName("other")`, `@Test`, `@Deprecated(…)`,
+  `@Suppress(…)`) **always** goes on its **own line** above the declaration, whatever it annotates.
+- **Type-parameter** annotations (`<@UnsafeVariance T>`) are the one exception: they always stay
+  inline, since optofmt never introduces a break inside the `<…>` brackets.
+
+(ktfmt keeps every annotation inline; optofmt breaks as above.)
+
+```kotlin
+@JvmName("other")                                     // has arguments → own line
+fun testSomething() {}
+
+@Test                                                 // argument-less, on a function → own line
+fun testOther() {}
+
+@JvmStatic
+val instance = create()                               // argument-less, on a (regular) property → own line
+
+public class Scope<T> @PublishedApi internal constructor(   // argument-less, on the constructor → inline
+    @PublishedApi internal val flow: SharedFlow<T>,         // argument-less, on a parameter-property → inline
+    private val waiting: MutableStateFlow<Int>
+) { … }
+```
+
+## 13. Lambda header stays on the brace line
+
+A lambda's opening `{`, its parameters, and its `->` all sit on **one line** and are **never split
+apart from one another** — neither the parameters from `{` (`{\n    cont ->`) nor `->` from the
+parameters (`{ cont\n    ->`). When that header would overflow, wrap *earlier* — break the enclosing
+introducer/call per §3/§7 — never inside `{ params ->`.
+
+```kotlin
+// optofmt — `{ cont ->` stays together; the `=` breaks instead:
+internal suspend fun sendBroadcast(element: E): Boolean =
+    suspendCancellableCoroutine { cont ->
+        …
+    }
+```
+
 ---
 
 ## Differences from ktfmt to expect
@@ -207,6 +260,9 @@ typealias MessageId = StrongId<MessageTag>
 - optofmt does not add trailing commas; ktfmt does.
 - optofmt never reflows comment prose; ktfmt rewraps KDoc.
 - optofmt keeps grouped one-liners tight; ktfmt inserts blank lines between them.
-- optofmt puts a standalone annotation-with-arguments on its own line; ktfmt keeps it inline.
+- optofmt puts an annotation on its own line unless it is argument-less on a value parameter (§12);
+  ktfmt keeps annotations inline.
+- optofmt keeps a function's return type / a property's type glued to its `:` (§9); it never drops
+  the type onto a line by itself.
 - optofmt keeps a construct that fits on one line inline per §1 — a trivial property accessor
   (`val x: T get() = …`), a control-flow lambda (`?.let { return }`); ktfmt force-breaks both.
