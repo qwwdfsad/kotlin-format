@@ -71,15 +71,15 @@ and wrap the *contents* (see §4/§5), still at a single indent.
 
 A comma-separated list (call arguments, parameters, collection literals, `when` entries with
 commas) is either **all on one line** or **one item per line** — never a "fill" that packs
-several per line. Do not add a trailing comma after the final item.
+several per line. When it splits one-per-line, a trailing comma follows the final item (see §14).
 
 ```kotlin
-call(a, b, c)                  // fits → one line
+call(a, b, c)                  // fits → one line, no trailing comma
 
 call(
     firstArgument,
     secondArgument,
-    thirdArgument              // no trailing comma
+    thirdArgument,             // multi-line → trailing comma (§14)
 )
 ```
 
@@ -249,6 +249,32 @@ internal suspend fun sendBroadcast(element: E): Boolean =
     }
 ```
 
+## 14. Trailing comma on multi-line lists
+
+A comma-separated list that is formatted **multi-line** (one item per line, per §4) always ends
+with a **trailing comma** after its final item. A list that stays on **one line** never has one.
+The comma is a property of the layout, not the source: it is added when the list wraps and dropped
+when it collapses, so the result is idempotent and independent of whether the input had one.
+
+```kotlin
+call(a, b, c)                  // one line → no trailing comma
+
+call(
+    firstArgument,
+    secondArgument,
+    thirdArgument,             // multi-line → trailing comma
+)
+```
+
+This applies wherever Kotlin permits a trailing comma and the list splits one-per-line — call
+arguments, function/constructor value parameters, and collection literals. It does **not** apply to
+constructs where a trailing comma is illegal (a supertype list, a function-type parameter list, a
+`where` clause) or to a list that never splits (a kept-whole type-argument list), nor to a
+last-item-expansion / hanging trailing lambda (§4), which is not a one-per-line split.
+
+(This matches ktfmt and idiomatic Kotlin. Earlier drafts of optofmt omitted trailing commas; this
+rule supersedes that.)
+
 ---
 
 ## Differences from ktfmt to expect
@@ -257,7 +283,6 @@ internal suspend fun sendBroadcast(element: E): Boolean =
 - optofmt keeps introducers (`=`, `:`, infix) attached; ktfmt eagerly breaks after them.
 - optofmt collapses nested openers (indent economy); ktfmt staircases.
 - optofmt keeps leading args inline with an expanding final item; ktfmt explodes all args.
-- optofmt does not add trailing commas; ktfmt does.
 - optofmt never reflows comment prose; ktfmt rewraps KDoc.
 - optofmt keeps grouped one-liners tight; ktfmt inserts blank lines between them.
 - optofmt puts an annotation on its own line unless it is argument-less on a value parameter (§12);

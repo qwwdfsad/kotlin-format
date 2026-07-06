@@ -88,9 +88,10 @@ SNIPPETS = [
         queueSettings.featuredRunWaitTime,
         queueSettings.inProgressRunWaitTime,
         queueSettings.maxQueueSize,
-        queueSettings.maxUntestedRun
+        queueSettings.maxUntestedRun,
     ))
-}""",
+}
+""",
         "idiomatic": "optofmt",
         "extra": [{
             "note": "Here collapsing isn't cosmetic — it decides fit vs. overflow. The single "
@@ -107,9 +108,10 @@ SNIPPETS = [
 }""",
             "optofmt": """fun f() {
     registerHandler(buildHandler(
-        aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY
+        aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY,
     ))
-}""",
+}
+""",
         }, {
             "note": "The boundary of §5: collapsing only applies when the expandable call is the outer "
                     "call's <em>only</em> argument. Once it has siblings, the openers no longer touch, "
@@ -139,12 +141,13 @@ SNIPPETS = [
             queueSettings.waitTime,
             queueSettings.firstToSolveWaitTime,
             queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun
+            queueSettings.maxUntestedRun,
         ),
         arg3,
-        arg4
+        arg4,
     )
-}""",
+}
+""",
             "idiomatic": "parity",
         }, {
             "note": "Name the single argument (<code>add(queue = OverrideQueue(</code>) and ktfmt rectangle gets "
@@ -173,9 +176,10 @@ SNIPPETS = [
         queueSettings.featuredRunWaitTime,
         queueSettings.inProgressRunWaitTime,
         queueSettings.maxQueueSize,
-        queueSettings.maxUntestedRun
+        queueSettings.maxUntestedRun,
     ))
-}""",
+}
+""",
             "idiomatic": "optofmt",
         }, {
             "note": "Two named arguments, each an expandable call, combine the previous two boundaries. "
@@ -215,7 +219,7 @@ SNIPPETS = [
             queueSettings.featuredRunWaitTime,
             queueSettings.inProgressRunWaitTime,
             queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun
+            queueSettings.maxUntestedRun,
         ),
         foo = OverrideQueue(
             queueSettings.waitTime,
@@ -223,10 +227,11 @@ SNIPPETS = [
             queueSettings.featuredRunWaitTime,
             queueSettings.inProgressRunWaitTime,
             queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun
-        )
+            queueSettings.maxUntestedRun,
+        ),
     )
-}""",
+}
+""",
             "idiomatic": "optofmt",
         }],
     },
@@ -250,8 +255,9 @@ SNIPPETS = [
         )""",
         "optofmt": """val pair = orgInfo.id to OverrideOrganizations.Override(
     fullName = substituteRaw(fullName),
-    displayName = substituteRaw(displayName)
-)""",
+    displayName = substituteRaw(displayName),
+)
+""",
         "idiomatic": "optofmt",
         "extra": [{
             "note": "Add an explicit type and the header no longer fits — "
@@ -298,8 +304,9 @@ SNIPPETS = [
     name = "clics-archive",
     help = "Dump CLICS contest archive (zip)",
     defaultFileName = "contest-archive.zip",
-    outputHelp = "Path to new zip file"
-) {}""",
+    outputHelp = "Path to new zip file",
+) {}
+""",
         "idiomatic": "optofmt",
         "extra": [{
             "note": "Add a few interfaces to the supertype list and ktfmt rectangle fragments it completely: it "
@@ -322,8 +329,9 @@ SNIPPETS = [
     name = "clics-archive",
     help = "Dump CLICS contest archive (zip)",
     defaultFileName = "contest-archive.zip",
-    outputHelp = "Path to new zip file"
-), Runnable, Closeable, KoinComponent {}""",
+    outputHelp = "Path to new zip file",
+), Runnable, Closeable, KoinComponent {}
+""",
             "idiomatic": "optofmt",
         }],
     },
@@ -530,8 +538,9 @@ internal constructor(
 ) {}""",
         "optofmt": """public class SharedFlowSubscriptionScope<T> @PublishedApi internal constructor(
     @PublishedApi internal val flow: SharedFlow<T>,
-    private val subscriptionWaitingFlow: MutableStateFlow<Int>
-) {}""",
+    private val subscriptionWaitingFlow: MutableStateFlow<Int>,
+) {}
+""",
         "idiomatic": "optofmt",
     },
     {
@@ -586,6 +595,33 @@ typealias MessageId = StrongId<MessageTag>""",
 typealias RunId = StrongId<RunTag>
 typealias MessageId = StrongId<MessageTag>""",
         "idiomatic": "optofmt",
+    },
+    {
+        "id": "long-parameter-list",
+        "name": "Long parameter list",
+        "source": "synthetic",
+        "thesis": "Parity — both split parameters one per line and keep `) {` together (ktfmt adds a trailing comma).",
+        "why": "Included to show the comparison is fair: on the bread-and-butter case the two engines "
+               "agree. The only difference is ktfmt's added trailing comma. The wins elsewhere are "
+               "specific structural cases, not a blanket claim.",
+        "input": "fun registerEventListener(eventType: EventType, listenerPriority: ListenerPriority, "
+                 "listenerCallback: EventListener) { installListener() }",
+        "ktfmt": """fun registerEventListener(
+    eventType: EventType,
+    listenerPriority: ListenerPriority,
+    listenerCallback: EventListener,
+) {
+    installListener()
+}""",
+        "optofmt": """fun registerEventListener(
+    eventType: EventType,
+    listenerPriority: ListenerPriority,
+    listenerCallback: EventListener,
+) {
+    installListener()
+}
+""",
+        "idiomatic": "parity",
     },
     {
         "id": "elvis-wrap",
@@ -762,7 +798,7 @@ typealias MessageId = StrongId<MessageTag>""",
             {
                 "note": "Same rule, a collection literal that must fully explode: <code>= setOf(</code> stays attached with items one-per-line at a single indent and no trailing comma; ktfmt rectangle breaks after <code>=</code>, adds a second indent level and a trailing comma.",
                 "ktfmt": "package org.jetbrains.exposed.sql.vendors\n\nval ANSI_SQL_2003_KEYWORDS: Set<String> =\n    setOf(\n        \"A\",\n        \"ABS\",\n        \"ABSOLUTE\",\n        \"ACTION\",\n        \"ADA\",\n        \"ADD\",\n        \"ADMIN\",\n        \"AFTER\",\n        \"ALL\",\n        \"ALLOCATE\",\n        \"ALTER\",\n        \"ALWAYS\",\n        \"AND\",\n        \"ANY\",\n        \"ARE\",\n        \"ARRAY\",\n        \"AS\",\n        \"ASC\",\n    )",
-                "optofmt": "package org.jetbrains.exposed.sql.vendors\n\nval ANSI_SQL_2003_KEYWORDS: Set<String> = setOf(\n    \"A\",\n    \"ABS\",\n    \"ABSOLUTE\",\n    \"ACTION\",\n    \"ADA\",\n    \"ADD\",\n    \"ADMIN\",\n    \"AFTER\",\n    \"ALL\",\n    \"ALLOCATE\",\n    \"ALTER\",\n    \"ALWAYS\",\n    \"AND\",\n    \"ANY\",\n    \"ARE\",\n    \"ARRAY\",\n    \"AS\",\n    \"ASC\"\n)",
+                "optofmt": "package org.jetbrains.exposed.sql.vendors\n\nval ANSI_SQL_2003_KEYWORDS: Set<String> = setOf(\n    \"A\",\n    \"ABS\",\n    \"ABSOLUTE\",\n    \"ACTION\",\n    \"ADA\",\n    \"ADD\",\n    \"ADMIN\",\n    \"AFTER\",\n    \"ALL\",\n    \"ALLOCATE\",\n    \"ALTER\",\n    \"ALWAYS\",\n    \"AND\",\n    \"ANY\",\n    \"ARE\",\n    \"ARRAY\",\n    \"AS\",\n    \"ASC\",\n)",
             },
         ],
     },
