@@ -483,14 +483,12 @@ SNIPPETS = [
     {
         "id": "trailing-lambda",
         "name": "Trailing lambda / last-argument expansion",
-        "source": "synthetic",
-        "thesis": "optofmt keeps the leading args inline and lets the block hang off; ktfmt explodes every argument. The most idiomatic move is to take the lambda out of the parentheses entirely.",
+        "source": "icpc/live-v3",
+        "thesis": "optofmt keeps the leading args inline and lets the block hang off; ktfmt explodes every argument.",
         "why": "optofmt may keep leading arguments on the opener line while the final lambda expands "
                "in place, so the call stays compact with the block hanging off the end. ktfmt is "
                "all-or-nothing: once the call doesn't fit, every argument goes on its own line, "
-               "including the lambda. Neither moves the lambda; the most idiomatic Kotlin pulls a "
-               "trailing lambda outside the parentheses (third column) — a refactor a pure formatter "
-               "leaves to the author.",
+               "including the lambda.",
         "input": "fun run() { executeWithRetryPolicy(maximumRetryCount, backoffStrategy, "
                  "{ requestContext: RequestContext -> requestContext.proceed() }) }",
         "ktfmt": """fun run() {
@@ -505,15 +503,10 @@ SNIPPETS = [
         requestContext.proceed()
     })
 }""",
-        "third": {
-            "label": "idiomatic — trailing lambda outside ()",
-            "code": """fun run() {
-    executeWithRetryPolicy(maximumRetryCount, backoffStrategy) { requestContext ->
-        requestContext.proceed()
-    }
-}""",
-        },
-        "idiomatic": "third",
+        "note": "Note that while having a trailing lambda out of the parentheses is a preferrable way "
+                "of formatting, such transformation is potentially a binary-breaking change and cannot "
+                "be performed by a formatter.",
+        "idiomatic": "optofmt",
     },
     {
         "id": "compact-header",
@@ -591,32 +584,6 @@ typealias MessageId = StrongId<MessageTag>""",
 typealias RunId = StrongId<RunTag>
 typealias MessageId = StrongId<MessageTag>""",
         "idiomatic": "optofmt",
-    },
-    {
-        "id": "long-parameter-list",
-        "name": "Long parameter list",
-        "source": "synthetic",
-        "thesis": "Parity — both split parameters one per line and keep `) {` together (ktfmt adds a trailing comma).",
-        "why": "Included to show the comparison is fair: on the bread-and-butter case the two engines "
-               "agree. The only difference is ktfmt's added trailing comma. The wins elsewhere are "
-               "specific structural cases, not a blanket claim.",
-        "input": "fun registerEventListener(eventType: EventType, listenerPriority: ListenerPriority, "
-                 "listenerCallback: EventListener) { installListener() }",
-        "ktfmt": """fun registerEventListener(
-    eventType: EventType,
-    listenerPriority: ListenerPriority,
-    listenerCallback: EventListener,
-) {
-    installListener()
-}""",
-        "optofmt": """fun registerEventListener(
-    eventType: EventType,
-    listenerPriority: ListenerPriority,
-    listenerCallback: EventListener
-) {
-    installListener()
-}""",
-        "idiomatic": "parity",
     },
     {
         "id": "elvis-wrap",

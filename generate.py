@@ -61,6 +61,7 @@ def card(s):
     if s.get("third"):
         panes.append(("third", s["third"]["label"], s["third"]["code"]))
     why = f'<details><summary>Why</summary><p>{s["why"]}</p></details>' if s.get("why") else ""
+    note = f'<p class="note">{s["note"]}</p>' if s.get("note") else ""
     verdict = {"optofmt": "optofmt wins", "ktfmt": "ktfmt wins",
                "third": "neither — see column 3", "parity": "parity"}[s["idiomatic"]]
     vcls = "parity" if s["idiomatic"] == "parity" else "win"
@@ -79,6 +80,7 @@ def card(s):
       <p class="thesis">{s["thesis"]}</p>
       {columns(panes, s["idiomatic"])}
       {extras}
+      {note}
       {why}
     </section>'''
 
@@ -133,6 +135,8 @@ STYLE = """
   .verdict.win { background:var(--grn-bg); color:var(--grn); }
   .verdict.parity { background:var(--mut-bg); color:var(--mut); }
   .thesis { color:var(--txt); margin:6px 0 14px; }
+  .note { color:var(--txt); margin:14px 0 0; padding:10px 14px; border-radius:7px;
+          background:var(--over); border-left:3px solid var(--amb); font-size:14px; }
   code { background:var(--code-bg); padding:1px 5px; border-radius:4px; font-size:.92em; }
   .cols { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   .cols3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
