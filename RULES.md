@@ -190,11 +190,27 @@ val dir = Path.of("")
     .resolve("data")
 ```
 
-## 8. Comments are never reflowed
+## 8. Comments are never reflowed, and they hold their own line
 
 Treat the text inside `//` and `/** … */` comments as opaque. optofmt owns the blank lines and
 indentation *around* comments, but it never rewraps the words inside one. Hand-formatted
 comment blocks, tables, and lists are preserved exactly.
+
+A comment also **holds its line**, and that can shape the surrounding layout. An end-of-line (`//`)
+comment must end its line, and a comment written on its **own line** stays on its own line — it is
+never pulled up onto the previous token's line. So a comment placed before a construct that would
+otherwise be kept **inline** (§1) forces that construct onto its own line. For example a trivial
+accessor normally rides the property line (`val x: T get() = …`), but an own-line comment before it
+keeps both the comment and the accessor on their own lines, one indent in:
+
+```kotlin
+val isClosedForSend: Boolean
+    // Protect by lock to synchronize with close/cancel.
+    get() = lock.withLock { super.isClosedForSend }
+```
+
+(The reverse — a comment forcing a *wrap* purely by its width — does not happen: a trailing
+`// comment` that spills past column 100 does not break the code line.)
 
 ## 9. Declaration headers stay compact
 
