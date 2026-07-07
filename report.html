@@ -139,7 +139,6 @@
     </div>
       
       
-      <details><summary>Why</summary><p>A condition too long for one line must wrap to stacked operands. ktfmt ergonomics opens the paren and lays every operand at the same body indent — one indentation size, so the operands form a clean rectangular block. ktfmt rectangle adds a continuation indent on top of the block indent, so operand 2+ drift one step further right than operand 1, with no structural meaning a reader can attach to.</p></details>
     </section>
     <section class="card">
       <h2>Nested call argument wrapping <span class="src">icpc/live-v3 · Rules.kt:219</span></h2>
@@ -405,7 +404,6 @@
     </div>
       </div>
       
-      <details><summary>Why</summary><p>When an outer call's single argument is itself a call that must wrap, ktfmt ergonomics breaks after the outer <code>(</code>, hangs the inner call on its own indented line, and lets it wrap one further level in; it does <em>not</em> collapse the two openers onto one line (an earlier ktfmt ergonomics did — §5 now reserves opener-hugging for block bodies such as trailing lambdas and <code>object</code> expressions). So a positional nested call matches ktfmt rectangle line-for-line. The difference appears once the argument is <em>named</em>: ktfmt ergonomics treats the argument's <code>=</code> as an introducer (§3) and keeps <code>queue = OverrideQueue(</code> whole, so the body sits at a single indent; ktfmt rectangle breaks after <code>queue =</code> first, pushing the body a further level right. The third column, <em>ktfmt ergonomics v2</em>, revives opener-hugging whenever the outer call has a <em>single</em> nested-call argument, named or not: it collapses the two openers onto one line (<code>add(OverrideQueue(</code> or <code>add(queue = OverrideQueue(</code>) and closes with a shared <code>))</code>, saving an indent level. The rule keys on argument <em>count</em>, not on whether the argument is named — with two or more arguments there is no single opener to hug, so the outer list simply splits one per line and v2 lands back on the ergonomics layout. So v2 diverges from ergonomics only when there is exactly one argument; everywhere else in this family the two are identical.</p></details>
     </section>
     <section class="card">
       <h2>Infix call (to) stays attached <span class="src">icpc/live-v3 · OverrideOrganizations</span></h2>
@@ -452,7 +450,6 @@
     </div>
       </div>
       
-      <details><summary>Why</summary><p>ktfmt rectangle breaks after the infix <code>to</code> and indents the call an extra level, leaving <code>to</code> dangling at the end of a line. ktfmt ergonomics keeps the introducer attached to the opener it introduces — <code>orgInfo.id to OverrideOrganizations.Override(</code> stays on one line and only the argument list wraps, exactly as a human writes a key/value pair.</p></details>
     </section>
     <section class="card">
       <h2>Supertype constructor call stays attached to : <span class="src">icpc/live-v3 · ClicsArchiveCommand</span></h2>
@@ -507,7 +504,6 @@
     </div>
       </div>
       
-      <details><summary>Why</summary><p><code>object X : DumpFileCommand(</code> fits on one line, but ktfmt rectangle breaks after the supertype <code>:</code> and indents the constructor call an extra level, leaving the supertype name alone on its own line. ktfmt ergonomics keeps the introducer attached and wraps only the argument list — same family as not breaking after <code>=</code>.</p></details>
     </section>
     <section class="card">
       <h2>Long call chain <span class="src">icpc/live-v3 · CdsLoadersTest</span></h2>
@@ -543,7 +539,6 @@
     </div>
       
       
-      <details><summary>Why</summary><p>A fluent chain that overflows breaks before each call. ktfmt ergonomics keeps the receiver on the introducer's line and puts each subsequent call on its own line at one indent. ktfmt rectangle first breaks after <code>=</code> (an extra line) and then indents the whole chain a second level — more lines and deeper nesting for the same chain.</p></details>
     </section>
     <section class="card">
       <h2>Block-valued right-hand side (when/if/try) stays on the = line <span class="src">icpc/live-v3 · AbstractScoreboardCalculator.kt:202</span></h2>
@@ -761,7 +756,6 @@
     </div>
       </div>
       
-      <details><summary>Why</summary><p>ktfmt rectangle breaks after <code>=</code> and indents the whole block-valued right-hand side an extra level, although <code>val teamsAffected = when (val event = state.lastEvent) {</code> fits easily. ktfmt ergonomics treats an assignment prefix like a header and keeps the block opener attached, so the branches sit one level in instead of two. The same rule covers any block-valued RHS — a <code>when</code> or an <code>if</code>/<code>else</code> used as an expression.</p></details>
     </section>
     <section class="card">
       <h2>Block-valued accessor (get() = when) stays on the property line <span class="src">kotlinx-knit · linked in review thread</span></h2>
@@ -788,7 +782,6 @@
     </div>
       
       
-      <details><summary>Why</summary><p>This is the accessor case (§accessor) and the block-valued RHS case (§3) compounded. ktfmt rectangle force-breaks all three joints: it drops <code>get()</code> onto its own line, then breaks after <code>=</code>, then indents the <code>when</code> block again — so the branches land three levels in. Both the accessor and the <code>= when (…) {</code> header fit well under 100 columns, so ktfmt ergonomics keeps the whole header on the property line (don't wrap what fits, §1) and treats the assignment as an attached introducer, leaving the branches at a single indent. The denser form kotlinx code favours for an expression getter whose body is a <code>when</code>.</p></details>
     </section>
     <section class="card">
       <h2>Trailing lambda / last-argument expansion <span class="src">icpc/live-v3</span></h2>
@@ -815,7 +808,6 @@
     </div>
       
       <p class="note">Note that while having a trailing lambda out of the parentheses is a preferrable way of formatting, such transformation is potentially a binary-breaking change and cannot be performed by a formatter.</p>
-      <details><summary>Why</summary><p>ktfmt ergonomics may keep leading arguments on the opener line while the final lambda expands in place, so the call stays compact with the block hanging off the end. ktfmt rectangle is all-or-nothing: once the call doesn't fit, every argument goes on its own line, including the lambda.</p></details>
     </section>
     <section class="card">
       <h2>Compact declaration header (annotations &amp; modifiers) <span class="src">kotlinx.coroutines · SharedFlowSubscriptionScope</span></h2>
@@ -840,7 +832,6 @@ internal constructor(
     </div>
       
       
-      <details><summary>Why</summary><p>Facing a long constructor header, ktfmt rectangle puts the class line, the <code>@PublishedApi</code> annotation, and <code>internal constructor(</code> on three separate lines before it even reaches the parameters. ktfmt ergonomics keeps the whole modifier run together and wraps only the parameter list — the part that actually needs it.</p></details>
     </section>
     <section class="card">
       <h2>Block-comment / KDoc prose is not reflowed <span class="src">icpc/live-v3 · contest-config KDoc</span></h2>
@@ -867,7 +858,6 @@ class ContestConfigOverrides</code></pre>
     </div>
       
       
-      <details><summary>Why</summary><p>ktfmt rectangle reflows the text inside <code>/** … */</code> KDoc comments to fill the column, merging and re-splitting sentences the author laid out deliberately and churning diffs on unrelated edits. ktfmt ergonomics treats comment text as opaque: it owns the surrounding whitespace but never reflows the words, so hand-formatted comment blocks, tables, and lists survive intact.</p></details>
     </section>
     <section class="card">
       <h2>Grouped one-line declarations keep no blank lines <span class="src">synthetic</span></h2>
@@ -890,7 +880,6 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
     </div>
       
       
-      <details><summary>Why</summary><p>ktfmt rectangle injects a blank line between consecutive one-line <code>typealias</code> (and <code>fun</code>) declarations, doubling the height of a tight family of related one-liners. ktfmt ergonomics preserves the author's grouping: consecutive same-kind declarations stay together, multiple blank lines collapse to one, and a blank is inserted only between declarations of different kinds.</p></details>
     </section>
     <section class="card">
       <h2>Long parameter list <span class="src">synthetic</span></h2>
@@ -919,7 +908,6 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
     </div>
       
       
-      <details><summary>Why</summary><p>Included to show the comparison is fair: on the bread-and-butter case the two engines agree. The only difference is ktfmt rectangle's added trailing comma. The wins elsewhere are specific structural cases, not a blanket claim.</p></details>
     </section>
     <section class="card">
       <h2>Elvis (?:) operator wrap <span class="src">kotlin-toolchain · PetTypeFormatter.kt:44</span></h2>
@@ -942,7 +930,6 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
     </div>
       
       
-      <details><summary>Why</summary><p>Elvis is one of the operators that reads best with the operator leading the continuation line, and both engines agree: keep the left side on the first line and start the wrapped line with <code>?:</code> at one indent. (This is the opposite of the chain operators like <code>&amp;&amp;</code>, which trail.)</p></details>
     </section>
     <section class="card">
       <h2>Elvis (?:) stays inline when it fits <span class="src">null-fallback idiom · §6</span></h2>
@@ -983,7 +970,6 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
     </div>
       </div>
       
-      <details><summary>Why</summary><p>A null-fallback that fits on one line reads best inline, and ktfmt ergonomics keeps it there — the elvis break is a candidate, not a forced one (§6/§1), so both engines agree while it fits. The difference appears only once the operands overflow: ktfmt ergonomics keeps the introducer attached (§3), so <code>val entry =</code> stays on the first line, and drops <code>?:</code> to the start of the next line at a single indent (§2/§6). ktfmt rectangle breaks after <code>=</code> as well, then indents the <code>?:</code> a further level, so the fallback drifts two levels deep.</p></details>
     </section>
     <section class="card">
       <h2>Annotation with arguments on its own line <span class="src">Kotlin project · ktfmt diff study</span></h2>
@@ -1001,7 +987,6 @@ fun testSomething() {}</code></pre>
     </div>
       
       
-      <details><summary>Why</summary><p>Kotlin convention places an annotation that carries arguments (<code>@JvmName("other")</code>, <code>@Test</code>, <code>@Deprecated(...)</code>) on its own line directly above the declaration; only argument-less modifier-like annotations (<code>@PublishedApi</code>, <code>@JvmStatic</code>) stay inline. ktfmt rectangle keeps every annotation glued to the declaration line, so <code>@JvmName("other") fun testSomething() {}</code> reads as a single run and the annotation loses the visual separation a reader expects. ktfmt ergonomics breaks after the argument-carrying annotation (§9).</p></details>
     </section>
     <section class="card">
       <h2>Trivial property accessor stays on the property line <span class="src">Kotlin project · ktfmt diff study</span></h2>
@@ -1019,7 +1004,6 @@ fun testSomething() {}</code></pre>
     </div>
       
       
-      <details><summary>Why</summary><p>ktfmt rectangle unconditionally moves a property accessor onto its own indented line, even when the whole declaration fits: <code>val placeOfGetter: String get() = "hello"</code> is well under 100 columns. ktfmt ergonomics follows the §1 objective — don't wrap what fits — and keeps the trivial accessor inline, the denser form kotlinx code favours for one-expression getters. (When the accessor body is long enough to overflow, ktfmt ergonomics moves it to its own line at one indent like any other wrap.)</p></details>
     </section>
     <section class="card">
       <h2>Lambda that fits stays on one line (even with return) <span class="src">Kotlin project · ktfmt diff study</span></h2>
@@ -1042,7 +1026,6 @@ fun testSomething() {}</code></pre>
     </div>
       
       
-      <details><summary>Why</summary><p>ktfmt rectangle preserves author line breaks in lambdas, but it still force-expands a lambda whose body is a control-flow jump: <code>nullableString?.let { return }</code> becomes three lines. The single statement fits comfortably, so ktfmt ergonomics keeps it inline per §1 (don't wrap what fits) — the compact guard-style form that is idiomatic for <code>?.let { return }</code> and friends.</p></details>
     </section>
     <section class="card">
       <h2>Comma-separated when conditions stay on one line when they fit <span class="src">synthetic</span></h2>
@@ -1095,7 +1078,6 @@ fun testSomething() {}</code></pre>
     </div>
       </div>
       
-      <details><summary>Why</summary><p>ktfmt rectangle treats the comma-separated condition list of a <code>when</code> entry as a breakable list and splits it one-per-line even when the whole entry fits comfortably: <code>0, 1 -> println("a or b")</code> becomes two lines for the conditions plus the body. ktfmt ergonomics follows §1 (don't wrap what fits) and §4 (a comma list is compact when it fits) and keeps the entry on a single line — the form a human writes for a short multi-value branch. (When the conditions genuinely overflow, §4 splits them one per line.)</p></details>
     </section>
     <section class="card">
       <h2>Long generic type-argument list <span class="src">Exposed · EntityCache.kt</span></h2>
@@ -1118,7 +1100,6 @@ fun testSomething() {}</code></pre>
     </div>
       
       
-      <details><summary>Why</summary><p>When the declaration overflows, §3 keeps the introducer (<code>=</code>) attached only when the right-hand side has a wrappable <em>body</em> — and §4 names exactly which: call arguments, parameters, collection literals, <code>when</code> entries. A generic type-argument list <code>&lt;…&gt;</code> is none of those (nor a call chain, §7, nor a nested call group, §5): <code>IdentityHashMap&lt;…&gt;()</code> is a single type applied to an empty <code>()</code>. With no §3 body to wrap, the only break that clears the overflow is after <code>=</code>. Among the legal layouts §1 then decides: break-after-<code>=</code> keeps the type intact in <strong>two</strong> lines (the wrapped line is 74 cols, well within 100), whereas tearing the type open inside the angle brackets costs <strong>three</strong> — so §1's fewest-lines tiebreaker picks the two-line form, and ktfmt ergonomics and ktfmt rectangle agree. (The prototype currently tears the type across three lines, leaving a dangling <code>&lt;</code> and a lonely <code>&gt;()</code> — it over-applies §3/§5 to a construct they don't cover and violates §1's own line count. That is a bug in the executable, not the layout the rules prescribe.)</p></details>
     </section>
     <section class="card">
       <h2>Introducer = stays attached (scope-function / concatenation / collection) <span class="src">okio · Okio.kt:60</span></h2>
@@ -1226,7 +1207,6 @@ val ANSI_SQL_2003_KEYWORDS: Set&lt;String&gt; = setOf(
     </div>
       </div>
       
-      <details><summary>Why</summary><p>§3 says never break after an introducer just to give its right-hand side a fresh indented block. Pattern <em>block-valued RHS</em> covers only <code>when</code>/<code>if</code>; the real ktfmt ergonomics applies the same rule to every block- or call-valued RHS. It keeps the <code>=</code> and the opener (<code>receiver.run {</code>, <code>("…" +</code>, <code>setOf(</code>) together and lays the body at a single indent, reproducing the hand-written kotlinx shape. ktfmt rectangle eagerly drops the whole right-hand side to a new line and indents it twice.</p></details>
     </section>
     <section class="card">
       <h2>Argument-less annotation on its own line <span class="src">sqldelight · SqlDelightExtension.kt:6</span></h2>
@@ -1283,7 +1263,6 @@ annotation class SqlDelightDsl</code></pre>
     </div>
       </div>
       
-      <details><summary>Why</summary><p>The <em>annotation-with-arguments</em> pattern already breaks a standalone annotation that carries arguments onto its own line. The real ktfmt ergonomics extends this to <em>argument-less</em> annotations: only a modifier-like allowlist (<code>@JvmStatic</code>, <code>@JvmInline</code>, <code>@JvmOverloads</code>, <code>@PublishedApi</code>) stays inline; every other annotation (<code>@DslMarker</code>, <code>@Test</code>, <code>@SpringBootApplication</code>, <code>@Serializable</code>, …) goes on its own line, matching idiomatic Kotlin. ktfmt rectangle keeps any short annotation inline. This holds for classes, properties, and expression-body functions alike.</p></details>
     </section>
     <section class="card">
       <h2>Multiple supertypes: one per line, never packed <span class="src">sqldelight · ArrayValueExpressionMixin.kt:20</span></h2>
@@ -1307,7 +1286,6 @@ annotation class SqlDelightDsl</code></pre>
     </div>
       
       
-      <details><summary>Why</summary><p>The supertype <code>:</code> is an introducer (§3): ktfmt ergonomics keeps <code>) : SqlCompositeElementImpl(node)</code> on the header line and puts each <em>remaining</em> supertype on its own line at one indent (§4 — a comma list is compact or one-per-line). ktfmt rectangle instead breaks right after <code>:</code> and then fill-packs every supertype onto the single continuation line, so the list reads as one dense run rather than an aligned column.</p></details>
     </section>
     <section class="card">
       <h2>Supertype by delegation attached to :, as cast wraps <span class="src">kotlinx.coroutines · BufferedChannel.kt:239</span></h2>
@@ -1326,7 +1304,6 @@ annotation class SqlDelightDsl</code></pre>
     </div>
       
       
-      <details><summary>Why</summary><p><code>:</code> is an introducer (§3): keep it and the delegate attached, and wrap only the overflowing tail. ktfmt ergonomics leaves <code>: Waiter by cont</code> on the header line and drops the trailing <code>as CancellableContinuationImpl&lt;Boolean&gt;</code> to one indent; ktfmt rectangle breaks right after <code>:</code> and re-indents the whole <code>Iface by delegate as Cast</code> clause even though only the cast needed room.</p></details>
     </section>
     <section class="card">
       <h2>Small overflow tolerated instead of exploding a compact signature <span class="src">sqldelight · SqlDelightRefactoringSupportProvider.kt:8</span></h2>
@@ -1373,7 +1350,6 @@ annotation class SqlDelightDsl</code></pre>
     </div>
       </div>
       
-      <details><summary>Why</summary><p>The real ktfmt ergonomics applies a small, <em>bounded</em> overflow tolerance (~2 columns): rather than fragment a short signature into a five-line block for the sake of two characters, it keeps the authorial single line. Beyond ~102 columns it does explode, so the slack is bounded. Note this trades against §1's strict “no overflowing line” objective — it is a pragmatic convergence with how these signatures are actually written in the stdlib and elsewhere; the amber mark shows the residual one-column overflow.</p></details>
     </section>
     <section class="card">
       <h2>Trailing line-comment does not force a wrap <span class="src">kotlinx.coroutines · DebugCoroutineInfo.kt:18</span></h2>
@@ -1395,7 +1371,6 @@ annotation class SqlDelightDsl</code></pre>
     </div>
       
       
-      <details><summary>Why</summary><p>The code itself — <code>internal val … = source.creationStackBottom</code> — is well within 100 columns; only the trailing <code>// comment</code> spills over. ktfmt ergonomics does not count a trailing end-of-line comment toward the column limit, so it sees no reason to break a one-line property in two, and reproduces the hand-written kotlinx source verbatim. ktfmt rectangle measures the raw character count (comment included) and breaks after <code>=</code> to bring the code under 100 — scattering a single logical line across two. This is a deliberate trailing-comment exemption from §1's width objective; the amber mark on the ktfmt ergonomics line is the comment overflow it chooses to keep.</p></details>
     </section>
     <section class="card">
       <h2>Triple-quoted string as sole call argument stays attached <span class="src">kotlinx.coroutines · CoroutineExceptionHandlerImpl.kt:17</span></h2>
@@ -1424,7 +1399,6 @@ annotation class SqlDelightDsl</code></pre>
     </div>
       
       
-      <details><summary>Why</summary><p>The whole raw string is a single indivisible token; breaking around the parentheses only adds two lines and an extra indent level without helping the width objective. ktfmt ergonomics keeps the opening <code>("""</code> on the call line and the closing <code>""")</code> on the string's last line, reusing one body indent (§5); ktfmt rectangle stacks <code>(</code>, <code>"""</code> and a lonely <code>)</code> on separate lines.</p></details>
     </section></main>
 <footer>Generated by <code>python3 generate.py</code> from <code>snippets.py</code>;
   ktfmt ergonomics rules live in <code>RULES.md</code>.</footer>

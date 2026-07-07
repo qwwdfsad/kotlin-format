@@ -70,7 +70,6 @@ def panes_for(d):
 
 def card(s):
     panes = panes_for(s)
-    why = f'<details><summary>Why</summary><p>{s["why"]}</p></details>' if s.get("why") else ""
     note = f'<p class="note">{s["note"]}</p>' if s.get("note") else ""
     extras = "".join(
         f'''
@@ -86,7 +85,6 @@ def card(s):
       {columns(panes)}
       {extras}
       {note}
-      {why}
     </section>'''
 
 
