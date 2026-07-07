@@ -69,7 +69,15 @@ SNIPPETS = [
                "matches ktfmt rectangle line-for-line. The difference appears once the argument is "
                "<em>named</em>: ktfmt ergonomics treats the argument's <code>=</code> as an introducer (§3) and "
                "keeps <code>queue = OverrideQueue(</code> whole, so the body sits at a single indent; "
-               "ktfmt rectangle breaks after <code>queue =</code> first, pushing the body a further level right.",
+               "ktfmt rectangle breaks after <code>queue =</code> first, pushing the body a further level right. "
+               "The third column, <em>ktfmt ergonomics v2</em>, revives opener-hugging whenever the outer "
+               "call has a <em>single</em> nested-call argument, named or not: it collapses the two openers "
+               "onto one line (<code>add(OverrideQueue(</code> or <code>add(queue = OverrideQueue(</code>) and "
+               "closes with a shared <code>))</code>, saving an indent level. The rule keys on argument "
+               "<em>count</em>, not on whether the argument is named — with two or more arguments there is no "
+               "single opener to hug, so the outer list simply splits one per line and v2 lands back on the "
+               "ergonomics layout. So v2 diverges from ergonomics only when there is exactly one argument; "
+               "everywhere else in this family the two are identical.",
         "input": "fun f() { add(OverrideQueue(queueSettings.waitTime, queueSettings.firstToSolveWaitTime, "
                  "queueSettings.featuredRunWaitTime, queueSettings.inProgressRunWaitTime, "
                  "queueSettings.maxQueueSize, queueSettings.maxUntestedRun)) }",
@@ -98,6 +106,17 @@ SNIPPETS = [
     )
 }
 """,
+        "third": """fun f() {
+    add(OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.featuredRunWaitTime,
+            queueSettings.inProgressRunWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+    ))
+}
+""",
         "idiomatic": "parity",
         "extra": [{
             "note": "A single unbreakable argument: ktfmt ergonomics and ktfmt rectangle lay it out identically — the "
@@ -117,6 +136,12 @@ SNIPPETS = [
             aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY,
         )
     )
+}
+""",
+            "third": """fun f() {
+    registerHandler(buildHandler(
+            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY,
+    ))
 }
 """,
         }, {
@@ -139,6 +164,21 @@ SNIPPETS = [
     )
 }""",
             "optofmt": """fun f() {
+    add(
+        arg1,
+        arg2,
+        OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        ),
+        arg3,
+        arg4,
+    )
+}
+""",
+            "third": """fun f() {
     add(
         arg1,
         arg2,
@@ -187,6 +227,17 @@ SNIPPETS = [
     )
 }
 """,
+            "third": """fun f() {
+    add(queue = OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.featuredRunWaitTime,
+            queueSettings.inProgressRunWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+    ))
+}
+""",
             "idiomatic": "optofmt",
         }, {
             "note": "Two named arguments, each an expandable call. The outer list splits one item per "
@@ -218,6 +269,27 @@ SNIPPETS = [
     )
 }""",
             "optofmt": """fun f() {
+    add(
+        queue = OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.featuredRunWaitTime,
+            queueSettings.inProgressRunWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        ),
+        foo = OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.featuredRunWaitTime,
+            queueSettings.inProgressRunWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        ),
+    )
+}
+""",
+            "third": """fun f() {
     add(
         queue = OverrideQueue(
             queueSettings.waitTime,

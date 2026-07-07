@@ -22,7 +22,8 @@ HERE = Path(__file__).resolve().parent
 STATE = HERE / ".optofmt-state.json"
 LIMIT = 100
 
-COL_LABEL = {"ktfmt": "ktfmt &middot; rectangle", "optofmt": "ktfmt &middot; ergonomics"}
+COL_LABEL = {"ktfmt": "ktfmt &middot; rectangle", "optofmt": "ktfmt &middot; ergonomics",
+             "third": "ktfmt &middot; ergonomics v2"}
 
 
 def esc(t):
@@ -53,19 +54,29 @@ def columns(panes):
     return f'<div class="{grid}">\n      ' + "\n      ".join(cells) + "\n    </div>"
 
 
+def panes_for(d):
+    """Two default panes plus an optional third. A `third` entry may be a plain code
+    string (labelled "ergonomics v2") or a {"label", "code"} dict."""
+    panes = [("ktfmt", COL_LABEL["ktfmt"], d["ktfmt"]),
+             ("optofmt", COL_LABEL["optofmt"], d["optofmt"])]
+    third = d.get("third")
+    if third is not None:
+        if isinstance(third, dict):
+            panes.append(("third", third["label"], third["code"]))
+        else:
+            panes.append(("third", COL_LABEL["third"], third))
+    return panes
+
+
 def card(s):
-    panes = [("ktfmt", COL_LABEL["ktfmt"], s["ktfmt"]),
-             ("optofmt", COL_LABEL["optofmt"], s["optofmt"])]
-    if s.get("third"):
-        panes.append(("third", s["third"]["label"], s["third"]["code"]))
+    panes = panes_for(s)
     why = f'<details><summary>Why</summary><p>{s["why"]}</p></details>' if s.get("why") else ""
     note = f'<p class="note">{s["note"]}</p>' if s.get("note") else ""
     extras = "".join(
         f'''
       <div class="extra">
         <p class="thesis"><span class="same-rule">same rule</span> {ex["note"]}</p>
-        {columns([("ktfmt", COL_LABEL["ktfmt"], ex["ktfmt"]),
-                  ("optofmt", COL_LABEL["optofmt"], ex["optofmt"])])}
+        {columns(panes_for(ex))}
       </div>'''
         for ex in s.get("extra", []))
     return f'''
