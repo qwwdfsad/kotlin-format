@@ -127,6 +127,19 @@ STYLE = """
   .pills { margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; }
   .pill { font-size:13px; padding:4px 11px; border-radius:99px; border:1px solid var(--line);
           background:var(--panel); color:var(--mut); }
+  .lead { color:var(--txt); font-size:16px; max-width:92ch; margin:10px 0 18px; }
+  .engines { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0; }
+  @media (max-width:900px) { .engines { grid-template-columns:1fr; } }
+  .engine { border:1px solid var(--line); border-radius:10px; padding:14px 18px;
+            background:var(--panel); }
+  .engine h3 { margin:0 0 7px; font-size:15px; letter-spacing:-.01em; }
+  .engine p { color:var(--txt); margin:0; max-width:none; font-size:14px; }
+  .engine.rect { border-left:3px solid var(--amb); }
+  .engine.rect h3 { color:var(--amb); }
+  .engine.ergo { border-left:3px solid var(--acc); }
+  .engine.ergo h3 { color:var(--acc); }
+  .goal { color:var(--txt); max-width:92ch; margin:18px 0 6px; }
+  .legend { color:var(--mut); max-width:92ch; margin:6px 0; font-size:13px; }
   main { max-width:1320px; margin:0 auto; padding:6px 28px 40px; }
   .card { background:var(--panel); border:1px solid var(--line); border-radius:12px;
           padding:18px 20px; margin:22px 0; }
@@ -275,16 +288,34 @@ def page(title, intro, body, pills=""):
 
 def build_report():
     intro = (
-        '<p>Each snippet is the same Kotlin formatted two ways: <b>ktfmt rectangle</b> '
-        '(<code>--kotlinlang-style</code>) on the left, and <b>ktfmt ergonomics</b> '
-        '(per <code>RULES.md</code>) on the right. A third column appears '
-        'when a strictly better option exists that neither produces. Both use '
-        '<b>4-space indent</b> and a <b>100-column limit</b>.</p>'
-        '<p>Amber marks any line past 100 columns. ktfmt rectangle output is real; ktfmt '
-        'ergonomics output is the layout entailed by the rules.</p>')
+        '<p class="lead">The page presents a comparison between two potential ktfmt '
+        'engines &mdash; <b>&ldquo;The Rectangle Rule&rdquo;</b>, the current ktfmt engine, '
+        'and a potential new one &mdash; <b>&ldquo;Ergonomics engine&rdquo;</b>.</p>'
+        '<div class="engines">'
+        '<div class="engine rect"><h3>The Rectangle Rule</h3>'
+        '<p>a strict engine that follows the corresponding '
+        '<a href="https://github.com/google/google-java-format/wiki/The-Rectangle-Rule" '
+        'target="_blank" rel="noopener">rule</a>. It is very strict and predictable '
+        '&mdash; every syntax subtree is in its own bounding rectangle, it is very local '
+        "(changes in one line rarely affect surrounding lines&rsquo; formatting) and thus "
+        'Git-history-friendly. Because of these properties, it also produces quite a few '
+        'newlines and additional layers of tabular nesting</p></div>'
+        '<div class="engine ergo"><h3>Ergonomics engine</h3>'
+        '<p>an engine that prioritizes concise and ergonomic Kotlin. Its goal is to '
+        'format code in a compact manner, minimizing its width and length, but without '
+        'general loss of readability. It subjectively improves information density but with '
+        'the opposite tradeoffs &mdash; it is less predictable and less local.</p></div>'
+        '</div>'
+        '<p class="goal"><b>Our goal is to understand the stylistic preferences of Kotlin '
+        'developers.</b> So the current page has a series of snippets formatted in two ways '
+        'to showcase the difference between these two engines, for you to pick the one you '
+        'prefer. Some snippets are grouped in a way that shows how the code might evolve '
+        'over time to showcase formatting locality (or lack of thereof).</p>'
+        '<p class="legend">Both use <b>4-space indent</b> and a <b>100-column limit</b>; '
+        'amber marks any line past 100 columns.</p>')
     pills = f'<div class="pills"><span class="pill">{len(SNIPPETS)} patterns</span></div>'
     body = "".join(card(s) for s in SNIPPETS)
-    (HERE / "report.html").write_text(page("ktfmt rectangle vs ergonomics", intro, body, pills))
+    (HERE / "report.html").write_text(page("ktfmt code style comparison", intro, body, pills))
 
 
 def build_diff():
