@@ -274,8 +274,11 @@ Where an annotation sits depends on whether it takes arguments and on what it an
   **own line** directly above the declaration.
 - An annotation that **carries arguments** (`@JvmName("other")`, `@Test`, `@Deprecated(…)`,
   `@Suppress(…)`) **always** goes on its **own line** above the declaration, whatever it annotates.
-- **Type-parameter** annotations (`<@UnsafeVariance T>`) are the one exception: they always stay
-  inline, since optofmt never introduces a break inside the `<…>` brackets.
+- **Type annotations** are the exception: an annotation that is part of a **type** always stays
+  inline and never breaks away from it. This covers a **type-parameter** annotation
+  (`<@UnsafeVariance T>`) and a **type-use** annotation on a parameter/property type
+  (`compactHeader: @Composable () -> Unit`, `items: @Ann List<T>`) — the annotation rides with the
+  type on the `:` line (§9), it is not dropped onto its own line even when it carries arguments.
 
 (ktfmt keeps every annotation inline; optofmt breaks as above.)
 
