@@ -190,6 +190,29 @@ val dir = Path.of("")
     .resolve("data")
 ```
 
+This holds **even when keeping the receiver attached costs an extra line** — attaching the receiver
+is preferred over breaking after `=` to fit the whole chain on one wrapped line:
+
+```kotlin
+// optofmt — the receiver-through-first-call stays on the `=` line, `.padding`s wrap one per line;
+// NOT `val x =\n    Modifier.…().padding(…).padding(…)` on a single wrapped line.
+val contentModifier = Modifier.verticalScroll(scrollState)
+    .padding(bottom = 24.dp)
+    .padding(bottomInsetPadding())
+```
+
+The receiver-through-first-call is treated as a **whole** unit — its own arguments never wrap to
+keep it on the line. When that unit itself is too long to sit on the `=` line, only *then* does the
+chain break after `=`, dropping the whole receiver-first-call to the next line at one indent (its
+arguments still kept together there):
+
+```kotlin
+val queryResult =
+    repository.findAllByStatusAndCategoryOrderByCreatedDate(activeStatus, selectedCategory)
+    .map { it.id }
+    .distinct()
+```
+
 ## 8. Comments are never reflowed, and they hold their own line
 
 Treat the text inside `//` and `/** … */` comments as opaque. optofmt owns the blank lines and
