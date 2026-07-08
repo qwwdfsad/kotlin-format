@@ -155,12 +155,88 @@ SNIPPETS = [
 }""",
         "idiomatic": "parity",
         "extra": [{
-            "note": "Name the single argument and ktfmt rectangle breaks after <code>queue =</code> "
-                    "<em>as well</em>, staircasing the arguments to indent 16 — three levels deep. "
-                    "ktfmt ergonomics hugs the openers, keeping <code>add(queue = OverrideQueue(</code> "
-                    "on one line so the body sits at a single indent. A virtual ergonomics v2 keeps "
-                    "<code>queue = OverrideQueue(</code> together but drops it to its own line under "
-                    "<code>add(</code>.",
+            "note": "A single unbreakable argument: ktfmt ergonomics and ktfmt rectangle lay it out identically — the "
+                    "inner call on its own line at one indent — differing only in ktfmt ergonomics's trailing "
+                    "comma (§14). (An earlier ktfmt ergonomics collapsed the openers here to save an indent "
+                    "level; that heuristic is gone — a nested call now always hangs on its own line.)",
+            "ktfmt": """fun f() {
+    registerHandler(
+        buildHandler(
+            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY
+        )
+    )
+}""",
+            "optofmt": """fun f() {
+    registerHandler(
+        buildHandler(
+            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY,
+        )
+    )
+}
+""",
+            "third": """fun f() {
+    registerHandler(buildHandler(
+        aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY,
+    ))
+}
+""",
+        }, {
+            "note": "With multiple arguments the outer list simply splits one item per line (§4) and "
+                    "the nested <code>OverrideQueue(</code> expands in place. ktfmt ergonomics matches ktfmt rectangle "
+                    "line-for-line, both including trailing commas (§14) — a positional nested call is "
+                    "laid out the same by either formatter.",
+            "ktfmt": """fun f() {
+    add(
+        arg1,
+        arg2,
+        OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        ),
+        arg3,
+        arg4,
+    )
+}""",
+            "optofmt": """fun f() {
+    add(
+        arg1,
+        arg2,
+        OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        ),
+        arg3,
+        arg4,
+    )
+}
+""",
+            "third": """fun f() {
+    add(
+        arg1,
+        arg2,
+        OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        ),
+        arg3,
+        arg4,
+    )
+}
+""",
+            "idiomatic": "parity",
+        }, {
+            "note": "Name the single argument (<code>add(queue = OverrideQueue(</code>) and ktfmt rectangle "
+                    "breaks after <code>queue =</code> <em>as well</em> before it staircases the call, so "
+                    "the arguments land at indent 16 — three levels deep. ktfmt ergonomics treats the "
+                    "named-argument <code>=</code> as an introducer (§3) and keeps "
+                    "<code>queue = OverrideQueue(</code> on one line, so the body sits at a single indent — "
+                    "the one place a nested call argument diverges from ktfmt rectangle.",
             "ktfmt": """fun f() {
     add(
         queue =
@@ -185,14 +261,13 @@ SNIPPETS = [
     ))
 }""",
             "third": """fun f() {
-    add(
-        queue = OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.featuredRunWaitTime,
-            queueSettings.inProgressRunWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
+    add(queue = OverrideQueue(
+        queueSettings.waitTime,
+        queueSettings.firstToSolveWaitTime,
+        queueSettings.featuredRunWaitTime,
+        queueSettings.inProgressRunWaitTime,
+        queueSettings.maxQueueSize,
+        queueSettings.maxUntestedRun,
     ))
 }""",
             "idiomatic": "optofmt",

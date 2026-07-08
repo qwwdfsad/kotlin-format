@@ -133,29 +133,44 @@ onSubscribe(object : Subscription {
 })
 ```
 
-But when a call's sole argument is **itself a call or constructor** that must wrap, the openers are
-**not** collapsed. The outer call breaks after its `(`, the inner call **hangs on its own indented
-line**, and each `)` closes on its own line. Because the outer call carries a single block-like
-value — not a one-per-line split — it takes **no outer trailing comma**; the inner list wraps and
-commas normally (§14). A named sole argument behaves the same, with `name =` kept on the argument's
-line (§3):
+The same opener-hugging applies when a call's **sole argument is itself a call or constructor**
+that must wrap: the two openers **collapse onto one line** and the closers **stack together** as
+`))`, so the inner argument list sits at a single indent instead of staircasing. This keys on
+argument **count**, not on whether the argument is named — a named sole argument behaves the same,
+with `name =` kept on the opener line (§3). Because the outer call carries a single block-like value
+— not a one-per-line split — it takes **no outer trailing comma**; the inner list wraps and commas
+normally (§14):
 
 ```kotlin
-// optofmt — nested call expands; no `))` stacking, no outer comma:
-add(
-    OverrideQueue(
-        waitTime,
-        firstToSolveWaitTime,
-        maxQueueSize,
-    )
-)
+// optofmt — the nested call hugs the outer opener; `))` stacks, no outer comma:
+add(OverrideQueue(
+    waitTime,
+    firstToSolveWaitTime,
+    maxQueueSize,
+))
 
+add(queue = OverrideQueue(
+    waitTime,
+    firstToSolveWaitTime,
+    maxQueueSize,
+))
+```
+
+With **two or more arguments** there is no single opener to hug, so the outer list simply splits
+**one argument per line** (§4) and each nested call expands in place:
+
+```kotlin
 add(
     queue = OverrideQueue(
         waitTime,
         firstToSolveWaitTime,
         maxQueueSize,
-    )
+    ),
+    foo = OverrideQueue(
+        waitTime,
+        firstToSolveWaitTime,
+        maxQueueSize,
+    ),
 )
 ```
 
