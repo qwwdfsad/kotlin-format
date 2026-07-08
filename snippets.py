@@ -23,18 +23,26 @@ verify them with the skills.
 SNIPPETS = [
     {
         "id": "boolean-condition",
-        "name": "Multi-line boolean condition",
+        "name": "Boolean conditions",
         "source": "kotlinx.coroutines · JobSupport.kt:273",
-        "thesis": "ktfmt ergonomics keeps every operand at one indent; ktfmt rectangle pushes each operand after the first a level deeper.",
-        "why": "A condition too long for one line must wrap to stacked operands. ktfmt ergonomics opens the "
-               "paren and lays every operand at the same body indent — one indentation size, so the "
-               "operands form a clean rectangular block. ktfmt rectangle adds a continuation indent on top of "
-               "the block indent, so operand 2+ drift one step further right than operand 1, with no "
-               "structural meaning a reader can attach to.",
-        "input": "fun f() { if (unwrapped !== rootCause && unwrapped !== unwrappedCause && unwrapped "
-                 "!is CancellationException && seenExceptions.add(unwrapped)) { "
-                 "rootCause.addSuppressed(unwrapped) } }",
+        "thesis": "A single condition is laid out identically by both engines; adding more conditions forces a wrap, where they diverge.",
+        "input": "fun f() { if (unwrapped !== rootCause) { rootCause.addSuppressed(unwrapped) } }",
         "ktfmt": """fun f() {
+    if (unwrapped !== rootCause) {
+        rootCause.addSuppressed(unwrapped)
+    }
+}""",
+        "optofmt": """fun f() {
+    if (unwrapped !== rootCause) {
+        rootCause.addSuppressed(unwrapped)
+    }
+}""",
+        "idiomatic": "parity",
+        "extra": [{
+            "note": "Add more conditions and the line must wrap: ktfmt ergonomics keeps every operand "
+                    "at one indent; ktfmt rectangle pushes each operand after the first a level deeper. "
+                    "A third option keeps the first condition on the <code>if</code> line.",
+            "ktfmt": """fun f() {
     if (
         unwrapped !== rootCause &&
             unwrapped !== unwrappedCause &&
@@ -44,7 +52,7 @@ SNIPPETS = [
         rootCause.addSuppressed(unwrapped)
     }
 }""",
-        "optofmt": """fun f() {
+            "optofmt": """fun f() {
     if (
         unwrapped !== rootCause &&
         unwrapped !== unwrappedCause &&
@@ -54,13 +62,55 @@ SNIPPETS = [
         rootCause.addSuppressed(unwrapped)
     }
 }""",
-        "idiomatic": "optofmt",
+            "third": """fun f() {
+    if (unwrapped !== rootCause &&
+        unwrapped !== unwrappedCause &&
+        unwrapped !is CancellationException &&
+        seenExceptions.add(unwrapped)
+    ) {
+        rootCause.addSuppressed(unwrapped)
+    }
+}""",
+        }],
+    },
+    {
+        "id": "nested-long-argument",
+        "name": "Nested call with a long argument",
+        "source": "synthetic example",
+        "thesis": "A short nested call fits on one line and both engines agree; rename the inner argument to something long enough to overflow and the call must wrap.",
+        "input": "fun f() { registerHandler(buildHandler(handler)) }",
+        "ktfmt": """fun f() {
+    registerHandler(buildHandler(handler))
+}""",
+        "optofmt": """fun f() {
+    registerHandler(buildHandler(handler))
+}""",
+        "idiomatic": "parity",
+        "extra": [{
+            "note": "Rename the argument to one long enough to overflow, and the inner call must "
+                    "break. ktfmt rectangle staircases the openers, dropping <code>buildHandler(</code> "
+                    "and then the argument onto successively deeper lines. ktfmt ergonomics hugs the two "
+                    "openers (<code>registerHandler(buildHandler(</code>) so the body sits at one indent "
+                    "and the call closes with a shared <code>))</code>.",
+            "ktfmt": """fun f() {
+    registerHandler(
+        buildHandler(
+            aLongUnbreakableHandlerArgumentDeliberatelySizedToOverflowTheHundredColumnLimit
+        )
+    )
+}""",
+            "optofmt": """fun f() {
+    registerHandler(buildHandler(
+        aLongUnbreakableHandlerArgumentDeliberatelySizedToOverflowTheHundredColumnLimit,
+    ))
+}""",
+        }],
     },
     {
         "id": "indent-economy",
         "name": "Nested call argument wrapping",
         "source": "icpc/live-v3 · Rules.kt:219",
-        "thesis": "For a positional nested call ktfmt ergonomics and ktfmt rectangle agree; the win shows once the argument is named — ktfmt ergonomics keeps <code>name =</code> on the call-opener line (§3) where ktfmt rectangle breaks after it.",
+        "thesis": "A single nested-call argument — positional or named — reads compactly under ktfmt ergonomics: it hugs the openers so the body sits at one indent, where ktfmt rectangle staircases each opener onto its own line. With several arguments both engines split one per line and agree.",
         "why": "When an outer call's single argument is itself a call that must wrap, ktfmt ergonomics breaks "
                "after the outer <code>(</code>, hangs the inner call on its own indented line, and lets "
                "it wrap one further level in; it does <em>not</em> collapse the two openers onto one "
@@ -94,113 +144,23 @@ SNIPPETS = [
     )
 }""",
         "optofmt": """fun f() {
-    add(
-        OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.featuredRunWaitTime,
-            queueSettings.inProgressRunWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
-        )
-    )
-}
-""",
-        "third": """fun f() {
     add(OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.featuredRunWaitTime,
-            queueSettings.inProgressRunWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
+        queueSettings.waitTime,
+        queueSettings.firstToSolveWaitTime,
+        queueSettings.featuredRunWaitTime,
+        queueSettings.inProgressRunWaitTime,
+        queueSettings.maxQueueSize,
+        queueSettings.maxUntestedRun,
     ))
-}
-""",
+}""",
         "idiomatic": "parity",
         "extra": [{
-            "note": "A single unbreakable argument: ktfmt ergonomics and ktfmt rectangle lay it out identically — the "
-                    "inner call on its own line at one indent — differing only in ktfmt ergonomics's trailing "
-                    "comma (§14). (An earlier ktfmt ergonomics collapsed the openers here to save an indent "
-                    "level; that heuristic is gone — a nested call now always hangs on its own line.)",
-            "ktfmt": """fun f() {
-    registerHandler(
-        buildHandler(
-            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY
-        )
-    )
-}""",
-            "optofmt": """fun f() {
-    registerHandler(
-        buildHandler(
-            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY,
-        )
-    )
-}
-""",
-            "third": """fun f() {
-    registerHandler(buildHandler(
-            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY,
-    ))
-}
-""",
-        }, {
-            "note": "With multiple arguments the outer list simply splits one item per line (§4) and "
-                    "the nested <code>OverrideQueue(</code> expands in place. ktfmt ergonomics matches ktfmt rectangle "
-                    "line-for-line, both including trailing commas (§14) — a positional nested call is "
-                    "laid out the same by either formatter.",
-            "ktfmt": """fun f() {
-    add(
-        arg1,
-        arg2,
-        OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
-        ),
-        arg3,
-        arg4,
-    )
-}""",
-            "optofmt": """fun f() {
-    add(
-        arg1,
-        arg2,
-        OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
-        ),
-        arg3,
-        arg4,
-    )
-}
-""",
-            "third": """fun f() {
-    add(
-        arg1,
-        arg2,
-        OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
-        ),
-        arg3,
-        arg4,
-    )
-}
-""",
-            "idiomatic": "parity",
-        }, {
-            "note": "Name the single argument (<code>add(queue = OverrideQueue(</code>) and ktfmt rectangle "
-                    "breaks after <code>queue =</code> <em>as well</em> before it staircases the call, so "
-                    "the arguments land at indent 16 — three levels deep. ktfmt ergonomics treats the "
-                    "named-argument <code>=</code> as an introducer (§3) and keeps "
-                    "<code>queue = OverrideQueue(</code> on one line, so the body sits at a single indent — "
-                    "the one place a nested call argument diverges from ktfmt rectangle.",
+            "note": "Name the single argument and ktfmt rectangle breaks after <code>queue =</code> "
+                    "<em>as well</em>, staircasing the arguments to indent 16 — three levels deep. "
+                    "ktfmt ergonomics hugs the openers, keeping <code>add(queue = OverrideQueue(</code> "
+                    "on one line so the body sits at a single indent. A virtual ergonomics v2 keeps "
+                    "<code>queue = OverrideQueue(</code> together but drops it to its own line under "
+                    "<code>add(</code>.",
             "ktfmt": """fun f() {
     add(
         queue =
@@ -215,6 +175,16 @@ SNIPPETS = [
     )
 }""",
             "optofmt": """fun f() {
+    add(queue = OverrideQueue(
+        queueSettings.waitTime,
+        queueSettings.firstToSolveWaitTime,
+        queueSettings.featuredRunWaitTime,
+        queueSettings.inProgressRunWaitTime,
+        queueSettings.maxQueueSize,
+        queueSettings.maxUntestedRun,
+    ))
+}""",
+            "third": """fun f() {
     add(
         queue = OverrideQueue(
             queueSettings.waitTime,
@@ -223,29 +193,15 @@ SNIPPETS = [
             queueSettings.inProgressRunWaitTime,
             queueSettings.maxQueueSize,
             queueSettings.maxUntestedRun,
-        )
-    )
-}
-""",
-            "third": """fun f() {
-    add(queue = OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.featuredRunWaitTime,
-            queueSettings.inProgressRunWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
     ))
-}
-""",
+}""",
             "idiomatic": "optofmt",
         }, {
             "note": "Two named arguments, each an expandable call. The outer list splits one item per "
-                    "line (§4) — but unlike the positional-siblings case this is <em>not</em> parity: "
-                    "ktfmt ergonomics keeps each named-argument <code>=</code> introducer attached (§3), so "
-                    "<code>queue = OverrideQueue(</code> stays whole and its body sits at indent 12, while "
-                    "ktfmt rectangle breaks after every <code>=</code>, staircasing each branch's arguments down to "
-                    "indent 16.",
+                    "line, and this is <em>not</em> parity: ktfmt ergonomics keeps each named-argument "
+                    "<code>=</code> introducer attached, so <code>queue = OverrideQueue(</code> stays whole "
+                    "and its body sits at indent 12, while ktfmt rectangle breaks after every "
+                    "<code>=</code>, staircasing each branch's arguments down to indent 16.",
             "ktfmt": """fun f() {
     add(
         queue =
@@ -269,27 +225,6 @@ SNIPPETS = [
     )
 }""",
             "optofmt": """fun f() {
-    add(
-        queue = OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.featuredRunWaitTime,
-            queueSettings.inProgressRunWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
-        ),
-        foo = OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.featuredRunWaitTime,
-            queueSettings.inProgressRunWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
-        ),
-    )
-}
-""",
-            "third": """fun f() {
     add(
         queue = OverrideQueue(
             queueSettings.waitTime,
@@ -340,22 +275,19 @@ SNIPPETS = [
         "extra": [{
             "note": "Add an explicit type and the header no longer fits — "
                     "<code>val pair: Pair&lt;…&gt; = orgInfo.id to OverrideOrganizations.Override(</code> "
-                    "is 110 columns. Even so, ktfmt ergonomics does <em>not</em> break after <code>=</code> (§3): "
-                    "it keeps the introducer and the first operand together and wraps at the infix "
-                    "operator instead (§6), <code>to</code> at the end of the line and the second operand "
-                    "at a single indent. ktfmt rectangle breaks after <em>both</em> <code>=</code> and "
-                    "<code>to</code>, staircasing the call three levels deep.",
+                    "is 110 columns. Even so, ktfmt ergonomics does <em>not</em> break after <code>=</code>: "
+                    "it keeps <code>= orgInfo.id to OverrideOrganizations</code> on the first line and "
+                    "wraps at the <code>.Override</code> call, dropping it to a single indent. ktfmt "
+                    "rectangle breaks after <em>both</em> <code>=</code> and <code>to</code>, staircasing "
+                    "the call three levels deep.",
             "ktfmt": """val pair: Pair<OrganizationId, OverrideOrganizations.Override> =
     orgInfo.id to
         OverrideOrganizations.Override(
             fullName = substituteRaw(fullName),
             displayName = substituteRaw(displayName),
         )""",
-            "optofmt": """val pair: Pair<OrganizationId, OverrideOrganizations.Override> = orgInfo.id to
-    OverrideOrganizations.Override(
-        fullName = substituteRaw(fullName),
-        displayName = substituteRaw(displayName)
-    )""",
+            "optofmt": """val pair: Pair<OrganizationId, OverrideOrganizations.Override> = orgInfo.id to OverrideOrganizations
+    .Override(fullName = substituteRaw(fullName), displayName = substituteRaw(displayName))""",
             "idiomatic": "optofmt",
         }],
     },

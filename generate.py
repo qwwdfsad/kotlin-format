@@ -55,10 +55,13 @@ def columns(panes):
 
 
 def panes_for(d):
-    """Two default panes plus an optional third. A `third` entry may be a plain code
-    string (labelled "ergonomics v2") or a {"label", "code"} dict."""
-    panes = [("ktfmt", COL_LABEL["ktfmt"], d["ktfmt"]),
-             ("optofmt", COL_LABEL["optofmt"], d["optofmt"])]
+    """The rectangle pane, an optional ergonomics pane (omitted when `optofmt` is absent
+    or None — e.g. when it would be equivalent to rectangle), and an optional third. A
+    `third` entry may be a plain code string (labelled "ergonomics v2") or a {"label",
+    "code"} dict."""
+    panes = [("ktfmt", COL_LABEL["ktfmt"], d["ktfmt"])]
+    if d.get("optofmt") is not None:
+        panes.append(("optofmt", COL_LABEL["optofmt"], d["optofmt"]))
     third = d.get("third")
     if third is not None:
         if isinstance(third, dict):
@@ -74,7 +77,7 @@ def card(s):
     extras = "".join(
         f'''
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> {ex["note"]}</p>
+        <p class="thesis">{ex["note"]}</p>
         {columns(panes_for(ex))}
       </div>'''
         for ex in s.get("extra", []))
@@ -162,8 +165,6 @@ STYLE = """
   .same { font-size:11px; color:var(--mut); margin-left:6px; font-weight:400; }
   .extra { margin-top:16px; padding-top:14px; border-top:1px dashed var(--line); }
   .extra .thesis { margin:0 0 12px; }
-  .same-rule { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--acc);
-          border:1px solid var(--acc); border-radius:5px; padding:1px 5px; margin-right:6px; }
   pre { margin:0; background:var(--pre-bg); border:1px solid var(--line); border-radius:0 0 7px 7px;
         padding:12px 14px; overflow-x:auto; font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; }
   pre code { background:none; padding:0; border-radius:0; font:inherit; color:var(--syn-fg); }
@@ -290,7 +291,7 @@ def build_report():
     intro = (
         '<p class="lead">The page presents a comparison between two potential ktfmt '
         'engines &mdash; <b>&ldquo;The Rectangle Rule&rdquo;</b>, the current ktfmt engine, '
-        'and a potential new one &mdash; <b>&ldquo;Ergonomics engine&rdquo;</b>.</p>'
+        'and a potential new one &mdash; <b>&ldquo;The ergonomics rule&rdquo;</b>.</p>'
         '<div class="engines">'
         '<div class="engine rect"><h3>The Rectangle Rule</h3>'
         '<p>a strict engine that follows the corresponding '
@@ -300,7 +301,7 @@ def build_report():
         "(changes in one line rarely affect surrounding lines&rsquo; formatting) and thus "
         'Git-history-friendly. Because of these properties, it also produces quite a few '
         'newlines and additional layers of tabular nesting</p></div>'
-        '<div class="engine ergo"><h3>Ergonomics engine</h3>'
+        '<div class="engine ergo"><h3>The ergonomics rule</h3>'
         '<p>an engine that prioritizes concise and ergonomic Kotlin. Its goal is to '
         'format code in a compact manner, minimizing its width and length, but without '
         'general loss of readability. It subjectively improves information density but with '

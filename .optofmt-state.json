@@ -1,6 +1,7 @@
 {
-  "boolean-condition": "fun f() {\n    if (\n        unwrapped !== rootCause &&\n        unwrapped !== unwrappedCause &&\n        unwrapped !is CancellationException &&\n        seenExceptions.add(unwrapped)\n    ) {\n        rootCause.addSuppressed(unwrapped)\n    }\n}",
-  "indent-economy": "fun f() {\n    add(\n        OverrideQueue(\n            queueSettings.waitTime,\n            queueSettings.firstToSolveWaitTime,\n            queueSettings.featuredRunWaitTime,\n            queueSettings.inProgressRunWaitTime,\n            queueSettings.maxQueueSize,\n            queueSettings.maxUntestedRun,\n        )\n    )\n}\n",
+  "boolean-condition": "fun f() {\n    if (unwrapped !== rootCause) {\n        rootCause.addSuppressed(unwrapped)\n    }\n}",
+  "nested-long-argument": "fun f() {\n    registerHandler(buildHandler(handler))\n}",
+  "indent-economy": "fun f() {\n    add(OverrideQueue(\n        queueSettings.waitTime,\n        queueSettings.firstToSolveWaitTime,\n        queueSettings.featuredRunWaitTime,\n        queueSettings.inProgressRunWaitTime,\n        queueSettings.maxQueueSize,\n        queueSettings.maxUntestedRun,\n    ))\n}",
   "infix-attached": "val pair = orgInfo.id to OverrideOrganizations.Override(\n    fullName = substituteRaw(fullName),\n    displayName = substituteRaw(displayName),\n)\n",
   "supertype-attached": "object ClicsArchiveCommand : DumpFileCommand(\n    name = \"clics-archive\",\n    help = \"Dump CLICS contest archive (zip)\",\n    defaultFileName = \"contest-archive.zip\",\n    outputHelp = \"Path to new zip file\",\n) {}\n",
   "long-call-chain": "fun f() {\n    val testDataDir: Path = Path.of(\"\")\n        .absolute()\n        .parent\n        .parent\n        .resolve(\"tests\")\n        .resolve(\"testData\")\n        .resolve(\"loaders\")\n        .relativeTo(Path.of(\"\").absolute())\n}",

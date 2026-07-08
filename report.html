@@ -76,8 +76,6 @@
   .same { font-size:11px; color:var(--mut); margin-left:6px; font-weight:400; }
   .extra { margin-top:16px; padding-top:14px; border-top:1px dashed var(--line); }
   .extra .thesis { margin:0 0 12px; }
-  .same-rule { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--acc);
-          border:1px solid var(--acc); border-radius:5px; padding:1px 5px; margin-right:6px; }
   pre { margin:0; background:var(--pre-bg); border:1px solid var(--line); border-radius:0 0 7px 7px;
         padding:12px 14px; overflow-x:auto; font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; }
   pre code { background:none; padding:0; border-radius:0; font:inherit; color:var(--syn-fg); }
@@ -115,14 +113,35 @@
 <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme">System</button>
 <header class="b">
   <h1>ktfmt code style comparison</h1>
-  <p class="lead">The page presents a comparison between two potential ktfmt engines &mdash; <b>&ldquo;The Rectangle Rule&rdquo;</b>, the current ktfmt engine, and a potential new one &mdash; <b>&ldquo;Ergonomics engine&rdquo;</b>.</p><div class="engines"><div class="engine rect"><h3>The Rectangle Rule</h3><p>a strict engine that follows the corresponding <a href="https://github.com/google/google-java-format/wiki/The-Rectangle-Rule" target="_blank" rel="noopener">rule</a>. It is very strict and predictable &mdash; every syntax subtree is in its own bounding rectangle, it is very local (changes in one line rarely affect surrounding lines&rsquo; formatting) and thus Git-history-friendly. Because of these properties, it also produces quite a few newlines and additional layers of tabular nesting</p></div><div class="engine ergo"><h3>Ergonomics engine</h3><p>an engine that prioritizes concise and ergonomic Kotlin. Its goal is to format code in a compact manner, minimizing its width and length, but without general loss of readability. It subjectively improves information density but with the opposite tradeoffs &mdash; it is less predictable and less local.</p></div></div><p class="goal"><b>Our goal is to understand the stylistic preferences of Kotlin developers.</b> So the current page has a series of snippets formatted in two ways to showcase the difference between these two engines, for you to pick the one you prefer. Some snippets are grouped in a way that shows how the code might evolve over time to showcase formatting locality (or lack of thereof).</p><p class="legend">Both use <b>4-space indent</b> and a <b>100-column limit</b>; amber marks any line past 100 columns.</p>
-  <div class="pills"><span class="pill">26 patterns</span></div>
+  <p class="lead">The page presents a comparison between two potential ktfmt engines &mdash; <b>&ldquo;The Rectangle Rule&rdquo;</b>, the current ktfmt engine, and a potential new one &mdash; <b>&ldquo;The ergonomics rule&rdquo;</b>.</p><div class="engines"><div class="engine rect"><h3>The Rectangle Rule</h3><p>a strict engine that follows the corresponding <a href="https://github.com/google/google-java-format/wiki/The-Rectangle-Rule" target="_blank" rel="noopener">rule</a>. It is very strict and predictable &mdash; every syntax subtree is in its own bounding rectangle, it is very local (changes in one line rarely affect surrounding lines&rsquo; formatting) and thus Git-history-friendly. Because of these properties, it also produces quite a few newlines and additional layers of tabular nesting</p></div><div class="engine ergo"><h3>The ergonomics rule</h3><p>an engine that prioritizes concise and ergonomic Kotlin. Its goal is to format code in a compact manner, minimizing its width and length, but without general loss of readability. It subjectively improves information density but with the opposite tradeoffs &mdash; it is less predictable and less local.</p></div></div><p class="goal"><b>Our goal is to understand the stylistic preferences of Kotlin developers.</b> So the current page has a series of snippets formatted in two ways to showcase the difference between these two engines, for you to pick the one you prefer. Some snippets are grouped in a way that shows how the code might evolve over time to showcase formatting locality (or lack of thereof).</p><p class="legend">Both use <b>4-space indent</b> and a <b>100-column limit</b>; amber marks any line past 100 columns.</p>
+  <div class="pills"><span class="pill">27 patterns</span></div>
 </header>
 <main>
     <section class="card">
-      <h2>Multi-line boolean condition <span class="src">kotlinx.coroutines · JobSupport.kt:273</span></h2>
-      <p class="thesis">ktfmt ergonomics keeps every operand at one indent; ktfmt rectangle pushes each operand after the first a level deeper.</p>
+      <h2>Boolean conditions <span class="src">kotlinx.coroutines · JobSupport.kt:273</span></h2>
+      <p class="thesis">A single condition is laid out identically by both engines; adding more conditions forces a wrap, where they diverge.</p>
       <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    if (unwrapped !== rootCause) {
+        rootCause.addSuppressed(unwrapped)
+    }
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics <span class="same">&equiv; identical</span></div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    if (unwrapped !== rootCause) {
+        rootCause.addSuppressed(unwrapped)
+    }
+}</code></pre>
+      </div>
+    </div>
+      
+      <div class="extra">
+        <p class="thesis">Add more conditions and the line must wrap: ktfmt ergonomics keeps every operand at one indent; ktfmt rectangle pushes each operand after the first a level deeper. A third option keeps the first condition on the <code>if</code> line.</p>
+        <div class="cols3">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
         <pre><code class="language-kotlin" data-over="">fun f() {
@@ -149,14 +168,69 @@
     }
 }</code></pre>
       </div>
+      <div class="col">
+        <div class="hd third">ktfmt &middot; ergonomics v2</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    if (unwrapped !== rootCause &amp;&amp;
+        unwrapped !== unwrappedCause &amp;&amp;
+        unwrapped !is CancellationException &amp;&amp;
+        seenExceptions.add(unwrapped)
+    ) {
+        rootCause.addSuppressed(unwrapped)
+    }
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      
+    </section>
+    <section class="card">
+      <h2>Nested call with a long argument <span class="src">synthetic example</span></h2>
+      <p class="thesis">A short nested call fits on one line and both engines agree; rename the inner argument to something long enough to overflow and the call must wrap.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    registerHandler(buildHandler(handler))
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics <span class="same">&equiv; identical</span></div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    registerHandler(buildHandler(handler))
+}</code></pre>
+      </div>
     </div>
       
+      <div class="extra">
+        <p class="thesis">Rename the argument to one long enough to overflow, and the inner call must break. ktfmt rectangle staircases the openers, dropping <code>buildHandler(</code> and then the argument onto successively deeper lines. ktfmt ergonomics hugs the two openers (<code>registerHandler(buildHandler(</code>) so the body sits at one indent and the call closes with a shared <code>))</code>.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    registerHandler(
+        buildHandler(
+            aLongUnbreakableHandlerArgumentDeliberatelySizedToOverflowTheHundredColumnLimit
+        )
+    )
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    registerHandler(buildHandler(
+        aLongUnbreakableHandlerArgumentDeliberatelySizedToOverflowTheHundredColumnLimit,
+    ))
+}</code></pre>
+      </div>
+    </div>
+      </div>
       
     </section>
     <section class="card">
       <h2>Nested call argument wrapping <span class="src">icpc/live-v3 · Rules.kt:219</span></h2>
-      <p class="thesis">For a positional nested call ktfmt ergonomics and ktfmt rectangle agree; the win shows once the argument is named — ktfmt ergonomics keeps <code>name =</code> on the call-opener line (§3) where ktfmt rectangle breaks after it.</p>
-      <div class="cols3">
+      <p class="thesis">A single nested-call argument — positional or named — reads compactly under ktfmt ergonomics: it hugs the openers so the body sits at one indent, where ktfmt rectangle staircases each opener onto its own line. With several arguments both engines split one per line and agree.</p>
+      <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
         <pre><code class="language-kotlin" data-over="">fun f() {
@@ -175,124 +249,20 @@
       <div class="col">
         <div class="hd optofmt">ktfmt &middot; ergonomics</div>
         <pre><code class="language-kotlin" data-over="">fun f() {
-    add(
-        OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.featuredRunWaitTime,
-            queueSettings.inProgressRunWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
-        )
-    )
-}</code></pre>
-      </div>
-      <div class="col">
-        <div class="hd third">ktfmt &middot; ergonomics v2</div>
-        <pre><code class="language-kotlin" data-over="">fun f() {
     add(OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.featuredRunWaitTime,
-            queueSettings.inProgressRunWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
+        queueSettings.waitTime,
+        queueSettings.firstToSolveWaitTime,
+        queueSettings.featuredRunWaitTime,
+        queueSettings.inProgressRunWaitTime,
+        queueSettings.maxQueueSize,
+        queueSettings.maxUntestedRun,
     ))
 }</code></pre>
       </div>
     </div>
       
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> A single unbreakable argument: ktfmt ergonomics and ktfmt rectangle lay it out identically — the inner call on its own line at one indent — differing only in ktfmt ergonomics's trailing comma (§14). (An earlier ktfmt ergonomics collapsed the openers here to save an indent level; that heuristic is gone — a nested call now always hangs on its own line.)</p>
-        <div class="cols3">
-      <div class="col">
-        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
-        <pre><code class="language-kotlin" data-over="3">fun f() {
-    registerHandler(
-        buildHandler(
-            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY
-        )
-    )
-}</code></pre>
-      </div>
-      <div class="col">
-        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
-        <pre><code class="language-kotlin" data-over="3">fun f() {
-    registerHandler(
-        buildHandler(
-            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY,
-        )
-    )
-}</code></pre>
-      </div>
-      <div class="col">
-        <div class="hd third">ktfmt &middot; ergonomics v2</div>
-        <pre><code class="language-kotlin" data-over="2">fun f() {
-    registerHandler(buildHandler(
-            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY,
-    ))
-}</code></pre>
-      </div>
-    </div>
-      </div>
-      <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> With multiple arguments the outer list simply splits one item per line (§4) and the nested <code>OverrideQueue(</code> expands in place. ktfmt ergonomics matches ktfmt rectangle line-for-line, both including trailing commas (§14) — a positional nested call is laid out the same by either formatter.</p>
-        <div class="cols3">
-      <div class="col">
-        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
-        <pre><code class="language-kotlin" data-over="">fun f() {
-    add(
-        arg1,
-        arg2,
-        OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
-        ),
-        arg3,
-        arg4,
-    )
-}</code></pre>
-      </div>
-      <div class="col">
-        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
-        <pre><code class="language-kotlin" data-over="">fun f() {
-    add(
-        arg1,
-        arg2,
-        OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
-        ),
-        arg3,
-        arg4,
-    )
-}</code></pre>
-      </div>
-      <div class="col">
-        <div class="hd third">ktfmt &middot; ergonomics v2 <span class="same">&equiv; identical</span></div>
-        <pre><code class="language-kotlin" data-over="">fun f() {
-    add(
-        arg1,
-        arg2,
-        OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
-        ),
-        arg3,
-        arg4,
-    )
-}</code></pre>
-      </div>
-    </div>
-      </div>
-      <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> Name the single argument (<code>add(queue = OverrideQueue(</code>) and ktfmt rectangle breaks after <code>queue =</code> <em>as well</em> before it staircases the call, so the arguments land at indent 16 — three levels deep. ktfmt ergonomics treats the named-argument <code>=</code> as an introducer (§3) and keeps <code>queue = OverrideQueue(</code> on one line, so the body sits at a single indent — the one place a nested call argument diverges from ktfmt rectangle.</p>
+        <p class="thesis">Name the single argument and ktfmt rectangle breaks after <code>queue =</code> <em>as well</em>, staircasing the arguments to indent 16 — three levels deep. ktfmt ergonomics hugs the openers, keeping <code>add(queue = OverrideQueue(</code> on one line so the body sits at a single indent. A virtual ergonomics v2 keeps <code>queue = OverrideQueue(</code> together but drops it to its own line under <code>add(</code>.</p>
         <div class="cols3">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -313,22 +283,21 @@
       <div class="col">
         <div class="hd optofmt">ktfmt &middot; ergonomics</div>
         <pre><code class="language-kotlin" data-over="">fun f() {
-    add(
-        queue = OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.featuredRunWaitTime,
-            queueSettings.inProgressRunWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
-        )
-    )
+    add(queue = OverrideQueue(
+        queueSettings.waitTime,
+        queueSettings.firstToSolveWaitTime,
+        queueSettings.featuredRunWaitTime,
+        queueSettings.inProgressRunWaitTime,
+        queueSettings.maxQueueSize,
+        queueSettings.maxUntestedRun,
+    ))
 }</code></pre>
       </div>
       <div class="col">
         <div class="hd third">ktfmt &middot; ergonomics v2</div>
         <pre><code class="language-kotlin" data-over="">fun f() {
-    add(queue = OverrideQueue(
+    add(
+        queue = OverrideQueue(
             queueSettings.waitTime,
             queueSettings.firstToSolveWaitTime,
             queueSettings.featuredRunWaitTime,
@@ -341,8 +310,8 @@
     </div>
       </div>
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> Two named arguments, each an expandable call. The outer list splits one item per line (§4) — but unlike the positional-siblings case this is <em>not</em> parity: ktfmt ergonomics keeps each named-argument <code>=</code> introducer attached (§3), so <code>queue = OverrideQueue(</code> stays whole and its body sits at indent 12, while ktfmt rectangle breaks after every <code>=</code>, staircasing each branch's arguments down to indent 16.</p>
-        <div class="cols3">
+        <p class="thesis">Two named arguments, each an expandable call. The outer list splits one item per line, and this is <em>not</em> parity: ktfmt ergonomics keeps each named-argument <code>=</code> introducer attached, so <code>queue = OverrideQueue(</code> stays whole and its body sits at indent 12, while ktfmt rectangle breaks after every <code>=</code>, staircasing each branch's arguments down to indent 16.</p>
+        <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
         <pre><code class="language-kotlin" data-over="">fun f() {
@@ -391,29 +360,6 @@
     )
 }</code></pre>
       </div>
-      <div class="col">
-        <div class="hd third">ktfmt &middot; ergonomics v2 <span class="same">&equiv; identical</span></div>
-        <pre><code class="language-kotlin" data-over="">fun f() {
-    add(
-        queue = OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.featuredRunWaitTime,
-            queueSettings.inProgressRunWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
-        ),
-        foo = OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.featuredRunWaitTime,
-            queueSettings.inProgressRunWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
-        ),
-    )
-}</code></pre>
-      </div>
     </div>
       </div>
       
@@ -441,7 +387,7 @@
     </div>
       
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> Add an explicit type and the header no longer fits — <code>val pair: Pair&lt;…&gt; = orgInfo.id to OverrideOrganizations.Override(</code> is 110 columns. Even so, ktfmt ergonomics does <em>not</em> break after <code>=</code> (§3): it keeps the introducer and the first operand together and wraps at the infix operator instead (§6), <code>to</code> at the end of the line and the second operand at a single indent. ktfmt rectangle breaks after <em>both</em> <code>=</code> and <code>to</code>, staircasing the call three levels deep.</p>
+        <p class="thesis">Add an explicit type and the header no longer fits — <code>val pair: Pair&lt;…&gt; = orgInfo.id to OverrideOrganizations.Override(</code> is 110 columns. Even so, ktfmt ergonomics does <em>not</em> break after <code>=</code>: it keeps <code>= orgInfo.id to OverrideOrganizations</code> on the first line and wraps at the <code>.Override</code> call, dropping it to a single indent. ktfmt rectangle breaks after <em>both</em> <code>=</code> and <code>to</code>, staircasing the call three levels deep.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -454,11 +400,8 @@
       </div>
       <div class="col">
         <div class="hd optofmt">ktfmt &middot; ergonomics</div>
-        <pre><code class="language-kotlin" data-over="">val pair: Pair&lt;OrganizationId, OverrideOrganizations.Override&gt; = orgInfo.id to
-    OverrideOrganizations.Override(
-        fullName = substituteRaw(fullName),
-        displayName = substituteRaw(displayName)
-    )</code></pre>
+        <pre><code class="language-kotlin" data-over="">val pair: Pair&lt;OrganizationId, OverrideOrganizations.Override&gt; = orgInfo.id to OverrideOrganizations
+    .Override(fullName = substituteRaw(fullName), displayName = substituteRaw(displayName))</code></pre>
       </div>
     </div>
       </div>
@@ -490,7 +433,7 @@
     </div>
       
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> Add a few interfaces to the supertype list and ktfmt rectangle fragments it completely: it breaks after <code>:</code>, staircases the constructor an extra level, then drops each interface onto its own line. ktfmt ergonomics still keeps <code>:</code> attached (§3) and expands only the constructor's argument list; the short interfaces ride the closing <code>)</code> line — the §5 legality allows a closer line to carry trailing content — so the header reads as one supertype clause rather than a four-line ladder.</p>
+        <p class="thesis">Add a few interfaces to the supertype list and ktfmt rectangle fragments it completely: it breaks after <code>:</code>, staircases the constructor an extra level, then drops each interface onto its own line. ktfmt ergonomics still keeps <code>:</code> attached (§3) and expands only the constructor's argument list; the short interfaces ride the closing <code>)</code> line — the §5 legality allows a closer line to carry trailing content — so the header reads as one supertype clause rather than a four-line ladder.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -587,7 +530,7 @@
     </div>
       
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> Time passes and someone adds an explicit type. ktfmt ergonomics is unmoved: the type glues to its <code>:</code> (§9) and <code>= when (</code> stays attached (§3), so the branches keep their single indent — the layout barely changes as the code evolves. ktfmt rectangle breaks after <code>=</code> as before, so the whole <code>when</code> now drops a level and its branches sit at indent 12.</p>
+        <p class="thesis">Time passes and someone adds an explicit type. ktfmt ergonomics is unmoved: the type glues to its <code>:</code> (§9) and <code>= when (</code> stays attached (§3), so the branches keep their single indent — the layout barely changes as the code evolves. ktfmt rectangle breaks after <code>=</code> as before, so the whole <code>when</code> now drops a level and its branches sit at indent 12.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -619,7 +562,7 @@
     </div>
       </div>
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> An <code>if</code>/<code>else</code> used as an expression is the same case — a block-valued RHS. ktfmt rectangle breaks after <code>=</code> and indents both branches an extra level; ktfmt ergonomics keeps <code>val builder = if (!builders.isEmpty()) {</code> attached. (Kotlin · ControlFlowInstructionsGenerator)</p>
+        <p class="thesis">An <code>if</code>/<code>else</code> used as an expression is the same case — a block-valued RHS. ktfmt rectangle breaks after <code>=</code> and indents both branches an extra level; ktfmt ergonomics keeps <code>val builder = if (!builders.isEmpty()) {</code> attached. (Kotlin · ControlFlowInstructionsGenerator)</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -645,7 +588,7 @@
     </div>
       </div>
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> Same evolution for the <code>if</code>/<code>else</code> expression: give <code>builder</code> an explicit type and ktfmt ergonomics still keeps <code>= if (</code> attached with the type glued to its <code>:</code>; ktfmt rectangle breaks after <code>=</code>, dropping both branches a level deeper.</p>
+        <p class="thesis">Same evolution for the <code>if</code>/<code>else</code> expression: give <code>builder</code> an explicit type and ktfmt ergonomics still keeps <code>= if (</code> attached with the type glued to its <code>:</code>; ktfmt rectangle breaks after <code>=</code>, dropping both branches a level deeper.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -671,7 +614,7 @@
     </div>
       </div>
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> A <code>try</code>/<code>catch</code>/<code>finally</code> used as an expression is the same case — a block-valued RHS. ktfmt rectangle breaks after <code>=</code> and indents the whole <code>try</code> an extra level; ktfmt ergonomics keeps <code>val result = try {</code> attached. (okio · Okio.kt:60)</p>
+        <p class="thesis">A <code>try</code>/<code>catch</code>/<code>finally</code> used as an expression is the same case — a block-valued RHS. ktfmt rectangle breaks after <code>=</code> and indents the whole <code>try</code> an extra level; ktfmt ergonomics keeps <code>val result = try {</code> attached. (okio · Okio.kt:60)</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -707,7 +650,7 @@
     </div>
       </div>
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> And the <code>try</code> expression: add the explicit <code>T?</code> type and <code>= try {</code> stays attached; ktfmt rectangle drops the whole <code>try</code> below <code>=</code>, its clauses a level deeper.</p>
+        <p class="thesis">And the <code>try</code> expression: add the explicit <code>T?</code> type and <code>= try {</code> stays attached; ktfmt rectangle drops the whole <code>try</code> below <code>=</code>, its clauses a level deeper.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -743,7 +686,7 @@
     </div>
       </div>
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> What happens when the header itself overflows? Here the one-line <code>val teamsAffected = when (val event = …) {</code> is 101 columns, so the subject can't stay on the <code>=</code> line. ktfmt ergonomics still won't break after <code>=</code> (§3): it keeps <code>= when (</code> attached and wraps the <em>subject</em> inside the parens at one indent, so the branches stay at one indent. ktfmt rectangle breaks after <code>=</code> first, then nests the branches a second level. (More lines for ktfmt ergonomics here, but §3 forbids the break-after-<code>=</code> form regardless — flatter branches over fewer lines.)</p>
+        <p class="thesis">What happens when the header itself overflows? Here the one-line <code>val teamsAffected = when (val event = …) {</code> is 101 columns, so the subject can't stay on the <code>=</code> line. ktfmt ergonomics still won't break after <code>=</code> (§3): it keeps <code>= when (</code> attached and wraps the <em>subject</em> inside the parens at one indent, so the branches stay at one indent. ktfmt rectangle breaks after <code>=</code> first, then nests the branches a second level. (More lines for ktfmt ergonomics here, but §3 forbids the break-after-<code>=</code> form regardless — flatter branches over fewer lines.)</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -963,7 +906,7 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
     </div>
       
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> Lengthen the operands until the line overflows and the fit-driven choice flips to a wrap. ktfmt ergonomics keeps the <code>=</code> introducer attached (§3) and starts the continuation with <code>?:</code> at one indent (§2/§6). ktfmt rectangle breaks after <code>=</code> too, so the left operand lands at indent 8 and the <code>?:</code> fallback at indent 12 — a level deeper than ktfmt ergonomics.</p>
+        <p class="thesis">Lengthen the operands until the line overflows and the fit-driven choice flips to a wrap. ktfmt ergonomics keeps the <code>=</code> introducer attached (§3) and starts the continuation with <code>?:</code> at one indent (§2/§6). ktfmt rectangle breaks after <code>=</code> too, so the left operand lands at indent 8 and the <code>?:</code> fallback at indent 12 — a level deeper than ktfmt ergonomics.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -1064,7 +1007,7 @@ fun testSomething() {}</code></pre>
     </div>
       
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> The flip side, and where the two agree: when the conditions genuinely overflow, §4 splits them one per line. Here the single-line entry is 103 columns, so ktfmt ergonomics fully splits the list — exactly what ktfmt rectangle does. Parity, not a win: the divergence above is only about entries that <em>fit</em>. It's really important to agree on the column width.</p>
+        <p class="thesis">The flip side, and where the two agree: when the conditions genuinely overflow, §4 splits them one per line. Here the single-line entry is 103 columns, so ktfmt ergonomics fully splits the list — exactly what ktfmt rectangle does. Parity, not a win: the divergence above is only about entries that <em>fit</em>. It's really important to agree on the column width.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -1142,7 +1085,7 @@ fun testSomething() {}</code></pre>
     </div>
       
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> Same rule, a parenthesised <code>+</code>-concatenation: ktfmt ergonomics keeps <code>= ("…" +</code> on the line and stacks the remaining strings at one flat indent (§6); ktfmt rectangle breaks after <code>=</code> and staircases the operands.</p>
+        <p class="thesis">Same rule, a parenthesised <code>+</code>-concatenation: ktfmt ergonomics keeps <code>= ("…" +</code> on the line and stacks the remaining strings at one flat indent (§6); ktfmt rectangle breaks after <code>=</code> and staircases the operands.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -1164,7 +1107,7 @@ fun testSomething() {}</code></pre>
     </div>
       </div>
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> Same rule, a collection literal that must fully explode: <code>= setOf(</code> stays attached with items one-per-line at a single indent and no trailing comma; ktfmt rectangle breaks after <code>=</code>, adds a second indent level and a trailing comma.</p>
+        <p class="thesis">Same rule, a collection literal that must fully explode: <code>= setOf(</code> stays attached with items one-per-line at a single indent and no trailing comma; ktfmt rectangle breaks after <code>=</code>, adds a second indent level and a trailing comma.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -1237,7 +1180,7 @@ annotation class SqlDelightDsl</code></pre>
     </div>
       
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> The same split happens even on an <em>expression-body</em> function — <code>@Test</code> stays above <code>fun … = doTest(…)</code>; ktfmt rectangle packs the annotation, <code>fun</code> and body onto one line.</p>
+        <p class="thesis">The same split happens even on an <em>expression-body</em> function — <code>@Test</code> stays above <code>fun … = doTest(…)</code>; ktfmt rectangle packs the annotation, <code>fun</code> and body onto one line.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -1255,7 +1198,7 @@ annotation class SqlDelightDsl</code></pre>
     </div>
       </div>
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> Multiple annotations each keep their own line above a bodyless accessor; ktfmt rectangle collapses them and the bare <code>set</code> onto one line because it fits.</p>
+        <p class="thesis">Multiple annotations each keep their own line above a bodyless accessor; ktfmt rectangle collapses them and the bare <code>set</code> onto one line because it fits.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -1344,7 +1287,7 @@ annotation class SqlDelightDsl</code></pre>
     </div>
       
       <div class="extra">
-        <p class="thesis"><span class="same-rule">same rule</span> Same tolerance on a generic stdlib signature: <code>buildList(…): List&lt;E&gt;</code> sits at 102 columns on one line; ktfmt rectangle splits the single parameter across three lines.</p>
+        <p class="thesis">Same tolerance on a generic stdlib signature: <code>buildList(…): List&lt;E&gt;</code> sits at 102 columns on one line; ktfmt rectangle splits the single parameter across three lines.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
