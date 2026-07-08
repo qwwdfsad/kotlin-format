@@ -554,7 +554,7 @@
     </div>
       
       <div class="extra">
-        <p class="thesis">Time passes and someone adds an explicit type. ktfmt ergonomics is unmoved: the type glues to its <code>:</code> (§9) and <code>= when (</code> stays attached (§3), so the branches keep their single indent — the layout barely changes as the code evolves. ktfmt rectangle breaks after <code>=</code> as before, so the whole <code>when</code> now drops a level and its branches sit at indent 12.</p>
+        <p class="thesis">Time passes and someone adds an explicit type. ktfmt ergonomics is unmoved: the type glues to its <code>:</code> and <code>= when (</code> stays attached, so thebranches keep their single indent — the layout barely changes as the code evolves. ktfmt rectangle breaks after <code>=</code> as before, so the whole <code>when</code> now drops a level and its branches sit at indent 12.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -712,7 +712,7 @@
     </div>
       </div>
       <div class="extra">
-        <p class="thesis">What happens when the header itself overflows? Here the one-line <code>val teamsAffected = when (val event = …) {</code> is 101 columns, so the subject can't stay on the <code>=</code> line. ktfmt ergonomics still won't break after <code>=</code> (§3): it keeps <code>= when (</code> attached and wraps the <em>subject</em> inside the parens at one indent, so the branches stay at one indent. ktfmt rectangle breaks after <code>=</code> first, then nests the branches a second level. (More lines for ktfmt ergonomics here, but §3 forbids the break-after-<code>=</code> form regardless — flatter branches over fewer lines.)</p>
+        <p class="thesis">What happens when the header itself overflows? Here the one-line <code>val teamsAffected = when (val event = …) {</code> is 101 columns, so the subject can't stay on the <code>=</code> line. ktfmt ergonomics still won't break after <code>=</code>: it keeps <code>= when (</code> attached and wraps the<em>subject</em> inside the parens at one indent, so the branches stay at one indent. ktfmt rectangle breaks after <code>=</code> first, then nests the branches a second level. (More lines for ktfmt ergonomics here, but ergonomics forbids the break-after-<code>=</code>form regardless — flatter branches over fewer lines.)</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -875,8 +875,8 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
       
     </section>
     <section class="card">
-      <h2>Elvis (?:) stays inline when it fits <span class="src">null-fallback idiom · §6</span></h2>
-      <p class="thesis">ktfmt ergonomics keeps `?:` on the same line while the expression fits (§1); only when it overflows does it wrap — and then it keeps `=` attached and the operator at a single indent, where ktfmt rectangle also breaks after `=` and drifts a level deeper.</p>
+      <h2>Elvis (?:) stays inline when it fits <span class="src">null-fallback idiom</span></h2>
+      <p class="thesis">ktfmt ergonomics keeps `?:` on the same line while the expression fits; only when it overflows does it wrap — and then it keeps `=` attached and the operator at a single indent, where ktfmt rectangle also breaks after `=` and drifts a level deeper.</p>
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -893,7 +893,7 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
     </div>
       
       <div class="extra">
-        <p class="thesis">Lengthen the operands until the line overflows and the fit-driven choice flips to a wrap. ktfmt ergonomics keeps the <code>=</code> introducer attached (§3) and starts the continuation with <code>?:</code> at one indent (§2/§6). ktfmt rectangle breaks after <code>=</code> too, so the left operand lands at indent 8 and the <code>?:</code> fallback at indent 12 — a level deeper than ktfmt ergonomics.</p>
+        <p class="thesis">Lengthen the operands until the line overflows and the fit-driven choice flips to a wrap. ktfmt ergonomics keeps the <code>=</code> introducer attached and starts thecontinuation with <code>?:</code> at one indent. ktfmt rectangle breaks after<code>=</code> too, so the left operand lands at indent 8 and the <code>?:</code> fallback at indent 12 — a level deeper than ktfmt ergonomics.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -916,7 +916,7 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
     </section>
     <section class="card">
       <h2>Trivial property accessor stays on the property line <span class="src">Kotlin project · ktfmt diff study</span></h2>
-      <p class="thesis">ktfmt ergonomics keeps a short `get()` on the property line because it fits (§1); ktfmt rectangle always drops the accessor onto its own line.</p>
+      <p class="thesis">ktfmt ergonomics keeps a short `get()` on the property line because it fits; ktfmt rectangle always drops the accessor onto its own line.</p>
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -955,7 +955,7 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
     </section>
     <section class="card">
       <h2>Comma-separated when conditions stay on one line when they fit <span class="src">synthetic</span></h2>
-      <p class="thesis">ktfmt ergonomics keeps `0, 1 -> …` on one line because it fits (§1/§4); ktfmt rectangle force-splits the conditions one per line.</p>
+      <p class="thesis">ktfmt ergonomics keeps `0, 1 -> …` on one line because it fits; ktfmt rectangle force-splits the conditions one per line.</p>
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -977,7 +977,7 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
     </div>
       
       <div class="extra">
-        <p class="thesis">The flip side, and where the two agree: when the conditions genuinely overflow, §4 splits them one per line. Here the single-line entry is 103 columns, so ktfmt ergonomics fully splits the list — exactly what ktfmt rectangle does. Parity, not a win: the divergence above is only about entries that <em>fit</em>. It's really important to agree on the column width.</p>
+        <p class="thesis">The flip side, and where the two agree: when the conditions genuinely overflow, ktfmt ergonomicssplits them one per line. Here the single-line entry is 103 columns, so ktfmt ergonomics fully splits the list — exactly what ktfmt rectangle does. Parity, not a win: the divergence above is only about entries that <em>fit</em>. It's really important to agree on the column width.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -1033,7 +1033,7 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
     </div>
       
       <div class="extra">
-        <p class="thesis">Same rule, a parenthesised <code>+</code>-concatenation: ktfmt ergonomics keeps <code>= ("…" +</code> on the line and stacks the remaining strings at one flat indent (§6); ktfmt rectangle breaks after <code>=</code> and staircases the operands.</p>
+        <p class="thesis">Same rule, a parenthesised <code>+</code>-concatenation: ktfmt ergonomics keeps <code>= ("…" +</code> on the line and stacks the remaining strings at one flat indent; ktfmt rectangle breaks after <code>=</code> and staircases the operands.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -1184,7 +1184,7 @@ fun testSomething() {}</code></pre>
     </section>
     <section class="card">
       <h2>Multiple supertypes: one per line, never packed <span class="src">sqldelight · ArrayValueExpressionMixin.kt:20</span></h2>
-      <p class="thesis">ktfmt ergonomics keeps the first supertype attached to `:` (§3) and drops each remaining supertype to its own line (§4); ktfmt rectangle breaks right after `:` and packs every supertype onto one continuation line. A virtual ergonomics v2 also wraps the constructor parameters onto their own line, so <code>) : SqlCompositeElementImpl(node),</code> begins the supertype list.</p>
+      <p class="thesis">ktfmt ergonomics keeps the first supertype attached to `:` and drops each remaining supertype to its own line; ktfmt rectangle breaks right after `:` and packs every supertype onto one continuation line. A virtual ergonomics v2 also wraps the constructor parameters onto their own line, so <code>) : SqlCompositeElementImpl(node),</code> begins the supertype list.</p>
       <div class="cols3">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -1284,7 +1284,7 @@ fun testSomething() {}</code></pre>
     </section>
     <section class="card">
       <h2>Triple-quoted string as sole call argument stays attached <span class="src">kotlinx.coroutines · CoroutineExceptionHandlerImpl.kt:17</span></h2>
-      <p class="thesis">When a multiline raw ("""…""") string is the only argument of a call, ktfmt ergonomics keeps the opening `("""` on the call line and the closing `""")` on the string's last line (indent economy §5); ktfmt rectangle puts the `(` and `"""` on separate stacked lines and stacks a lone `)` below.</p>
+      <p class="thesis">When a multiline raw ("""…""") string is the only argument of a call, ktfmt ergonomics keeps the opening `("""` on the call line and the closing `""")` on the string's last line (indent economy); ktfmt rectangle puts the `(` and `"""` on separate stacked lines and stacks a lone `)` below.</p>
       <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>

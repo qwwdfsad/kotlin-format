@@ -438,7 +438,7 @@ SNIPPETS = [
         "idiomatic": "optofmt",
         "extra": [{
             "note": "Time passes and someone adds an explicit type. ktfmt ergonomics is unmoved: the type glues "
-                    "to its <code>:</code> (§9) and <code>= when (</code> stays attached (§3), so the "
+                    "to its <code>:</code> and <code>= when (</code> stays attached, so the"
                     "branches keep their single indent — the layout barely changes as the code evolves. "
                     "ktfmt rectangle breaks after <code>=</code> as before, so the whole <code>when</code> now "
                     "drops a level and its branches sit at indent 12.",
@@ -535,10 +535,10 @@ SNIPPETS = [
             "note": "What happens when the header itself overflows? Here the one-line "
                     "<code>val teamsAffected = when (val event = …) {</code> is 101 columns, so the "
                     "subject can't stay on the <code>=</code> line. ktfmt ergonomics still won't break after "
-                    "<code>=</code> (§3): it keeps <code>= when (</code> attached and wraps the "
+                    "<code>=</code>: it keeps <code>= when (</code> attached and wraps the"
                     "<em>subject</em> inside the parens at one indent, so the branches stay at one "
                     "indent. ktfmt rectangle breaks after <code>=</code> first, then nests the branches a second "
-                    "level. (More lines for ktfmt ergonomics here, but §3 forbids the break-after-<code>=</code> "
+                    "level. (More lines for ktfmt ergonomics here, but ergonomics forbids the break-after-<code>=</code>"
                     "form regardless — flatter branches over fewer lines.)",
             "ktfmt": """fun f() {
     val teamsAffected =
@@ -699,8 +699,8 @@ typealias MessageId = StrongId<MessageTag>""",
     {
         "id": "elvis-fits",
         "name": "Elvis (`?:`) stays inline when it fits",
-        "source": "null-fallback idiom · §6",
-        "thesis": "ktfmt ergonomics keeps `?:` on the same line while the expression fits (§1); only when it overflows does it wrap — and then it keeps `=` attached and the operator at a single indent, where ktfmt rectangle also breaks after `=` and drifts a level deeper.",
+        "source": "null-fallback idiom",
+        "thesis": "ktfmt ergonomics keeps `?:` on the same line while the expression fits; only when it overflows does it wrap — and then it keeps `=` attached and the operator at a single indent, where ktfmt rectangle also breaks after `=` and drifts a level deeper.",
         "why": "A null-fallback that fits on one line reads best inline, and ktfmt ergonomics keeps it there — the "
                "elvis break is a candidate, not a forced one (§6/§1), so both engines agree while it "
                "fits. The difference appears only once the operands overflow: ktfmt ergonomics keeps the "
@@ -718,8 +718,8 @@ typealias MessageId = StrongId<MessageTag>""",
         "idiomatic": "parity",
         "extra": [{
             "note": "Lengthen the operands until the line overflows and the fit-driven choice flips to a "
-                    "wrap. ktfmt ergonomics keeps the <code>=</code> introducer attached (§3) and starts the "
-                    "continuation with <code>?:</code> at one indent (§2/§6). ktfmt rectangle breaks after "
+                    "wrap. ktfmt ergonomics keeps the <code>=</code> introducer attached and starts the"
+                    "continuation with <code>?:</code> at one indent. ktfmt rectangle breaks after"
                     "<code>=</code> too, so the left operand lands at indent 8 and the <code>?:</code> "
                     "fallback at indent 12 — a level deeper than ktfmt ergonomics.",
             "input": "fun f() { val entry = registry.lookupByQualifiedName(requestedName, currentScope) ?: registry.defaultEntryForScope(currentScope) }",
@@ -739,7 +739,7 @@ typealias MessageId = StrongId<MessageTag>""",
         "id": "accessor-placement",
         "name": "Trivial property accessor stays on the property line",
         "source": "Kotlin project · ktfmt diff study",
-        "thesis": "ktfmt ergonomics keeps a short `get()` on the property line because it fits (§1); ktfmt rectangle always drops the accessor onto its own line.",
+        "thesis": "ktfmt ergonomics keeps a short `get()` on the property line because it fits; ktfmt rectangle always drops the accessor onto its own line.",
         "why": "ktfmt rectangle unconditionally moves a property accessor onto its own indented line, even when "
                "the whole declaration fits: <code>val placeOfGetter: String get() = \"hello\"</code> is "
                "well under 100 columns. ktfmt ergonomics follows the §1 objective — don't wrap what fits — and "
@@ -776,7 +776,7 @@ typealias MessageId = StrongId<MessageTag>""",
         "id": "when-comma-condition",
         "name": "Comma-separated `when` conditions stay on one line when they fit",
         "source": "synthetic",
-        "thesis": "ktfmt ergonomics keeps `0, 1 -> …` on one line because it fits (§1/§4); ktfmt rectangle force-splits the conditions one per line.",
+        "thesis": "ktfmt ergonomics keeps `0, 1 -> …` on one line because it fits; ktfmt rectangle force-splits the conditions one per line.",
         "why": "ktfmt rectangle treats the comma-separated condition list of a <code>when</code> entry as a "
                "breakable list and splits it one-per-line even when the whole entry fits comfortably: "
                "<code>0, 1 -> println(\"a or b\")</code> becomes two lines for the conditions plus the "
@@ -798,7 +798,7 @@ typealias MessageId = StrongId<MessageTag>""",
 }""",
         "idiomatic": "optofmt",
         "extra": [{
-            "note": "The flip side, and where the two agree: when the conditions genuinely overflow, §4 "
+            "note": "The flip side, and where the two agree: when the conditions genuinely overflow, ktfmt ergonomics"
                     "splits them one per line. Here the single-line entry is 103 columns, so ktfmt ergonomics "
                     "fully splits the list — exactly what ktfmt rectangle does. Parity, not a win: the divergence "
                     "above is only about entries that <em>fit</em>. It's really important to agree on the column width.",
@@ -833,7 +833,7 @@ typealias MessageId = StrongId<MessageTag>""",
         "idiomatic": "optofmt",
         "extra": [
             {
-                "note": "Same rule, a parenthesised <code>+</code>-concatenation: ktfmt ergonomics keeps <code>= (\"\u2026\" +</code> on the line and stacks the remaining strings at one flat indent (\u00a76); ktfmt rectangle breaks after <code>=</code> and staircases the operands.",
+                "note": "Same rule, a parenthesised <code>+</code>-concatenation: ktfmt ergonomics keeps <code>= (\"\u2026\" +</code> on the line and stacks the remaining strings at one flat indent; ktfmt rectangle breaks after <code>=</code> and staircases the operands.",
                 "ktfmt": "fun f() {\n    val raw =\n        (\"Um, I'll tell you the problem with the scientific power that you're using here, \" +\n            \"it didn't require any discipline to attain it. You read what others had done and you \" +\n            \"took the next step. You didn't earn the knowledge for yourselves, so you don't take any \")\n}",
                 "optofmt": "fun f() {\n    val raw = (\"Um, I'll tell you the problem with the scientific power that you're using here, \" +\n        \"it didn't require any discipline to attain it. You read what others had done and you \" +\n        \"took the next step. You didn't earn the knowledge for yourselves, so you don't take any \")\n}",
             },
@@ -876,7 +876,7 @@ typealias MessageId = StrongId<MessageTag>""",
         "id": "multi-supertype-list-one-per-line",
         "name": "Multiple supertypes: one per line, never packed",
         "source": "sqldelight \u00b7 ArrayValueExpressionMixin.kt:20",
-        "thesis": "ktfmt ergonomics keeps the first supertype attached to `:` (\u00a73) and drops each remaining supertype to its own line (\u00a74); ktfmt rectangle breaks right after `:` and packs every supertype onto one continuation line. A virtual ergonomics v2 also wraps the constructor parameters onto their own line, so <code>) : SqlCompositeElementImpl(node),</code> begins the supertype list.",
+        "thesis": "ktfmt ergonomics keeps the first supertype attached to `:` and drops each remaining supertype to its own line; ktfmt rectangle breaks right after `:` and packs every supertype onto one continuation line. A virtual ergonomics v2 also wraps the constructor parameters onto their own line, so <code>) : SqlCompositeElementImpl(node),</code> begins the supertype list.",
         "why": "The supertype <code>:</code> is an introducer (\u00a73): ktfmt ergonomics keeps <code>) : SqlCompositeElementImpl(node)</code> on the header line and puts each <em>remaining</em> supertype on its own line at one indent (\u00a74 \u2014 a comma list is compact or one-per-line). ktfmt rectangle instead breaks right after <code>:</code> and then fill-packs every supertype onto the single continuation line, so the list reads as one dense run rather than an aligned column.",
         "input": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) :\n  SqlCompositeElementImpl(node),\n  SqlExpr,\n  PostgreSqlArrayValueExpression {\n  val x = 1\n}",
         "ktfmt": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) :\n    SqlCompositeElementImpl(node), SqlExpr, PostgreSqlArrayValueExpression {\n    val x = 1\n}",
@@ -923,7 +923,7 @@ typealias MessageId = StrongId<MessageTag>""",
         "id": "raw-string-sole-arg-attached",
         "name": "Triple-quoted string as sole call argument stays attached",
         "source": "kotlinx.coroutines \u00b7 CoroutineExceptionHandlerImpl.kt:17",
-        "thesis": "When a multiline raw (\"\"\"\u2026\"\"\") string is the only argument of a call, ktfmt ergonomics keeps the opening `(\"\"\"` on the call line and the closing `\"\"\")` on the string's last line (indent economy \u00a75); ktfmt rectangle puts the `(` and `\"\"\"` on separate stacked lines and stacks a lone `)` below.",
+        "thesis": "When a multiline raw (\"\"\"\u2026\"\"\") string is the only argument of a call, ktfmt ergonomics keeps the opening `(\"\"\"` on the call line and the closing `\"\"\")` on the string's last line (indent economy); ktfmt rectangle puts the `(` and `\"\"\"` on separate stacked lines and stacks a lone `)` below.",
         "why": "The whole raw string is a single indivisible token; breaking around the parentheses only adds two lines and an extra indent level without helping the width objective. ktfmt ergonomics keeps the opening <code>(\"\"\"</code> on the call line and the closing <code>\"\"\")</code> on the string's last line, reusing one body indent (\u00a75); ktfmt rectangle stacks <code>(</code>, <code>\"\"\"</code> and a lonely <code>)</code> on separate lines.",
         "input": "fun f() {\n    js(\"\"\"\n        var error = new Error();\n        error.message = message;\n    \"\"\")\n}",
         "ktfmt": "fun f() {\n    js(\n        \"\"\"\n        var error = new Error();\n        error.message = message;\n    \"\"\"\n    )\n}",
