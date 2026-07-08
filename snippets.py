@@ -475,6 +475,27 @@ SNIPPETS = [
         "idiomatic": "optofmt",
     },
     {
+        "id": "delegate-call-chain",
+        "name": "Delegated property (`by`) call chain",
+        "source": "ktor client · delegated response",
+        "thesis": "ktfmt ergonomics treats the delegate `by` as an introducer — it keeps `by get()` on the first line and wraps each subsequent call one per line (§3/§7); ktfmt rectangle breaks after `by` and drops the whole chain, unbroken, to a second indent.",
+        "why": "The receiver-through-first-call rule is introducer-agnostic: a property <em>delegate</em> "
+               "<code>by</code> introduces its expression exactly like <code>=</code> (§3), so "
+               "<code>val list by get()</code> stays on the header line and each following "
+               "<code>.call</code> hangs on its own line at one indent (§7). ktfmt rectangle instead "
+               "breaks after <code>by</code> and indents the whole chain a level; here the chain "
+               "happens to fit unbroken on that line, so it never splits. ktfmt ergonomics keeps "
+               "<code>by</code> attached and wraps the chain uniformly even though that costs a line — "
+               "the same trade-off §7 makes for an <code>=</code>-introduced chain.",
+        "input": "val list by get().response<TagsResponse>().failure<GenericErrorModel>(HttpStatusCode.UnprocessableEntity)",
+        "ktfmt": """val list by
+    get().response<TagsResponse>().failure<GenericErrorModel>(HttpStatusCode.UnprocessableEntity)""",
+        "optofmt": """val list by get()
+    .response<TagsResponse>()
+    .failure<GenericErrorModel>(HttpStatusCode.UnprocessableEntity)""",
+        "idiomatic": "optofmt",
+    },
+    {
         "id": "block-rhs",
         "name": "Block-valued right-hand side (`when`/`if`/`try`) stays on the `=` line",
         "source": "icpc/live-v3 · AbstractScoreboardCalculator.kt:202",
