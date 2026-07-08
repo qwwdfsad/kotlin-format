@@ -114,7 +114,7 @@
 <header class="b">
   <h1>ktfmt code style comparison</h1>
   <p class="lead">The page presents a comparison between two potential ktfmt engines &mdash; <b>&ldquo;The Rectangle Rule&rdquo;</b>, the current ktfmt engine, and a potential new one &mdash; <b>&ldquo;The ergonomics rule&rdquo;</b>.</p><div class="engines"><div class="engine rect"><h3>The Rectangle Rule</h3><p>a strict engine that follows the corresponding <a href="https://github.com/google/google-java-format/wiki/The-Rectangle-Rule" target="_blank" rel="noopener">rule</a>. It is very strict and predictable &mdash; every syntax subtree is in its own bounding rectangle, it is very local (changes in one line rarely affect surrounding lines&rsquo; formatting) and thus Git-history-friendly. Because of these properties, it also produces quite a few newlines and additional layers of tabular nesting</p></div><div class="engine ergo"><h3>The ergonomics rule</h3><p>an engine that prioritizes concise and ergonomic Kotlin. Its goal is to format code in a compact manner, minimizing its width and length, but without general loss of readability. It subjectively improves information density but with the opposite tradeoffs &mdash; it is less predictable and less local.</p></div></div><p class="goal"><b>Our goal is to understand the stylistic preferences of Kotlin developers.</b> So the current page has a series of snippets formatted in two ways to showcase the difference between these two engines, for you to pick the one you prefer. Some snippets are grouped in a way that shows how the code might evolve over time to showcase formatting locality (or lack of thereof).</p><p class="legend">Both use <b>4-space indent</b> and a <b>100-column limit</b>; amber marks any line past 100 columns.</p>
-  <div class="pills"><span class="pill">27 patterns</span></div>
+  <div class="pills"><span class="pill">22 patterns</span></div>
 </header>
 <main>
     <section class="card">
@@ -433,7 +433,7 @@
     </div>
       
       <div class="extra">
-        <p class="thesis">Add a few interfaces to the supertype list and ktfmt rectangle fragments it completely: it breaks after <code>:</code>, staircases the constructor an extra level, then drops each interface onto its own line. ktfmt ergonomics still keeps <code>:</code> attached (§3) and expands only the constructor's argument list; the short interfaces ride the closing <code>)</code> line — the §5 legality allows a closer line to carry trailing content — so the header reads as one supertype clause rather than a four-line ladder.</p>
+        <p class="thesis">Add a few interfaces to the supertype list and ktfmt rectangle fragments it completely: it breaks after <code>:</code>, staircases the constructor an extra level, then drops each interface onto its own line. ktfmt ergonomics still keeps <code>:</code> attached and expands only the constructor's argument list; the short interfaces ride the closing <code>)</code> line, so the header reads as one supertype clause rather than a four-line ladder.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -456,6 +456,30 @@
     defaultFileName = &quot;contest-archive.zip&quot;,
     outputHelp = &quot;Path to new zip file&quot;,
 ), Runnable, Closeable, KoinComponent {}</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
+        <p class="thesis">Drop the constructor and leave only interfaces: ktfmt rectangle still breaks after <code>:</code>, stranding it on its own line and stacking every interface below. ktfmt ergonomics keeps the first interface on the header line (<code>: Runnable</code>) and lists the rest one per line.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">object ClicsArchiveCommand :
+    Runnable,
+    Closeable,
+    KoinComponent,
+    AutoCloseable,
+    Comparable&lt;ClicsArchiveCommand&gt;,
+    Iterable&lt;String&gt; {}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">object ClicsArchiveCommand : Runnable,
+    Closeable,
+    KoinComponent,
+    AutoCloseable,
+    Comparable&lt;ClicsArchiveCommand&gt;,
+    Iterable&lt;String&gt; {}</code></pre>
       </div>
     </div>
       </div>
@@ -588,13 +612,13 @@
     </div>
       </div>
       <div class="extra">
-        <p class="thesis">Same evolution for the <code>if</code>/<code>else</code> expression: give <code>builder</code> an explicit type and ktfmt ergonomics still keeps <code>= if (</code> attached with the type glued to its <code>:</code>; ktfmt rectangle breaks after <code>=</code>, dropping both branches a level deeper.</p>
+        <p class="thesis">Same evolution for the <code>if</code>/<code>else</code> expression, but now the header overflows. ktfmt ergonomics still won't break after <code>=</code>: it keeps <code>= if (</code> attached and wraps the condition inside the parens at one indent, so the branches stay at one indent. ktfmt rectangle breaks after <code>=</code>, dropping the whole <code>if</code> and both branches a level deeper.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
         <pre><code class="language-kotlin" data-over="">fun f() {
     val builder: InstructionBuilder? =
-        if (!builders.isEmpty()) {
+        if (!builders.isEmpty() &amp;&amp; builders.peek().isReadyForOverride()) {
             builders.peek()
         } else {
             null
@@ -604,7 +628,9 @@
       <div class="col">
         <div class="hd optofmt">ktfmt &middot; ergonomics</div>
         <pre><code class="language-kotlin" data-over="">fun f() {
-    val builder: InstructionBuilder? = if (!builders.isEmpty()) {
+    val builder: InstructionBuilder? = if (
+        !builders.isEmpty() &amp;&amp; builders.peek().isReadyForOverride()
+    ) {
         builders.peek()
     } else {
         null
@@ -790,32 +816,6 @@ internal constructor(
       
     </section>
     <section class="card">
-      <h2>Block-comment / KDoc prose is not reflowed <span class="src">icpc/live-v3 · contest-config KDoc</span></h2>
-      <p class="thesis">ktfmt ergonomics preserves the author's comment line breaks; ktfmt rectangle rewraps KDoc prose to its own width.</p>
-      <div class="cols">
-      <div class="col">
-        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
-        <pre><code class="language-kotlin" data-over="">/**
- * Ideally, all this information should be received from the contest system. Unfortunately, in the
- * real world, it is not always possible, or information can be not fully correct or convenient to
- * display.
- */
-class ContestConfigOverrides</code></pre>
-      </div>
-      <div class="col">
-        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
-        <pre><code class="language-kotlin" data-over="">/**
- * Ideally, all this information should be received from the contest system.
- * Unfortunately, in the real world, it is not always possible, or information
- * can be not fully correct or convenient to display.
- */
-class ContestConfigOverrides</code></pre>
-      </div>
-    </div>
-      
-      
-    </section>
-    <section class="card">
       <h2>Grouped one-line declarations keep no blank lines <span class="src">synthetic</span></h2>
       <p class="thesis">ktfmt ergonomics keeps a run of one-line declarations tight; ktfmt rectangle forces a blank line between each.</p>
       <div class="cols">
@@ -839,8 +839,8 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
     </section>
     <section class="card">
       <h2>Long parameter list <span class="src">synthetic</span></h2>
-      <p class="thesis">Parity — both split parameters one per line and keep `) {` together (ktfmt rectangle adds a trailing comma).</p>
-      <div class="cols">
+      <p class="thesis">Parity — both split parameters one per line and keep `) {` together (ktfmt rectangle adds a trailing comma). A virtual ergonomics v2 instead fills the parameters to the line width, several per line.</p>
+      <div class="cols3">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
         <pre><code class="language-kotlin" data-over="">fun registerEventListener(
@@ -861,26 +861,13 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
     installListener()
 }</code></pre>
       </div>
-    </div>
-      
-      
-    </section>
-    <section class="card">
-      <h2>Elvis (?:) operator wrap <span class="src">kotlin-toolchain · PetTypeFormatter.kt:44</span></h2>
-      <p class="thesis">Parity — both put `?:` at the start of the continuation line (the kotlinx-majority style).</p>
-      <div class="cols">
       <div class="col">
-        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
-        <pre><code class="language-kotlin" data-over="">fun f(): PetType {
-    return findPetTypes.find { it.name == text }
-        ?: throw ParseException(&quot;type not found: &quot; + text, 0)
-}</code></pre>
-      </div>
-      <div class="col">
-        <div class="hd optofmt">ktfmt &middot; ergonomics <span class="same">&equiv; identical</span></div>
-        <pre><code class="language-kotlin" data-over="">fun f(): PetType {
-    return findPetTypes.find { it.name == text }
-        ?: throw ParseException(&quot;type not found: &quot; + text, 0)
+        <div class="hd third">ktfmt &middot; ergonomics v2</div>
+        <pre><code class="language-kotlin" data-over="">fun registerEventListener(
+    eventType: EventType, listenerPriority: ListenerPriority,
+    listenerCallback: EventListener
+) {
+    installListener()
 }</code></pre>
       </div>
     </div>
@@ -925,23 +912,6 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
       </div>
     </div>
       </div>
-      
-    </section>
-    <section class="card">
-      <h2>Annotation with arguments on its own line <span class="src">Kotlin project · ktfmt diff study</span></h2>
-      <p class="thesis">ktfmt ergonomics drops an argument-carrying annotation onto its own line above the declaration; ktfmt rectangle keeps it inline with `fun`.</p>
-      <div class="cols">
-      <div class="col">
-        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
-        <pre><code class="language-kotlin" data-over="">@JvmName(&quot;other&quot;) fun testSomething() {}</code></pre>
-      </div>
-      <div class="col">
-        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
-        <pre><code class="language-kotlin" data-over="">@JvmName(&quot;other&quot;)
-fun testSomething() {}</code></pre>
-      </div>
-    </div>
-      
       
     </section>
     <section class="card">
@@ -1033,28 +1003,6 @@ fun testSomething() {}</code></pre>
       </div>
     </div>
       </div>
-      
-    </section>
-    <section class="card">
-      <h2>Long generic type-argument list <span class="src">Exposed · EntityCache.kt</span></h2>
-      <p class="thesis">A generic type-argument list is not a wrappable body, so ktfmt ergonomics keeps the type whole and breaks after `=` — landing on the same compact two-line layout as ktfmt rectangle. Parity.</p>
-      <div class="cols">
-      <div class="col">
-        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
-        <pre><code class="language-kotlin" data-over="">class C {
-    internal val pendingInitializationLambdas =
-        IdentityHashMap&lt;Entity&lt;Any&gt;, MutableList&lt;(Entity&lt;Any&gt;) -&gt; Unit&gt;&gt;()
-}</code></pre>
-      </div>
-      <div class="col">
-        <div class="hd optofmt">ktfmt &middot; ergonomics <span class="same">&equiv; identical</span></div>
-        <pre><code class="language-kotlin" data-over="">class C {
-    internal val pendingInitializationLambdas =
-        IdentityHashMap&lt;Entity&lt;Any&gt;, MutableList&lt;(Entity&lt;Any&gt;) -&gt; Unit&gt;&gt;()
-}</code></pre>
-      </div>
-    </div>
-      
       
     </section>
     <section class="card">
@@ -1180,6 +1128,20 @@ annotation class SqlDelightDsl</code></pre>
     </div>
       
       <div class="extra">
+        <p class="thesis">An annotation that carries arguments lands on its own line too: ktfmt ergonomics drops <code>@JvmName("other")</code> above <code>fun</code>, while ktfmt rectangle keeps it inline with the declaration.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">@JvmName(&quot;other&quot;) fun testSomething() {}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">@JvmName(&quot;other&quot;)
+fun testSomething() {}</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
         <p class="thesis">The same split happens even on an <em>expression-body</em> function — <code>@Test</code> stays above <code>fun … = doTest(…)</code>; ktfmt rectangle packs the annotation, <code>fun</code> and body onto one line.</p>
         <div class="cols">
       <div class="col">
@@ -1222,8 +1184,8 @@ annotation class SqlDelightDsl</code></pre>
     </section>
     <section class="card">
       <h2>Multiple supertypes: one per line, never packed <span class="src">sqldelight · ArrayValueExpressionMixin.kt:20</span></h2>
-      <p class="thesis">ktfmt ergonomics keeps the first supertype attached to `:` (§3) and drops each remaining supertype to its own line (§4); ktfmt rectangle breaks right after `:` and packs every supertype onto one continuation line.</p>
-      <div class="cols">
+      <p class="thesis">ktfmt ergonomics keeps the first supertype attached to `:` (§3) and drops each remaining supertype to its own line (§4); ktfmt rectangle breaks right after `:` and packs every supertype onto one continuation line. A virtual ergonomics v2 also wraps the constructor parameters onto their own line, so <code>) : SqlCompositeElementImpl(node),</code> begins the supertype list.</p>
+      <div class="cols3">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
         <pre><code class="language-kotlin" data-over="">internal abstract class ArrayValueExpressionMixin(node: ASTNode) :
@@ -1239,23 +1201,15 @@ annotation class SqlDelightDsl</code></pre>
     val x = 1
 }</code></pre>
       </div>
-    </div>
-      
-      
-    </section>
-    <section class="card">
-      <h2>Supertype by delegation attached to :, as cast wraps <span class="src">kotlinx.coroutines · BufferedChannel.kt:239</span></h2>
-      <p class="thesis">For a class header whose supertype list is an interface delegation, ktfmt ergonomics keeps `: Iface by delegate` on the header line and wraps only the trailing `as Cast` onto the next line at one indent; ktfmt rectangle breaks right after `:` and pushes the entire `Iface by delegate as Cast` down a level.</p>
-      <div class="cols">
       <div class="col">
-        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
-        <pre><code class="language-kotlin" data-over="">private class SendBroadcast(val cont: CancellableContinuation&lt;Boolean&gt;) :
-    Waiter by cont as CancellableContinuationImpl&lt;Boolean&gt;</code></pre>
-      </div>
-      <div class="col">
-        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
-        <pre><code class="language-kotlin" data-over="">private class SendBroadcast(val cont: CancellableContinuation&lt;Boolean&gt;) : Waiter by cont
-    as CancellableContinuationImpl&lt;Boolean&gt;</code></pre>
+        <div class="hd third">ktfmt &middot; ergonomics v2</div>
+        <pre><code class="language-kotlin" data-over="">internal abstract class ArrayValueExpressionMixin(
+    node: ASTNode
+) : SqlCompositeElementImpl(node),
+    SqlExpr,
+    PostgreSqlArrayValueExpression {
+    val x = 1
+}</code></pre>
       </div>
     </div>
       

@@ -321,10 +321,10 @@ SNIPPETS = [
         "extra": [{
             "note": "Add a few interfaces to the supertype list and ktfmt rectangle fragments it completely: it "
                     "breaks after <code>:</code>, staircases the constructor an extra level, then drops "
-                    "each interface onto its own line. ktfmt ergonomics still keeps <code>:</code> attached (§3) "
+                    "each interface onto its own line. ktfmt ergonomics still keeps <code>:</code> attached "
                     "and expands only the constructor's argument list; the short interfaces ride the "
-                    "closing <code>)</code> line — the §5 legality allows a closer line to carry trailing "
-                    "content — so the header reads as one supertype clause rather than a four-line ladder.",
+                    "closing <code>)</code> line, so the header reads as one supertype clause rather than "
+                    "a four-line ladder.",
             "ktfmt": """object ClicsArchiveCommand :
     DumpFileCommand(
         name = "clics-archive",
@@ -342,6 +342,25 @@ SNIPPETS = [
     outputHelp = "Path to new zip file",
 ), Runnable, Closeable, KoinComponent {}
 """,
+            "idiomatic": "optofmt",
+        }, {
+            "note": "Drop the constructor and leave only interfaces: ktfmt rectangle still breaks after "
+                    "<code>:</code>, stranding it on its own line and stacking every interface below. "
+                    "ktfmt ergonomics keeps the first interface on the header line "
+                    "(<code>: Runnable</code>) and lists the rest one per line.",
+            "ktfmt": """object ClicsArchiveCommand :
+    Runnable,
+    Closeable,
+    KoinComponent,
+    AutoCloseable,
+    Comparable<ClicsArchiveCommand>,
+    Iterable<String> {}""",
+            "optofmt": """object ClicsArchiveCommand : Runnable,
+    Closeable,
+    KoinComponent,
+    AutoCloseable,
+    Comparable<ClicsArchiveCommand>,
+    Iterable<String> {}""",
             "idiomatic": "optofmt",
         }],
     },
@@ -470,22 +489,26 @@ SNIPPETS = [
     }
 }""",
         }, {
-            "note": "Same evolution for the <code>if</code>/<code>else</code> expression: give "
-                    "<code>builder</code> an explicit type and ktfmt ergonomics still keeps <code>= if (</code> "
-                    "attached with the type glued to its <code>:</code>; ktfmt rectangle breaks after <code>=</code>, "
-                    "dropping both branches a level deeper.",
-            "input": "fun f() {\nval builder: InstructionBuilder? = if (!builders.isEmpty()) {\n"
+            "note": "Same evolution for the <code>if</code>/<code>else</code> expression, but now the "
+                    "header overflows. ktfmt ergonomics still won't break after <code>=</code>: it keeps "
+                    "<code>= if (</code> attached and wraps the condition inside the parens at one indent, "
+                    "so the branches stay at one indent. ktfmt rectangle breaks after <code>=</code>, "
+                    "dropping the whole <code>if</code> and both branches a level deeper.",
+            "input": "fun f() {\nval builder: InstructionBuilder? = "
+                     "if (!builders.isEmpty() && builders.peek().isReadyForOverride()) {\n"
                      "builders.peek()\n} else {\nnull\n}\n}",
             "ktfmt": """fun f() {
     val builder: InstructionBuilder? =
-        if (!builders.isEmpty()) {
+        if (!builders.isEmpty() && builders.peek().isReadyForOverride()) {
             builders.peek()
         } else {
             null
         }
 }""",
             "optofmt": """fun f() {
-    val builder: InstructionBuilder? = if (!builders.isEmpty()) {
+    val builder: InstructionBuilder? = if (
+        !builders.isEmpty() && builders.peek().isReadyForOverride()
+    ) {
         builders.peek()
     } else {
         null
@@ -618,36 +641,6 @@ internal constructor(
         "idiomatic": "optofmt",
     },
     {
-        "id": "comment-preservation",
-        "name": "Block-comment / KDoc prose is not reflowed",
-        "source": "icpc/live-v3 · contest-config KDoc",
-        "thesis": "ktfmt ergonomics preserves the author's comment line breaks; ktfmt rectangle rewraps KDoc prose to its own width.",
-        "why": "ktfmt rectangle reflows the text inside <code>/** … */</code> KDoc comments to fill the column, "
-               "merging and re-splitting sentences the author laid out deliberately and churning "
-               "diffs on unrelated edits. ktfmt ergonomics treats comment text as opaque: it owns the "
-               "surrounding whitespace but never reflows the words, so hand-formatted comment blocks, "
-               "tables, and lists survive intact.",
-        "input": """/**
- * Ideally, all this information should be received from the contest system.
- * Unfortunately, in the real world, it is not always possible, or information
- * can be not fully correct or convenient to display.
- */
-class ContestConfigOverrides""",
-        "ktfmt": """/**
- * Ideally, all this information should be received from the contest system. Unfortunately, in the
- * real world, it is not always possible, or information can be not fully correct or convenient to
- * display.
- */
-class ContestConfigOverrides""",
-        "optofmt": """/**
- * Ideally, all this information should be received from the contest system.
- * Unfortunately, in the real world, it is not always possible, or information
- * can be not fully correct or convenient to display.
- */
-class ContestConfigOverrides""",
-        "idiomatic": "optofmt",
-    },
-    {
         "id": "grouped-declarations",
         "name": "Grouped one-line declarations keep no blank lines",
         "source": "synthetic",
@@ -674,7 +667,7 @@ typealias MessageId = StrongId<MessageTag>""",
         "id": "long-parameter-list",
         "name": "Long parameter list",
         "source": "synthetic",
-        "thesis": "Parity — both split parameters one per line and keep `) {` together (ktfmt rectangle adds a trailing comma).",
+        "thesis": "Parity — both split parameters one per line and keep `) {` together (ktfmt rectangle adds a trailing comma). A virtual ergonomics v2 instead fills the parameters to the line width, several per line.",
         "why": "Included to show the comparison is fair: on the bread-and-butter case the two engines "
                "agree. The only difference is ktfmt rectangle's added trailing comma. The wins elsewhere are "
                "specific structural cases, not a blanket claim.",
@@ -695,26 +688,11 @@ typealias MessageId = StrongId<MessageTag>""",
     installListener()
 }
 """,
-        "idiomatic": "parity",
-    },
-    {
-        "id": "elvis-wrap",
-        "name": "Elvis (`?:`) operator wrap",
-        "source": "kotlin-toolchain · PetTypeFormatter.kt:44",
-        "thesis": "Parity — both put `?:` at the start of the continuation line (the kotlinx-majority style).",
-        "why": "Elvis is one of the operators that reads best with the operator leading the "
-               "continuation line, and both engines agree: keep the left side on the first line and "
-               "start the wrapped line with <code>?:</code> at one indent. (This is the opposite of "
-               "the chain operators like <code>&amp;&amp;</code>, which trail.)",
-        "input": "fun f(): PetType { return findPetTypes.find { it.name == text } ?: "
-                 "throw ParseException(\"type not found: \" + text, 0) }",
-        "ktfmt": """fun f(): PetType {
-    return findPetTypes.find { it.name == text }
-        ?: throw ParseException("type not found: " + text, 0)
-}""",
-        "optofmt": """fun f(): PetType {
-    return findPetTypes.find { it.name == text }
-        ?: throw ParseException("type not found: " + text, 0)
+        "third": """fun registerEventListener(
+    eventType: EventType, listenerPriority: ListenerPriority,
+    listenerCallback: EventListener
+) {
+    installListener()
 }""",
         "idiomatic": "parity",
     },
@@ -756,24 +734,6 @@ typealias MessageId = StrongId<MessageTag>""",
 }""",
             "idiomatic": "optofmt",
         }],
-    },
-    {
-        "id": "annotation-placement",
-        "name": "Annotation with arguments on its own line",
-        "source": "Kotlin project · ktfmt diff study",
-        "thesis": "ktfmt ergonomics drops an argument-carrying annotation onto its own line above the declaration; ktfmt rectangle keeps it inline with `fun`.",
-        "why": "Kotlin convention places an annotation that carries arguments "
-               "(<code>@JvmName(\"other\")</code>, <code>@Test</code>, <code>@Deprecated(...)</code>) on "
-               "its own line directly above the declaration; only argument-less modifier-like "
-               "annotations (<code>@PublishedApi</code>, <code>@JvmStatic</code>) stay inline. ktfmt rectangle "
-               "keeps every annotation glued to the declaration line, so "
-               "<code>@JvmName(\"other\") fun testSomething() {}</code> reads as a single run and the "
-               "annotation loses the visual separation a reader expects. ktfmt ergonomics breaks after the "
-               "argument-carrying annotation (§9).",
-        "input": '@JvmName("other") fun testSomething() {}',
-        "ktfmt": '@JvmName("other") fun testSomething() {}',
-        "optofmt": '@JvmName("other")\nfun testSomething() {}',
-        "idiomatic": "optofmt",
     },
     {
         "id": "accessor-placement",
@@ -862,37 +822,6 @@ typealias MessageId = StrongId<MessageTag>""",
         }],
     },
     {
-        "id": "generic-type-arg-economy",
-        "name": "Long generic type-argument list",
-        "source": "Exposed · EntityCache.kt",
-        "thesis": "A generic type-argument list is not a wrappable body, so ktfmt ergonomics keeps the type whole and breaks after `=` — landing on the same compact two-line layout as ktfmt rectangle. Parity.",
-        "why": "When the declaration overflows, §3 keeps the introducer (<code>=</code>) attached only when "
-               "the right-hand side has a wrappable <em>body</em> — and §4 names exactly which: call "
-               "arguments, parameters, collection literals, <code>when</code> entries. A generic "
-               "type-argument list <code>&lt;…&gt;</code> is none of those (nor a call chain, §7, nor a "
-               "nested call group, §5): <code>IdentityHashMap&lt;…&gt;()</code> is a single type applied "
-               "to an empty <code>()</code>. With no §3 body to wrap, the only break that clears the "
-               "overflow is after <code>=</code>. Among the legal layouts §1 then decides: break-after-"
-               "<code>=</code> keeps the type intact in <strong>two</strong> lines (the wrapped line is "
-               "74 cols, well within 100), whereas tearing the type open inside the angle brackets costs "
-               "<strong>three</strong> — so §1's fewest-lines tiebreaker picks the two-line form, and "
-               "ktfmt ergonomics and ktfmt rectangle agree. (The prototype currently tears the type across three lines, "
-               "leaving a dangling <code>&lt;</code> and a lonely <code>&gt;()</code> — it over-applies "
-               "§3/§5 to a construct they don't cover and violates §1's own line count. That is a bug in "
-               "the executable, not the layout the rules prescribe.)",
-        "input": "class C {\ninternal val pendingInitializationLambdas = "
-                 "IdentityHashMap<Entity<Any>, MutableList<(Entity<Any>) -> Unit>>()\n}",
-        "ktfmt": """class C {
-    internal val pendingInitializationLambdas =
-        IdentityHashMap<Entity<Any>, MutableList<(Entity<Any>) -> Unit>>()
-}""",
-        "optofmt": """class C {
-    internal val pendingInitializationLambdas =
-        IdentityHashMap<Entity<Any>, MutableList<(Entity<Any>) -> Unit>>()
-}""",
-        "idiomatic": "parity",
-    },
-    {
         "id": "assign-introducer-attached",
         "name": "Introducer `=` stays attached (scope-function / concatenation / collection)",
         "source": "okio \u00b7 Okio.kt:60",
@@ -927,6 +856,11 @@ typealias MessageId = StrongId<MessageTag>""",
         "idiomatic": "optofmt",
         "extra": [
             {
+                "note": "An annotation that carries arguments lands on its own line too: ktfmt ergonomics drops <code>@JvmName(\"other\")</code> above <code>fun</code>, while ktfmt rectangle keeps it inline with the declaration.",
+                "ktfmt": '@JvmName("other") fun testSomething() {}',
+                "optofmt": '@JvmName("other")\nfun testSomething() {}',
+            },
+            {
                 "note": "The same split happens even on an <em>expression-body</em> function \u2014 <code>@Test</code> stays above <code>fun \u2026 = doTest(\u2026)</code>; ktfmt rectangle packs the annotation, <code>fun</code> and body onto one line.",
                 "ktfmt": "class FooTest {\n    @Test fun `kotlin-stdlib-1_9_20`(testInfo: TestInfo) = doTest(testInfo)\n}",
                 "optofmt": "class FooTest {\n    @Test\n    fun `kotlin-stdlib-1_9_20`(testInfo: TestInfo) = doTest(testInfo)\n}",
@@ -942,22 +876,18 @@ typealias MessageId = StrongId<MessageTag>""",
         "id": "multi-supertype-list-one-per-line",
         "name": "Multiple supertypes: one per line, never packed",
         "source": "sqldelight \u00b7 ArrayValueExpressionMixin.kt:20",
-        "thesis": "ktfmt ergonomics keeps the first supertype attached to `:` (\u00a73) and drops each remaining supertype to its own line (\u00a74); ktfmt rectangle breaks right after `:` and packs every supertype onto one continuation line.",
+        "thesis": "ktfmt ergonomics keeps the first supertype attached to `:` (\u00a73) and drops each remaining supertype to its own line (\u00a74); ktfmt rectangle breaks right after `:` and packs every supertype onto one continuation line. A virtual ergonomics v2 also wraps the constructor parameters onto their own line, so <code>) : SqlCompositeElementImpl(node),</code> begins the supertype list.",
         "why": "The supertype <code>:</code> is an introducer (\u00a73): ktfmt ergonomics keeps <code>) : SqlCompositeElementImpl(node)</code> on the header line and puts each <em>remaining</em> supertype on its own line at one indent (\u00a74 \u2014 a comma list is compact or one-per-line). ktfmt rectangle instead breaks right after <code>:</code> and then fill-packs every supertype onto the single continuation line, so the list reads as one dense run rather than an aligned column.",
         "input": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) :\n  SqlCompositeElementImpl(node),\n  SqlExpr,\n  PostgreSqlArrayValueExpression {\n  val x = 1\n}",
         "ktfmt": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) :\n    SqlCompositeElementImpl(node), SqlExpr, PostgreSqlArrayValueExpression {\n    val x = 1\n}",
         "optofmt": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) : SqlCompositeElementImpl(node),\n    SqlExpr,\n    PostgreSqlArrayValueExpression {\n    val x = 1\n}",
-        "idiomatic": "optofmt",
-    },
-    {
-        "id": "supertype-by-delegation-attached",
-        "name": "Supertype `by` delegation attached to `:`, `as` cast wraps",
-        "source": "kotlinx.coroutines \u00b7 BufferedChannel.kt:239",
-        "thesis": "For a class header whose supertype list is an interface delegation, ktfmt ergonomics keeps `: Iface by delegate` on the header line and wraps only the trailing `as Cast` onto the next line at one indent; ktfmt rectangle breaks right after `:` and pushes the entire `Iface by delegate as Cast` down a level.",
-        "why": "<code>:</code> is an introducer (\u00a73): keep it and the delegate attached, and wrap only the overflowing tail. ktfmt ergonomics leaves <code>: Waiter by cont</code> on the header line and drops the trailing <code>as CancellableContinuationImpl&lt;Boolean&gt;</code> to one indent; ktfmt rectangle breaks right after <code>:</code> and re-indents the whole <code>Iface by delegate as Cast</code> clause even though only the cast needed room.",
-        "input": "private class SendBroadcast(val cont: CancellableContinuation<Boolean>) : Waiter by cont as CancellableContinuationImpl<Boolean>",
-        "ktfmt": "private class SendBroadcast(val cont: CancellableContinuation<Boolean>) :\n    Waiter by cont as CancellableContinuationImpl<Boolean>",
-        "optofmt": "private class SendBroadcast(val cont: CancellableContinuation<Boolean>) : Waiter by cont\n    as CancellableContinuationImpl<Boolean>",
+        "third": """internal abstract class ArrayValueExpressionMixin(
+    node: ASTNode
+) : SqlCompositeElementImpl(node),
+    SqlExpr,
+    PostgreSqlArrayValueExpression {
+    val x = 1
+}""",
         "idiomatic": "optofmt",
     },
     {
