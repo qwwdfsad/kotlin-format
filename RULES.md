@@ -247,6 +247,27 @@ val queryResult =
     .distinct()
 ```
 
+**A sole trailing-lambda call applied directly to the receiver stays attached.** When the chain is
+just a receiver followed by one trailing-lambda call (`receiver(args).collect { … }`) and the
+receiver must wrap its own arguments, the receiver wraps **only its own arguments** at a single
+indent and the `.call {` stays **attached to the receiver's `)`** — it is not dropped onto its own
+line, and the arguments are not pushed to a second indent. The lambda body hangs one indent below:
+
+```kotlin
+// optofmt — the receiver `merge(…)` wraps its own args at one indent; `.collect {` hugs the `)`:
+merge(
+    flow.map { Update(it) },
+    triggerFlow.receiveAsFlow().conflate(),
+    advancedPropsStateFlow.map { Trigger },
+).collect {
+    handle(it)
+}
+```
+
+This applies only when the lambda call is applied **directly** to the receiver-through-first-call.
+A genuine multi-call chain (an intermediate `.call` precedes the trailing lambda) keeps the general
+rule — each subsequent `.call`, including the trailing-lambda one, on its own line at one indent.
+
 ## 8. Comments are never reflowed, and they hold their own line
 
 Treat the text inside `//` and `/** … */` comments as opaque. optofmt owns the blank lines and
