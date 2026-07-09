@@ -198,6 +198,21 @@ add(
 - **Chained operators** — `&&`, `||`, `+`, `*`, and the like — wrap with the operator at the
   **end** of the line, every operand at a single shared indent (§2). Keep the first operand on
   the introducer's line when it fits.
+- **Binary operators are treated as infix functions.** A **mixed-operator** expression (operators
+  of different precedence, e.g. `a - b * c(…) - d`) is a *single* flat block: every operand sits at
+  the **same** shared indent regardless of precedence or how the parse tree nests it. A
+  higher-precedence sub-expression (the `b * c(…)` inside a `-` expression) never staircases its
+  operands to a second, deeper indent — the outermost operator supplies the one continuation indent
+  and every operand of the whole expression aligns under it.
+
+  ```kotlin
+  // optofmt — every operand at one shared indent, `*` does not drift deeper than `-`
+  ceil(
+      maxScore -
+      submission.relativeTimeSeconds.inWholeMinutes *
+      getProblemLooseScorePerMinute(maxScore, contestLength.inWholeMinutes),
+  )
+  ```
 - **Elvis `?:`** stays on the **same line** as its left-hand side **when the expression fits**
   (§1). Only when it does not fit does it wrap — and then with the operator at the **start** of the
   continuation line (this reads best for null-fallbacks, and matches kotlinx usage):
