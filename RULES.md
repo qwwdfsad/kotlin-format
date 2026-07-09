@@ -70,6 +70,25 @@ val cfg by provideDelegate(firstArgument, secondArgument)  // not: val cfg by\n 
 When the right-hand side is itself too long, keep the introducer + opener on the first line
 and wrap the *contents* (see §4/§5), still at a single indent.
 
+**Nested introducers — the innermost yields first.** When introducers nest (an assignment `=`
+whose right-hand side is itself an infix `to`, `by`, etc.) and the whole `= left to opener(` unit
+is too long to sit on one line, keep the **outer** introducer attached and break after the
+**inner** one — never the reverse. So a typed `val` whose header pushes the expression past the
+column limit keeps `= left to` on the first line and drops the infix's right-hand side to a single
+indent, rather than breaking after `=`:
+
+```kotlin
+// optofmt — `=` stays attached, the infix `to` breaks (its RHS opener at one indent, args at two):
+val pair: Pair<OrganizationId, OverrideOrganizations.Override> = orgInfo.id to
+    OverrideOrganizations.Override(
+        fullName = substituteRaw(fullName),
+        displayName = substituteRaw(displayName),
+    )
+```
+
+(The sole call `OverrideOrganizations.Override(…)` is still never split between its receiver and
+its call — a receiver-through-first-call is atomic, §7.)
+
 ## 4. Lists are compact or fully split
 
 A comma-separated list (call arguments, parameters, collection literals, `when` entries with

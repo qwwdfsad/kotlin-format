@@ -350,19 +350,25 @@ SNIPPETS = [
         "extra": [{
             "note": "Add an explicit type and the header no longer fits — "
                     "<code>val pair: Pair&lt;…&gt; = orgInfo.id to OverrideOrganizations.Override(</code> "
-                    "is 110 columns. Even so, ktfmt ergonomics does <em>not</em> break after <code>=</code>: "
-                    "it keeps <code>= orgInfo.id to OverrideOrganizations</code> on the first line and "
-                    "wraps at the <code>.Override</code> call, dropping it to a single indent. ktfmt "
-                    "rectangle breaks after <em>both</em> <code>=</code> and <code>to</code>, staircasing "
-                    "the call three levels deep.",
+                    "is 110 columns. Two introducers now compete, and the <em>innermost</em> one yields "
+                    "first: ktfmt ergonomics keeps the assignment <code>=</code> attached and breaks after "
+                    "the infix <code>to</code>, dropping <code>OverrideOrganizations.Override(</code> to a "
+                    "single indent with its arguments one further in (§4). Keeping <code>=</code> attached "
+                    "is preferred over breaking after it, and the sole call "
+                    "<code>OverrideOrganizations.Override(…)</code> is never split as a chain (§7 — a "
+                    "receiver-through-first-call is atomic). ktfmt rectangle breaks after <em>both</em> "
+                    "<code>=</code> and <code>to</code>, staircasing the call three levels deep.",
             "ktfmt": """val pair: Pair<OrganizationId, OverrideOrganizations.Override> =
     orgInfo.id to
         OverrideOrganizations.Override(
             fullName = substituteRaw(fullName),
             displayName = substituteRaw(displayName),
         )""",
-            "optofmt": """val pair: Pair<OrganizationId, OverrideOrganizations.Override> = orgInfo.id to OverrideOrganizations
-    .Override(fullName = substituteRaw(fullName), displayName = substituteRaw(displayName))""",
+            "optofmt": """val pair: Pair<OrganizationId, OverrideOrganizations.Override> = orgInfo.id to
+    OverrideOrganizations.Override(
+        fullName = substituteRaw(fullName),
+        displayName = substituteRaw(displayName),
+    )""",
             "idiomatic": "optofmt",
         }],
     },

@@ -114,7 +114,7 @@
 <header class="b">
   <h1>ktfmt code style comparison</h1>
   <p class="lead">The page presents a comparison between two potential ktfmt engines &mdash; <b>&ldquo;The Rectangle Rule&rdquo;</b>, the current ktfmt engine, and a potential new one &mdash; <b>&ldquo;The ergonomics rule&rdquo;</b>.</p><div class="engines"><div class="engine rect"><h3>The Rectangle Rule</h3><p>a strict engine that follows the corresponding <a href="https://github.com/google/google-java-format/wiki/The-Rectangle-Rule" target="_blank" rel="noopener">rule</a>. It is very strict and predictable &mdash; every syntax subtree is in its own bounding rectangle, it is very local (changes in one line rarely affect surrounding lines&rsquo; formatting) and thus Git-history-friendly. Because of these properties, it also produces quite a few newlines and additional layers of tabular nesting</p></div><div class="engine ergo"><h3>The ergonomics rule</h3><p>an engine that prioritizes concise and ergonomic Kotlin. Its goal is to format code in a compact manner, minimizing its width and length, but without general loss of readability. It subjectively improves information density but with the opposite tradeoffs &mdash; it is less predictable and less local.</p></div></div><p class="goal"><b>Our goal is to understand the stylistic preferences of Kotlin developers.</b> So the current page has a series of snippets formatted in two ways to showcase the difference between these two engines, for you to pick the one you prefer. Some snippets are grouped in a way that shows how the code might evolve over time to showcase formatting locality (or lack of thereof).</p><p class="legend">Both use <b>4-space indent</b> and a <b>100-column limit</b>; amber marks any line past 100 columns.</p>
-  <div class="pills"><span class="pill">22 patterns</span></div>
+  <div class="pills"><span class="pill">23 patterns</span></div>
 </header>
 <main>
     <section class="card">
@@ -138,7 +138,7 @@
 }</code></pre>
       </div>
     </div>
-
+      
       <div class="extra">
         <p class="thesis">Add more conditions and the line must wrap: ktfmt ergonomics keeps every operand at one indent; ktfmt rectangle pushes each operand after the first a level deeper. A third option keeps the first condition on the <code>if</code> line.</p>
         <div class="cols3">
@@ -182,7 +182,7 @@
       </div>
     </div>
       </div>
-
+      
     </section>
     <section class="card">
       <h2>Nested call with a long argument <span class="src">synthetic example</span></h2>
@@ -225,7 +225,7 @@
       </div>
     </div>
       </div>
-
+      
     </section>
     <section class="card">
       <h2>Nested call argument wrapping <span class="src">icpc/live-v3 · Rules.kt:219</span></h2>
@@ -260,9 +260,98 @@
 }</code></pre>
       </div>
     </div>
-
+      
       <div class="extra">
-        <p class="thesis">Name the single argument and ktfmt rectangle breaks after <code>queue =</code> <em>as well</em>, staircasing the arguments to indent 16 — three levels deep. ktfmt ergonomics hugs the openers, keeping <code>add(queue = OverrideQueue(</code> on one line so the body sits at a single indent. A virtual ergonomics v2 keeps <code>queue = OverrideQueue(</code> together but drops it to its own line under <code>add(</code>.</p>
+        <p class="thesis">A single unbreakable argument: ktfmt ergonomics and ktfmt rectangle lay it out identically — the inner call on its own line at one indent — differing only in ktfmt ergonomics's trailing comma (§14). (An earlier ktfmt ergonomics collapsed the openers here to save an indent level; that heuristic is gone — a nested call now always hangs on its own line.)</p>
+        <div class="cols3">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="3">fun f() {
+    registerHandler(
+        buildHandler(
+            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY
+        )
+    )
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="3">fun f() {
+    registerHandler(
+        buildHandler(
+            aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY,
+        )
+    )
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd third">ktfmt &middot; ergonomics v2</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    registerHandler(buildHandler(
+        aLongUnbreakableArgumentIdentifierDeliberatelySizedToOverflowTheColumnLimitNoMatterWhatXY,
+    ))
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
+        <p class="thesis">With multiple arguments the outer list simply splits one item per line (§4) and the nested <code>OverrideQueue(</code> expands in place. ktfmt ergonomics matches ktfmt rectangle line-for-line, both including trailing commas (§14) — a positional nested call is laid out the same by either formatter.</p>
+        <div class="cols3">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    add(
+        arg1,
+        arg2,
+        OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        ),
+        arg3,
+        arg4,
+    )
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    add(
+        arg1,
+        arg2,
+        OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        ),
+        arg3,
+        arg4,
+    )
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd third">ktfmt &middot; ergonomics v2 <span class="same">&equiv; identical</span></div>
+        <pre><code class="language-kotlin" data-over="">fun f() {
+    add(
+        arg1,
+        arg2,
+        OverrideQueue(
+            queueSettings.waitTime,
+            queueSettings.firstToSolveWaitTime,
+            queueSettings.maxQueueSize,
+            queueSettings.maxUntestedRun,
+        ),
+        arg3,
+        arg4,
+    )
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
+        <p class="thesis">Name the single argument (<code>add(queue = OverrideQueue(</code>) and ktfmt rectangle breaks after <code>queue =</code> <em>as well</em> before it staircases the call, so the arguments land at indent 16 — three levels deep. ktfmt ergonomics treats the named-argument <code>=</code> as an introducer (§3) and keeps <code>queue = OverrideQueue(</code> on one line, so the body sits at a single indent — the one place a nested call argument diverges from ktfmt rectangle.</p>
         <div class="cols3">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -294,16 +383,15 @@
 }</code></pre>
       </div>
       <div class="col">
-        <div class="hd third">ktfmt &middot; ergonomics v2</div>
+        <div class="hd third">ktfmt &middot; ergonomics v2 <span class="same">&equiv; identical</span></div>
         <pre><code class="language-kotlin" data-over="">fun f() {
-    add(
-        queue = OverrideQueue(
-            queueSettings.waitTime,
-            queueSettings.firstToSolveWaitTime,
-            queueSettings.featuredRunWaitTime,
-            queueSettings.inProgressRunWaitTime,
-            queueSettings.maxQueueSize,
-            queueSettings.maxUntestedRun,
+    add(queue = OverrideQueue(
+        queueSettings.waitTime,
+        queueSettings.firstToSolveWaitTime,
+        queueSettings.featuredRunWaitTime,
+        queueSettings.inProgressRunWaitTime,
+        queueSettings.maxQueueSize,
+        queueSettings.maxUntestedRun,
     ))
 }</code></pre>
       </div>
@@ -387,7 +475,7 @@
     </div>
       
       <div class="extra">
-        <p class="thesis">Add an explicit type and the header no longer fits — <code>val pair: Pair&lt;…&gt; = orgInfo.id to OverrideOrganizations.Override(</code> is 110 columns. Even so, ktfmt ergonomics does <em>not</em> break after <code>=</code>: it keeps <code>= orgInfo.id to OverrideOrganizations</code> on the first line and wraps at the <code>.Override</code> call, dropping it to a single indent. ktfmt rectangle breaks after <em>both</em> <code>=</code> and <code>to</code>, staircasing the call three levels deep.</p>
+        <p class="thesis">Add an explicit type and the header no longer fits — <code>val pair: Pair&lt;…&gt; = orgInfo.id to OverrideOrganizations.Override(</code> is 110 columns. Two introducers now compete, and the <em>innermost</em> one yields first: ktfmt ergonomics keeps the assignment <code>=</code> attached and breaks after the infix <code>to</code>, dropping <code>OverrideOrganizations.Override(</code> to a single indent with its arguments one further in (§4). Keeping <code>=</code> attached is preferred over breaking after it, and the sole call <code>OverrideOrganizations.Override(…)</code> is never split as a chain (§7 — a receiver-through-first-call is atomic). ktfmt rectangle breaks after <em>both</em> <code>=</code> and <code>to</code>, staircasing the call three levels deep.</p>
         <div class="cols">
       <div class="col">
         <div class="hd ktfmt">ktfmt &middot; rectangle</div>
@@ -400,8 +488,11 @@
       </div>
       <div class="col">
         <div class="hd optofmt">ktfmt &middot; ergonomics</div>
-        <pre><code class="language-kotlin" data-over="">val pair: Pair&lt;OrganizationId, OverrideOrganizations.Override&gt; = orgInfo.id to OverrideOrganizations
-    .Override(fullName = substituteRaw(fullName), displayName = substituteRaw(displayName))</code></pre>
+        <pre><code class="language-kotlin" data-over="">val pair: Pair&lt;OrganizationId, OverrideOrganizations.Override&gt; = orgInfo.id to
+    OverrideOrganizations.Override(
+        fullName = substituteRaw(fullName),
+        displayName = substituteRaw(displayName),
+    )</code></pre>
       </div>
     </div>
       </div>
@@ -483,7 +574,7 @@
       </div>
     </div>
       </div>
-
+      
     </section>
     <section class="card">
       <h2>Long call chain <span class="src">icpc/live-v3 · CdsLoadersTest</span></h2>
@@ -515,6 +606,25 @@
         .resolve(&quot;loaders&quot;)
         .relativeTo(Path.of(&quot;&quot;).absolute())
 }</code></pre>
+      </div>
+    </div>
+      
+      
+    </section>
+    <section class="card">
+      <h2>Delegated property (by) call chain <span class="src">ktor client · delegated response</span></h2>
+      <p class="thesis">ktfmt ergonomics treats the delegate `by` as an introducer — it keeps `by get()` on the first line and wraps each subsequent call one per line (§3/§7); ktfmt rectangle breaks after `by` and drops the whole chain, unbroken, to a second indent.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">val list by
+    get().response&lt;TagsResponse&gt;().failure&lt;GenericErrorModel&gt;(HttpStatusCode.UnprocessableEntity)</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">val list by get()
+    .response&lt;TagsResponse&gt;()
+    .failure&lt;GenericErrorModel&gt;(HttpStatusCode.UnprocessableEntity)</code></pre>
       </div>
     </div>
       
@@ -813,7 +923,7 @@ internal constructor(
       </div>
     </div>
       
-
+      
     </section>
     <section class="card">
       <h2>Grouped one-line declarations keep no blank lines <span class="src">synthetic</span></h2>
@@ -912,7 +1022,7 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
       </div>
     </div>
       </div>
-
+      
     </section>
     <section class="card">
       <h2>Trivial property accessor stays on the property line <span class="src">Kotlin project · ktfmt diff study</span></h2>
@@ -1003,7 +1113,7 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
       </div>
     </div>
       </div>
-
+      
     </section>
     <section class="card">
       <h2>Introducer = stays attached (scope-function / concatenation / collection) <span class="src">okio · Okio.kt:60</span></h2>
