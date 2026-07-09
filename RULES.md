@@ -268,6 +268,24 @@ This applies only when the lambda call is applied **directly** to the receiver-t
 A genuine multi-call chain (an intermediate `.call` precedes the trailing lambda) keeps the general
 rule — each subsequent `.call`, including the trailing-lambda one, on its own line at one indent.
 
+It also holds when the receiver-through-first-call's *own* first call carries a trailing lambda: a
+single terminal `.call { … }` still hugs its `}` when it fits. Only a *second* trailing-lambda call
+tips it into a multi-call chain (one per line):
+
+```kotlin
+// optofmt — the sole `.filterValues { … }` hugs the `}` of `mapValues`:
+val filtered = v.mapValues { (_, value) ->
+    transform(value)
+}.filterValues { it !is JsonNull }
+
+// two trailing-lambda tails → genuine multi-call chain, each on its own line:
+val filtered = v.mapValues { (_, value) ->
+    transform(value)
+}
+    .filterValues { it !is JsonNull }
+    .mapKeys { it.key.lowercase() }
+```
+
 **Breaking the receiver onto its own line is author-preserving.** For any member-access chain with at
 least two links (`.foo().bar()`), both layouts read well: the default — receiver through its first
 call attached, then the staircase — and one where the receiver sits **alone** on the introducer's line
