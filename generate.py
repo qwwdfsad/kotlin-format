@@ -12,6 +12,7 @@ changed snippets.
 
     python3 generate.py
 """
+import base64
 import html
 import json
 from pathlib import Path
@@ -229,11 +230,38 @@ THEME_SCRIPT = """
 </script>"""
 
 
-HLJS = "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build"
+# highlight.js is inlined (not loaded from a CDN) so the single report.html file highlights
+# everywhere — including htmlpreview.github.io, which silently drops non-GitHub external
+# <script src> tags. We embed each library as base64 and decode+run it at load time: the
+# payload then contains no `<script`/`</script>` substrings, which matters because
+# htmlpreview runs a naive global regex over the page that would otherwise corrupt the
+# library (its XML grammar contains `/<script(?=\s|>)/`). Vendored from cdn-release@11.9.0;
+# refresh via download-hljs.sh.
+_HLJS_DIR = HERE / "vendor" / "hljs"
+
+
+def _hljs_b64(rel):
+    path = _HLJS_DIR / rel
+    if not path.exists():
+        raise SystemExit(f"error: {path} not found. Run ./download-hljs.sh to vendor it.")
+    return base64.b64encode(path.read_bytes()).decode("ascii")
+
 
 HIGHLIGHT_SCRIPT = f"""
-<script src="{HLJS}/highlight.min.js"></script>
-<script src="{HLJS}/languages/kotlin.min.js"></script>
+<script>
+  (function () {{
+    // Decode each base64'd library and run it as a real (global-scope) script, in order.
+    function run(b64) {{
+      var js = new TextDecoder().decode(
+        Uint8Array.from(atob(b64), function (c) {{ return c.charCodeAt(0); }}));
+      var s = document.createElement("script");
+      s.textContent = js;
+      document.head.appendChild(s);
+    }}
+    run("{_hljs_b64("highlight.min.js")}");
+    run("{_hljs_b64("languages/kotlin.min.js")}");
+  }})();
+</script>
 <script>
   (function () {{
     if (!window.hljs) return;
