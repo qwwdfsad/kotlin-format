@@ -70,6 +70,25 @@ val cfg by provideDelegate(firstArgument, secondArgument)  // not: val cfg by\n 
 When the right-hand side is itself too long, keep the introducer + opener on the first line
 and wrap the *contents* (see §4/§5), still at a single indent.
 
+**Nested introducers — the innermost yields first.** When introducers nest (an assignment `=`
+whose right-hand side is itself an infix `to`, `by`, etc.) and the whole `= left to opener(` unit
+is too long to sit on one line, keep the **outer** introducer attached and break after the
+**inner** one — never the reverse. So a typed `val` whose header pushes the expression past the
+column limit keeps `= left to` on the first line and drops the infix's right-hand side to a single
+indent, rather than breaking after `=`:
+
+```kotlin
+// optofmt — `=` stays attached, the infix `to` breaks (its RHS opener at one indent, args at two):
+val pair: Pair<OrganizationId, OverrideOrganizations.Override> = orgInfo.id to
+    OverrideOrganizations.Override(
+        fullName = substituteRaw(fullName),
+        displayName = substituteRaw(displayName),
+    )
+```
+
+(The sole call `OverrideOrganizations.Override(…)` is still never split between its receiver and
+its call — a receiver-through-first-call is atomic, §7.)
+
 ## 4. Lists are compact or fully split
 
 A comma-separated list (call arguments, parameters, collection literals, `when` entries with
@@ -133,29 +152,44 @@ onSubscribe(object : Subscription {
 })
 ```
 
-But when a call's sole argument is **itself a call or constructor** that must wrap, the openers are
-**not** collapsed. The outer call breaks after its `(`, the inner call **hangs on its own indented
-line**, and each `)` closes on its own line. Because the outer call carries a single block-like
-value — not a one-per-line split — it takes **no outer trailing comma**; the inner list wraps and
-commas normally (§14). A named sole argument behaves the same, with `name =` kept on the argument's
-line (§3):
+The same opener-hugging applies when a call's **sole argument is itself a call or constructor**
+that must wrap: the two openers **collapse onto one line** and the closers **stack together** as
+`))`, so the inner argument list sits at a single indent instead of staircasing. This keys on
+argument **count**, not on whether the argument is named — a named sole argument behaves the same,
+with `name =` kept on the opener line (§3). Because the outer call carries a single block-like value
+— not a one-per-line split — it takes **no outer trailing comma**; the inner list wraps and commas
+normally (§14):
 
 ```kotlin
-// optofmt — nested call expands; no `))` stacking, no outer comma:
-add(
-    OverrideQueue(
-        waitTime,
-        firstToSolveWaitTime,
-        maxQueueSize,
-    )
-)
+// optofmt — the nested call hugs the outer opener; `))` stacks, no outer comma:
+add(OverrideQueue(
+    waitTime,
+    firstToSolveWaitTime,
+    maxQueueSize,
+))
 
+add(queue = OverrideQueue(
+    waitTime,
+    firstToSolveWaitTime,
+    maxQueueSize,
+))
+```
+
+With **two or more arguments** there is no single opener to hug, so the outer list simply splits
+**one argument per line** (§4) and each nested call expands in place:
+
+```kotlin
 add(
     queue = OverrideQueue(
         waitTime,
         firstToSolveWaitTime,
         maxQueueSize,
-    )
+    ),
+    foo = OverrideQueue(
+        waitTime,
+        firstToSolveWaitTime,
+        maxQueueSize,
+    ),
 )
 ```
 

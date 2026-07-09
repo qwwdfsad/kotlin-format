@@ -89,7 +89,8 @@ SNIPPETS = [
         "extra": [{
             "note": "Rename the argument to one long enough to overflow, and the inner call must "
                     "break. ktfmt rectangle staircases the openers, dropping <code>buildHandler(</code> "
-                    "and then the argument onto successively deeper lines. ktfmt ergonomics hugs the two "
+                    "and then the argument onto successively deeper lines. ktfmt ergonomics is identical, but adds a trailing comma. "
+                    "A third option hugs the two "
                     "openers (<code>registerHandler(buildHandler(</code>) so the body sits at one indent "
                     "and the call closes with a shared <code>))</code>.",
             "ktfmt": """fun f() {
@@ -100,6 +101,13 @@ SNIPPETS = [
     )
 }""",
             "optofmt": """fun f() {
+    registerHandler(
+        buildHandler(
+            aLongUnbreakableHandlerArgumentDeliberatelySizedToOverflowTheHundredColumnLimit,
+        )
+    )
+}""",
+            "third": """fun f() {
     registerHandler(buildHandler(
         aLongUnbreakableHandlerArgumentDeliberatelySizedToOverflowTheHundredColumnLimit,
     ))
@@ -193,7 +201,8 @@ SNIPPETS = [
             queueSettings.inProgressRunWaitTime,
             queueSettings.maxQueueSize,
             queueSettings.maxUntestedRun,
-    ))
+        )
+    )
 }""",
             "idiomatic": "optofmt",
         }, {
@@ -275,19 +284,25 @@ SNIPPETS = [
         "extra": [{
             "note": "Add an explicit type and the header no longer fits — "
                     "<code>val pair: Pair&lt;…&gt; = orgInfo.id to OverrideOrganizations.Override(</code> "
-                    "is 110 columns. Even so, ktfmt ergonomics does <em>not</em> break after <code>=</code>: "
-                    "it keeps <code>= orgInfo.id to OverrideOrganizations</code> on the first line and "
-                    "wraps at the <code>.Override</code> call, dropping it to a single indent. ktfmt "
-                    "rectangle breaks after <em>both</em> <code>=</code> and <code>to</code>, staircasing "
-                    "the call three levels deep.",
+                    "is 110 columns. Two introducers now compete, and the <em>innermost</em> one yields "
+                    "first: ktfmt ergonomics keeps the assignment <code>=</code> attached and breaks after "
+                    "the infix <code>to</code>, dropping <code>OverrideOrganizations.Override(</code> to a "
+                    "single indent with its arguments one further in (§4). Keeping <code>=</code> attached "
+                    "is preferred over breaking after it, and the sole call "
+                    "<code>OverrideOrganizations.Override(…)</code> is never split as a chain (§7 — a "
+                    "receiver-through-first-call is atomic). ktfmt rectangle breaks after <em>both</em> "
+                    "<code>=</code> and <code>to</code>, staircasing the call three levels deep.",
             "ktfmt": """val pair: Pair<OrganizationId, OverrideOrganizations.Override> =
     orgInfo.id to
         OverrideOrganizations.Override(
             fullName = substituteRaw(fullName),
             displayName = substituteRaw(displayName),
         )""",
-            "optofmt": """val pair: Pair<OrganizationId, OverrideOrganizations.Override> = orgInfo.id to OverrideOrganizations
-    .Override(fullName = substituteRaw(fullName), displayName = substituteRaw(displayName))""",
+            "optofmt": """val pair: Pair<OrganizationId, OverrideOrganizations.Override> = orgInfo.id to
+    OverrideOrganizations.Override(
+        fullName = substituteRaw(fullName),
+        displayName = substituteRaw(displayName),
+    )""",
             "idiomatic": "optofmt",
         }],
     },
@@ -397,6 +412,27 @@ SNIPPETS = [
         .resolve("loaders")
         .relativeTo(Path.of("").absolute())
 }""",
+        "idiomatic": "optofmt",
+    },
+    {
+        "id": "delegate-call-chain",
+        "name": "Delegated property (`by`) call chain",
+        "source": "ktor client · delegated response",
+        "thesis": "ktfmt ergonomics treats the delegate `by` as an introducer — it keeps `by get()` on the first line and wraps each subsequent call one per line (§3/§7); ktfmt rectangle breaks after `by` and drops the whole chain, unbroken, to a second indent.",
+        "why": "The receiver-through-first-call rule is introducer-agnostic: a property <em>delegate</em> "
+               "<code>by</code> introduces its expression exactly like <code>=</code> (§3), so "
+               "<code>val list by get()</code> stays on the header line and each following "
+               "<code>.call</code> hangs on its own line at one indent (§7). ktfmt rectangle instead "
+               "breaks after <code>by</code> and indents the whole chain a level; here the chain "
+               "happens to fit unbroken on that line, so it never splits. ktfmt ergonomics keeps "
+               "<code>by</code> attached and wraps the chain uniformly even though that costs a line — "
+               "the same trade-off §7 makes for an <code>=</code>-introduced chain.",
+        "input": "val list by get().response<TagsResponse>().failure<GenericErrorModel>(HttpStatusCode.UnprocessableEntity)",
+        "ktfmt": """val list by
+    get().response<TagsResponse>().failure<GenericErrorModel>(HttpStatusCode.UnprocessableEntity)""",
+        "optofmt": """val list by get()
+    .response<TagsResponse>()
+    .failure<GenericErrorModel>(HttpStatusCode.UnprocessableEntity)""",
         "idiomatic": "optofmt",
     },
     {
