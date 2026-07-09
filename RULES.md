@@ -355,14 +355,31 @@ object X : Base(
 
 ## 11. Declaration grouping
 
-Keep a run of consecutive **same-kind** one-line declarations together with no blank lines
-between them. Collapse multiple blank lines to a single one. Insert a blank line only between
-declarations of **different** kinds (e.g. a property group and a following function).
+Keep a run of consecutive **same-kind** one-line declarations together: never *insert* a blank
+line between them, and collapse multiple blank lines to a single one — but **preserve** a single
+blank line the author put there. Insert a blank line only between declarations of **different**
+kinds (e.g. a property group and a following function).
 
 ```kotlin
 typealias TeamId = StrongId<TeamTag>
 typealias RunId = StrongId<RunTag>
 typealias MessageId = StrongId<MessageTag>
+```
+
+The same grouping applies to **enum entries**: adjacent entries stay tight, but an author blank
+line before an entry (for example, one separating an entry from the KDoc of the next) is
+preserved.
+
+```kotlin
+enum class PenaltyRoundingMode {
+    /** Round down. */
+    @SerialName("down")
+    EACH_SUBMISSION_DOWN_TO_MINUTE,
+
+    /** Round up. */
+    @SerialName("up")
+    EACH_SUBMISSION_UP_TO_MINUTE,
+}
 ```
 
 ## 12. Annotation placement
