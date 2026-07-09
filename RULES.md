@@ -506,6 +506,57 @@ last-item-expansion / hanging trailing lambda (§4), which is not a one-per-line
 (This matches ktfmt and idiomatic Kotlin. Earlier drafts of optofmt omitted trailing commas; this
 rule supersedes that.)
 
+## 15. If-expression branch bodies attach to their keyword
+
+In an `if`/`else` used as a **value** (branches are expressions, not `{ }` blocks), each branch body
+stays **attached to the keyword that introduces it** — `if (cond)` for the `then` value, `else` for
+the `else` value — exactly as an introducer keeps its right-hand side (§3). When a branch does not
+fit, its **own contents wrap** (a call's arguments per §4), rather than pushing the whole body onto
+a fresh indented line and leaving a bare `if (cond)` or a bare `else`. The clauses split at the
+`else` boundary: the whole thing on one line if it fits, otherwise `if (cond) then` on one line and
+`else …` on the next.
+
+```kotlin
+// fits → one line:
+val kind = if (isRoot) Root else Child
+
+// must wrap → each body stays with its keyword; the `else` call keeps its opener and wraps its args:
+if (cond) shortThenValue
+else buildResultObject(
+    firstArgumentHere,
+    secondArgumentHere,
+    thirdArgumentHere,
+    fourthArgumentHere,
+    fifthArgument,
+)
+```
+
+This is the same shape a multi-way `else if` **chain** already has — each `if (c) v` clause kept
+together, only the `else` boundaries wrapping:
+
+```kotlin
+val x = if (firstConditionHere) firstValue
+    else if (secondConditionHere) secondValue
+    else theFallbackValueThatIsQuiteLongIndeedYesVeryMuchSoReally
+```
+
+A branch that can **neither** attach (it would overflow) **nor** wrap its own contents (it is a
+plain reference, not a call) is the only case that drops onto its own line, one indent below its
+keyword — everything that *can* hug its keyword still does:
+
+```kotlin
+val x = if (someCondition) shortValue
+    else
+        aVeryLongUnwrappablePlainReferenceValueThatOverflowsColumnLimitAndHasNoArgumentsToWrapAcrossLines
+```
+
+When such an `if` is the right-hand side of an introducer (`= if (…)`), the introducer keeps the
+`if` and its condition attached (§3). A branch that is itself a `{ }` block is unaffected — its
+braces already carry the structure.
+
+(ktfmt keeps the `then` value inline but breaks after `else`, leaving a bare `else` above an
+extra-indented body; optofmt attaches both bodies and wraps their contents instead.)
+
 ---
 
 ## Differences from ktfmt to expect
@@ -523,3 +574,6 @@ rule supersedes that.)
   the type onto a line by itself.
 - optofmt keeps a construct that fits on one line inline per §1 — a trivial property accessor
   (`val x: T get() = …`), a control-flow lambda (`?.let { return }`); ktfmt force-breaks both.
+- optofmt keeps an `if`/`else` value's branch bodies attached to their keyword and wraps their
+  contents (§15); ktfmt keeps the `then` value inline but breaks after `else`, leaving a bare `else`
+  above an extra-indented body.
