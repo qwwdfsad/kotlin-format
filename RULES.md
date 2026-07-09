@@ -268,6 +268,31 @@ This applies only when the lambda call is applied **directly** to the receiver-t
 A genuine multi-call chain (an intermediate `.call` precedes the trailing lambda) keeps the general
 rule — each subsequent `.call`, including the trailing-lambda one, on its own line at one indent.
 
+**Breaking the receiver onto its own line is author-preserving.** For any member-access chain with at
+least two links (`.foo().bar()`), both layouts read well: the default — receiver through its first
+call attached, then the staircase — and one where the receiver sits **alone** on the introducer's line
+with **every** `.call`, including the first, on its own line. Rather than pick one, optofmt **preserves
+what the author wrote**: if the source already had a line break between the receiver and its first
+`.call`, that form is kept; otherwise the default attachment is used.
+
+```kotlin
+// source kept the receiver and its first call together → default attachment:
+val x = someReceiverObject.firstMethodCall(argOne)
+    .secondMethodCall(argTwo)
+    .thirdMethodCall(argThree)
+
+// source already broke the receiver off → preserved, every `.call` on its own line:
+val x = someReceiverObject
+    .firstMethodCall(argOne)
+    .secondMethodCall(argTwo)
+    .thirdMethodCall(argThree)
+```
+
+This holds for any chain, trailing lambdas or not. It does **not** apply to a single-call chain
+(`OverrideOrganizations.Override(…)` — one link): the receiver through its first call is atomic and
+stays whole even if the source wrapped it (see §7's atomicity rule above). A chain short enough to fit
+on one line collapses either way.
+
 ## 8. Comments are never reflowed, and they hold their own line
 
 Treat the text inside `//` and `/** … */` comments as opaque. optofmt owns the blank lines and
