@@ -172,6 +172,20 @@ onSubscribe(object : Subscription {
 })
 ```
 
+A **chain that ends in a trailing lambda** is block-like in the same way: a call whose sole argument
+is a base call plus a sole trailing-lambda tail (`flow { … }.none { … }`, §7) hugs the opener too —
+the base's block opens on the call line and the `})` closers stack:
+
+```kotlin
+// optofmt — the block-like chain hangs off `assertFalse(`; `})` stacks:
+assertFalse(flow {
+    emit(1)
+    emit(2)
+}.none {
+    it == 2
+})
+```
+
 The same opener-hugging applies when a call's **sole argument is itself a call or constructor**
 that must wrap: the two openers **collapse onto one line** and the closers **stack together** as
 `))`, so the inner argument list sits at a single indent instead of staircasing. This keys on
@@ -305,9 +319,21 @@ rule — each subsequent `.call`, including the trailing-lambda one, on its own 
 
 It also holds when the receiver-through-first-call's *own* first call carries a trailing lambda: a
 single terminal `.call { … }` still hugs its `}` when it fits. Only a *second* trailing-lambda call
-tips it into a multi-call chain (one per line):
+tips it into a multi-call chain (one per line). This is true whether the base receiver is a
+`receiver.call { … }` or a **bare call** that is itself the first call (`flow { … }`, `buildList
+{ … }`, `runCatching { … }`, an implicit-receiver `mapValues { … }`) — the tail `.call { … }` hugs
+the base's `}` and the base's own body sits at a single indent, not two:
 
 ```kotlin
+// optofmt — the sole `.none { … }` hugs the `}` of the base call `flow { … }`:
+assertFalse(flow {
+    emit(1)
+    emit(2)
+    expectUnreached()
+}.none {
+    it == 2
+})
+
 // optofmt — the sole `.filterValues { … }` hugs the `}` of `mapValues`:
 val filtered = v.mapValues { (_, value) ->
     transform(value)
