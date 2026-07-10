@@ -21,5 +21,8 @@
   "multi-supertype-list-one-per-line": "internal abstract class ArrayValueExpressionMixin(node: ASTNode) : SqlCompositeElementImpl(node),\n    SqlExpr,\n    PostgreSqlArrayValueExpression {\n    val x = 1\n}",
   "small-overflow-tolerance": "class C : RefactoringSupportProvider() {\n    override fun isMemberInplaceRenameAvailable(element: PsiElement, context: PsiElement?): Boolean {\n        return element is NamedElement\n    }\n}",
   "trailing-comment-excluded-from-wrap": "class DebugCoroutineInfo {\n    internal val creationStackBottom: CoroutineStackFrame? = source.creationStackBottom // field is used as of 1.4-M3\n}",
-  "raw-string-sole-arg-attached": "fun f() {\n    js(\"\"\"\n        var error = new Error();\n        error.message = message;\n    \"\"\")\n}"
+  "raw-string-sole-arg-attached": "fun f() {\n    js(\"\"\"\n        var error = new Error();\n        error.message = message;\n    \"\"\")\n}",
+  "expression-body-single-line-rhs": "public suspend fun <T> awaitAll(vararg deferreds: Deferred<T>): List<T> =\n    if (deferreds.isEmpty()) emptyList() else AwaitAll(deferreds).await()",
+  "expression-body-chain-single-line-rhs": "public suspend fun <T> Flow.Publisher<T>.awaitFirstOrNull(): T =\n    FlowAdapters.toPublisher(this).awaitFirstOrNull()",
+  "compose-formatting": "@Composable\nfun DeveloperMenuScreen(\n    onBack: () -> Unit,\n    skipWarningDelay: Boolean = false,\n) {\n    val realFlags = LocalFlags.current\n    var flags by remember { mutableStateOf(realFlags) }\n    var showWarning by remember { mutableStateOf(true) }\n}"
 }

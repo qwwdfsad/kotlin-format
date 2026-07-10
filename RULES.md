@@ -70,6 +70,26 @@ val cfg by provideDelegate(firstArgument, secondArgument)  // not: val cfg by\n 
 When the right-hand side is itself too long, keep the introducer + opener on the first line
 and wrap the *contents* (see §4/§5), still at a single indent.
 
+**Expression-body functions — a whole-RHS line break is author-preserving.** For a function whose
+body is an expression (`fun f() = <rhs>`), attaching is the default but not forced. When the author
+already broke the line *right after* the `=` **and** the entire right-hand side fits on that one
+line, keep it there whole — do **not** pull it back onto the `=` line and split it (a wrapped
+`if/else`, a staircased chain, one-argument-per-line). This is the same author-preservation as a
+chain's receiver break (§7): optofmt keeps the single-line form the author chose, and an attached
+RHS keeps the default attach-and-wrap. Both forms are idempotent. This carve-out applies **only** to
+expression-body functions — every other introducer (property initializer, assignment, named
+argument, `by`, infix `to`) always uses the default attach behavior above.
+
+```kotlin
+// author wrote the RHS on its own line and it fits → preserved whole (not split onto three lines):
+public suspend fun <T> awaitAll(vararg deferreds: Deferred<T>): List<T> =
+    if (deferreds.isEmpty()) emptyList() else AwaitAll(deferreds).await()
+
+// a chain the author placed on its own line stays whole (not: receiver attached, `.call` dangling):
+public suspend fun <T> Flow.Publisher<T>.awaitFirstOrNull(): T =
+    FlowAdapters.toPublisher(this).awaitFirstOrNull()
+```
+
 **Nested introducers — the innermost yields first.** When introducers nest (an assignment `=`
 whose right-hand side is itself an infix `to`, `by`, etc.) and the whole `= left to opener(` unit
 is too long to sit on one line, keep the **outer** introducer attached and break after the
@@ -152,6 +172,20 @@ onSubscribe(object : Subscription {
 })
 ```
 
+A **chain that ends in a trailing lambda** is block-like in the same way: a call whose sole argument
+is a base call plus a sole trailing-lambda tail (`flow { … }.none { … }`, §7) hugs the opener too —
+the base's block opens on the call line and the `})` closers stack:
+
+```kotlin
+// optofmt — the block-like chain hangs off `assertFalse(`; `})` stacks:
+assertFalse(flow {
+    emit(1)
+    emit(2)
+}.none {
+    it == 2
+})
+```
+
 The same opener-hugging applies when a call's **sole argument is itself a call or constructor**
 that must wrap: the two openers **collapse onto one line** and the closers **stack together** as
 `))`, so the inner argument list sits at a single indent instead of staircasing. This keys on
@@ -198,6 +232,21 @@ add(
 - **Chained operators** — `&&`, `||`, `+`, `*`, and the like — wrap with the operator at the
   **end** of the line, every operand at a single shared indent (§2). Keep the first operand on
   the introducer's line when it fits.
+- **Binary operators are treated as infix functions.** A **mixed-operator** expression (operators
+  of different precedence, e.g. `a - b * c(…) - d`) is a *single* flat block: every operand sits at
+  the **same** shared indent regardless of precedence or how the parse tree nests it. A
+  higher-precedence sub-expression (the `b * c(…)` inside a `-` expression) never staircases its
+  operands to a second, deeper indent — the outermost operator supplies the one continuation indent
+  and every operand of the whole expression aligns under it.
+
+  ```kotlin
+  // optofmt — every operand at one shared indent, `*` does not drift deeper than `-`
+  ceil(
+      maxScore -
+      submission.relativeTimeSeconds.inWholeMinutes *
+      getProblemLooseScorePerMinute(maxScore, contestLength.inWholeMinutes),
+  )
+  ```
 - **Elvis `?:`** stays on the **same line** as its left-hand side **when the expression fits**
   (§1). Only when it does not fit does it wrap — and then with the operator at the **start** of the
   continuation line (this reads best for null-fallbacks, and matches kotlinx usage):
@@ -246,6 +295,100 @@ val queryResult =
     .map { it.id }
     .distinct()
 ```
+
+**A sole trailing-lambda call applied directly to the receiver stays attached.** When the chain is
+just a receiver followed by one trailing-lambda call (`receiver(args).collect { … }`) and the
+receiver must wrap its own arguments, the receiver wraps **only its own arguments** at a single
+indent and the `.call {` stays **attached to the receiver's `)`** — it is not dropped onto its own
+line, and the arguments are not pushed to a second indent. The lambda body hangs one indent below:
+
+```kotlin
+// optofmt — the receiver `merge(…)` wraps its own args at one indent; `.collect {` hugs the `)`:
+merge(
+    flow.map { Update(it) },
+    triggerFlow.receiveAsFlow().conflate(),
+    advancedPropsStateFlow.map { Trigger },
+).collect {
+    handle(it)
+}
+```
+
+This applies only when the lambda call is applied **directly** to the receiver-through-first-call.
+A genuine multi-call chain (an intermediate `.call` precedes the trailing lambda) keeps the general
+rule — each subsequent `.call`, including the trailing-lambda one, on its own line at one indent.
+
+It also holds when the receiver-through-first-call's *own* first call carries a trailing lambda: a
+single terminal `.call { … }` still hugs its `}` when it fits. Only a *second* trailing-lambda call
+tips it into a multi-call chain (one per line). This is true whether the base receiver is a
+`receiver.call { … }` or a **bare call** that is itself the first call (`flow { … }`, `buildList
+{ … }`, `runCatching { … }`, an implicit-receiver `mapValues { … }`) — the tail `.call { … }` hugs
+the base's `}` and the base's own body sits at a single indent, not two:
+
+```kotlin
+// optofmt — the sole `.none { … }` hugs the `}` of the base call `flow { … }`:
+assertFalse(flow {
+    emit(1)
+    emit(2)
+    expectUnreached()
+}.none {
+    it == 2
+})
+
+// optofmt — the sole `.filterValues { … }` hugs the `}` of `mapValues`:
+val filtered = v.mapValues { (_, value) ->
+    transform(value)
+}.filterValues { it !is JsonNull }
+
+// two trailing-lambda tails → genuine multi-call chain, each on its own line:
+val filtered = v.mapValues { (_, value) ->
+    transform(value)
+}
+    .filterValues { it !is JsonNull }
+    .mapKeys { it.key.lowercase() }
+```
+
+**A chain the author broke across lines is author-preserving — even when it would fit.** For any
+member-access chain with at least two links (`.foo().bar()`), both a one-line form and a staircase read
+well. Rather than always collapse a chain that fits (§1), optofmt **preserves what the author wrote**:
+if the source already broke the chain — a line break after the receiver-through-first-call, before the
+first subsequent `.call` — that staircase is kept, one `.call` per line, **even if the whole chain
+would fit on a single line**. A chain the author wrote on **one line** stays on one line (it collapses
+if it fits). So the author toggles between the two forms by where they place the newlines; both are
+idempotent (a staircased output re-reads as broken, a one-line output re-reads as collapsible).
+
+```kotlin
+// author wrote it on one line and it fits → stays on one line:
+val y = obj.foo(1).bar(2).baz(3)
+
+// author staircased it → kept staircased even though it fits:
+Flowable.fromArray(1)
+    .onBackpressureDrop()
+    .collect {
+        assertEquals(1, it)
+        expect(2)
+    }
+```
+
+If the author additionally broke the **receiver itself** off (a newline before the FIRST `.call`), the
+receiver sits **alone** on the introducer's line with **every** `.call`, including the first, on its own
+line:
+
+```kotlin
+// source kept the receiver and its first call together → receiver-through-first-call attached:
+val x = someReceiverObject.firstMethodCall(argOne)
+    .secondMethodCall(argTwo)
+    .thirdMethodCall(argThree)
+
+// source broke the receiver off → preserved, every `.call` on its own line:
+val x = someReceiverObject
+    .firstMethodCall(argOne)
+    .secondMethodCall(argTwo)
+    .thirdMethodCall(argThree)
+```
+
+This holds for any chain, trailing lambdas or not. It does **not** apply to a single-call chain
+(`OverrideOrganizations.Override(…)` — one link): the receiver through its first call is atomic and
+stays whole even if the source wrapped it (see §7's atomicity rule above).
 
 ## 8. Comments are never reflowed, and they hold their own line
 
@@ -309,14 +452,31 @@ object X : Base(
 
 ## 11. Declaration grouping
 
-Keep a run of consecutive **same-kind** one-line declarations together with no blank lines
-between them. Collapse multiple blank lines to a single one. Insert a blank line only between
-declarations of **different** kinds (e.g. a property group and a following function).
+Keep a run of consecutive **same-kind** one-line declarations together: never *insert* a blank
+line between them, and collapse multiple blank lines to a single one — but **preserve** a single
+blank line the author put there. Insert a blank line only between declarations of **different**
+kinds (e.g. a property group and a following function).
 
 ```kotlin
 typealias TeamId = StrongId<TeamTag>
 typealias RunId = StrongId<RunTag>
 typealias MessageId = StrongId<MessageTag>
+```
+
+The same grouping applies to **enum entries**: adjacent entries stay tight, but an author blank
+line before an entry (for example, one separating an entry from the KDoc of the next) is
+preserved.
+
+```kotlin
+enum class PenaltyRoundingMode {
+    /** Round down. */
+    @SerialName("down")
+    EACH_SUBMISSION_DOWN_TO_MINUTE,
+
+    /** Round up. */
+    @SerialName("up")
+    EACH_SUBMISSION_UP_TO_MINUTE,
+}
 ```
 
 ## 12. Annotation placement
@@ -410,6 +570,57 @@ last-item-expansion / hanging trailing lambda (§4), which is not a one-per-line
 (This matches ktfmt and idiomatic Kotlin. Earlier drafts of optofmt omitted trailing commas; this
 rule supersedes that.)
 
+## 15. If-expression branch bodies attach to their keyword
+
+In an `if`/`else` used as a **value** (branches are expressions, not `{ }` blocks), each branch body
+stays **attached to the keyword that introduces it** — `if (cond)` for the `then` value, `else` for
+the `else` value — exactly as an introducer keeps its right-hand side (§3). When a branch does not
+fit, its **own contents wrap** (a call's arguments per §4), rather than pushing the whole body onto
+a fresh indented line and leaving a bare `if (cond)` or a bare `else`. The clauses split at the
+`else` boundary: the whole thing on one line if it fits, otherwise `if (cond) then` on one line and
+`else …` on the next.
+
+```kotlin
+// fits → one line:
+val kind = if (isRoot) Root else Child
+
+// must wrap → each body stays with its keyword; the `else` call keeps its opener and wraps its args:
+if (cond) shortThenValue
+else buildResultObject(
+    firstArgumentHere,
+    secondArgumentHere,
+    thirdArgumentHere,
+    fourthArgumentHere,
+    fifthArgument,
+)
+```
+
+This is the same shape a multi-way `else if` **chain** already has — each `if (c) v` clause kept
+together, only the `else` boundaries wrapping:
+
+```kotlin
+val x = if (firstConditionHere) firstValue
+    else if (secondConditionHere) secondValue
+    else theFallbackValueThatIsQuiteLongIndeedYesVeryMuchSoReally
+```
+
+A branch that can **neither** attach (it would overflow) **nor** wrap its own contents (it is a
+plain reference, not a call) is the only case that drops onto its own line, one indent below its
+keyword — everything that *can* hug its keyword still does:
+
+```kotlin
+val x = if (someCondition) shortValue
+    else
+        aVeryLongUnwrappablePlainReferenceValueThatOverflowsColumnLimitAndHasNoArgumentsToWrapAcrossLines
+```
+
+When such an `if` is the right-hand side of an introducer (`= if (…)`), the introducer keeps the
+`if` and its condition attached (§3). A branch that is itself a `{ }` block is unaffected — its
+braces already carry the structure.
+
+(ktfmt keeps the `then` value inline but breaks after `else`, leaving a bare `else` above an
+extra-indented body; optofmt attaches both bodies and wraps their contents instead.)
+
 ---
 
 ## Differences from ktfmt to expect
@@ -427,3 +638,6 @@ rule supersedes that.)
   the type onto a line by itself.
 - optofmt keeps a construct that fits on one line inline per §1 — a trivial property accessor
   (`val x: T get() = …`), a control-flow lambda (`?.let { return }`); ktfmt force-breaks both.
+- optofmt keeps an `if`/`else` value's branch bodies attached to their keyword and wraps their
+  contents (§15); ktfmt keeps the `then` value inline but breaks after `else`, leaving a bare `else`
+  above an extra-indented body.

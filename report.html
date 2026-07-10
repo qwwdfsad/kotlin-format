@@ -114,7 +114,7 @@
 <header class="b">
   <h1>ktfmt code style comparison</h1>
   <p class="lead">The page presents a comparison between two potential ktfmt engines &mdash; <b>&ldquo;The Rectangle Rule&rdquo;</b>, the current ktfmt engine, and a potential new one &mdash; <b>&ldquo;The ergonomics rule&rdquo;</b>.</p><div class="engines"><div class="engine rect"><h3>The Rectangle Rule</h3><p>a strict engine that follows the corresponding <a href="https://github.com/google/google-java-format/wiki/The-Rectangle-Rule" target="_blank" rel="noopener">rule</a>. It is very strict and predictable &mdash; every syntax subtree is in its own bounding rectangle, it is very local (changes in one line rarely affect surrounding lines&rsquo; formatting) and thus Git-history-friendly. Because of these properties, it also produces quite a few newlines and additional layers of tabular nesting</p></div><div class="engine ergo"><h3>The ergonomics rule</h3><p>an engine that prioritizes concise and ergonomic Kotlin. Its goal is to format code in a compact manner, minimizing its width and length, but without general loss of readability. It subjectively improves information density but with the opposite tradeoffs &mdash; it is less predictable and less local.</p></div></div><p class="goal"><b>Our goal is to understand the stylistic preferences of Kotlin developers.</b> So the current page has a series of snippets formatted in two ways to showcase the difference between these two engines, for you to pick the one you prefer. Some snippets are grouped in a way that shows how the code might evolve over time to showcase formatting locality (or lack of thereof).</p><p class="legend">Both use <b>4-space indent</b> and a <b>100-column limit</b>; amber marks any line past 100 columns.</p>
-  <div class="pills"><span class="pill">23 patterns</span></div>
+  <div class="pills"><span class="pill">26 patterns</span></div>
 </header>
 <main>
     <section class="card">
@@ -1341,6 +1341,273 @@ fun testSomething() {}</code></pre>
       </div>
     </div>
       
+      
+    </section>
+    <section class="card">
+      <h2>Expression body kept on its own line (author-preserving) <span class="src">kotlinx.coroutines · Await.kt:19 (awaitAll)</span></h2>
+      <p class="thesis">When a function's expression body is written on its own line after <code>=</code> and the whole right-hand side fits there, ktfmt ergonomics keeps it on that one line — it does not pull the <code>if/else</code> back onto the <code>=</code> line and split it across three.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; awaitAll(vararg deferreds: Deferred&lt;T&gt;): List&lt;T&gt; =
+    if (deferreds.isEmpty()) emptyList() else AwaitAll(deferreds).await()</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics <span class="same">&equiv; identical</span></div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; awaitAll(vararg deferreds: Deferred&lt;T&gt;): List&lt;T&gt; =
+    if (deferreds.isEmpty()) emptyList() else AwaitAll(deferreds).await()</code></pre>
+      </div>
+    </div>
+      
+      <div class="extra">
+        <p class="thesis">The break is <em>preserved</em>, not forced: write the same body attached to <code>=</code> and ktfmt ergonomics keeps it attached — splitting the <code>if/else</code> in place (§3 default) — while ktfmt rectangle normalizes back to the break-after-<code>=</code> form.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; awaitAll(vararg deferreds: Deferred&lt;T&gt;): List&lt;T&gt; =
+    if (deferreds.isEmpty()) emptyList() else AwaitAll(deferreds).await()</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; awaitAll(vararg deferreds: Deferred&lt;T&gt;): List&lt;T&gt; = if (deferreds.isEmpty())
+        emptyList()
+    else AwaitAll(deferreds).await()</code></pre>
+      </div>
+    </div>
+      </div>
+      
+    </section>
+    <section class="card">
+      <h2>Expression-body call chain kept whole on its own line <span class="src">kotlinx.coroutines · reactive (Flow.Publisher.awaitFirstOrNull)</span></h2>
+      <p class="thesis">A call chain the author placed on its own line after <code>=</code> stays whole; ktfmt ergonomics does not attach the receiver-through-first-call and drop the trailing <code>.call</code> onto its own line.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; Flow.Publisher&lt;T&gt;.awaitFirstOrNull(): T =
+    FlowAdapters.toPublisher(this).awaitFirstOrNull()</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics <span class="same">&equiv; identical</span></div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; Flow.Publisher&lt;T&gt;.awaitFirstOrNull(): T =
+    FlowAdapters.toPublisher(this).awaitFirstOrNull()</code></pre>
+      </div>
+    </div>
+      
+      <div class="extra">
+        <p class="thesis">Preserved, not forced: written attached, ktfmt ergonomics keeps the receiver-through-first-call on the <code>=</code> line and drops <code>.awaitFirstOrNull()</code> to its own line (§7 default); ktfmt rectangle normalizes to the whole-chain-on-one-line form.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; Flow.Publisher&lt;T&gt;.awaitFirstOrNull(): T =
+    FlowAdapters.toPublisher(this).awaitFirstOrNull()</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; Flow.Publisher&lt;T&gt;.awaitFirstOrNull(): T = FlowAdapters.toPublisher(this)
+    .awaitFirstOrNull()</code></pre>
+      </div>
+    </div>
+      </div>
+      
+    </section>
+    <section class="card">
+      <h2>Compose formatting <span class="src">Jetpack Compose · KotlinConf app</span></h2>
+      <p class="thesis">Idiomatic Jetpack Compose exercises a cluster of ktfmt-ergonomics rules at once, and most of it is parity: a block-body `@Composable` keeps its annotation on its own line, a trailing comma holds the parameter list one-per-line, `@Composable`-typed slot parameters stay attached to their function type, and `by remember { mutableStateOf(…) }` delegates wrap identically in both engines. Two shapes diverge — an expression-body composable (ktfmt rectangle packs `@Composable` inline, ergonomics drops it to its own line) and a `modifier = Modifier.…` builder chain (rectangle breaks after `=` and double-indents the chain, ergonomics keeps it attached to the argument name).</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">@Composable
+fun DeveloperMenuScreen(
+    onBack: () -&gt; Unit,
+    skipWarningDelay: Boolean = false,
+) {
+    val realFlags = LocalFlags.current
+    var flags by remember { mutableStateOf(realFlags) }
+    var showWarning by remember { mutableStateOf(true) }
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics <span class="same">&equiv; identical</span></div>
+        <pre><code class="language-kotlin" data-over="">@Composable
+fun DeveloperMenuScreen(
+    onBack: () -&gt; Unit,
+    skipWarningDelay: Boolean = false,
+) {
+    val realFlags = LocalFlags.current
+    var flags by remember { mutableStateOf(realFlags) }
+    var showWarning by remember { mutableStateOf(true) }
+}</code></pre>
+      </div>
+    </div>
+      
+      <div class="extra">
+        <p class="thesis"><strong>Annotation, the divergence.</strong> Give the composable an <em>expression body</em> and the annotation splits: <code>@Composable</code> is outside ktfmt ergonomics' inline allowlist, so it drops to its own line above <code>fun … = …</code>, matching idiomatic Compose. ktfmt rectangle keeps the annotation, <code>fun</code> and body packed on one line because the whole thing fits under 100 columns.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">@Composable fun StatusLabel(state: UiState): Unit = Text(text = state.label, color = state.color)</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">@Composable
+fun StatusLabel(state: UiState): Unit = Text(text = state.label, color = state.color)</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
+        <p class="thesis"><strong>Delegate, parity.</strong> Lengthen a delegate until <code>var flags by remember { mutableStateOf(…) }</code> overflows and both engines keep <code>by remember {</code> attached (the <code>by</code> introducer plus a trailing-lambda block, §3/§5) and wrap only the lambda body at one indent — laid out identically.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">@Composable
+fun DeveloperMenuScreen() {
+    var flags by remember {
+        mutableStateOf(LocalFlags.current.withDeveloperOverridesApplied(skipWarningDelay))
+    }
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics <span class="same">&equiv; identical</span></div>
+        <pre><code class="language-kotlin" data-over="">@Composable
+fun DeveloperMenuScreen() {
+    var flags by remember {
+        mutableStateOf(LocalFlags.current.withDeveloperOverridesApplied(skipWarningDelay))
+    }
+}</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
+        <p class="thesis"><strong>Slot parameters, parity.</strong> A slot-heavy composable whose parameters are all <code>@Composable</code>-annotated function types keeps every parameter on its own line (the trailing comma after <code>modifier: Modifier = Modifier</code> is a keep-exploded signal both honour), and the type-use <code>@Composable</code> stays attached to each parameter type — the own-line annotation rule applies only to the declaration, not to type-use annotations. Both engines agree line-for-line.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">@Composable
+fun AdaptiveDetailLayout(
+    compactHeader: @Composable () -&gt; Unit,
+    compactContentHeader: @Composable ColumnScope.() -&gt; Unit,
+    largeContentHeader: @Composable ColumnScope.() -&gt; Unit,
+    unifiedContent: @Composable ColumnScope.() -&gt; Unit,
+    largeMainContent: @Composable ColumnScope.() -&gt; Unit,
+    largeSideContent: @Composable ColumnScope.() -&gt; Unit,
+    onBack: () -&gt; Unit,
+    modifier: Modifier = Modifier,
+) {}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics <span class="same">&equiv; identical</span></div>
+        <pre><code class="language-kotlin" data-over="">@Composable
+fun AdaptiveDetailLayout(
+    compactHeader: @Composable () -&gt; Unit,
+    compactContentHeader: @Composable ColumnScope.() -&gt; Unit,
+    largeContentHeader: @Composable ColumnScope.() -&gt; Unit,
+    unifiedContent: @Composable ColumnScope.() -&gt; Unit,
+    largeMainContent: @Composable ColumnScope.() -&gt; Unit,
+    largeSideContent: @Composable ColumnScope.() -&gt; Unit,
+    onBack: () -&gt; Unit,
+    modifier: Modifier = Modifier,
+) {}</code></pre>
+      </div>
+    </div>
+      </div>
+      <div class="extra">
+        <p class="thesis"><strong>Modifier chain, the divergence.</strong> At the call site a <code>Modifier</code> builder chain passed as <code>modifier = …</code> overflows and must wrap. ktfmt ergonomics keeps <code>modifier = Modifier.fillMaxSize(fraction = 1f)</code> on the argument line and hangs each <code>.call</code> one indent in (§3/§7); ktfmt rectangle breaks after <code>modifier =</code> and drops the whole chain a second level deeper. Every other argument — the named trailing-lambda slots — is laid out identically by both.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">@Composable
+fun SpeakerDetail(onBack: () -&gt; Unit) {
+    Box {
+        AdaptiveDetailLayout(
+            compactHeader = {
+                MainHeaderTitleBar(
+                    title = stringResource(Res.string.speaker_detail_title),
+                    startContent = {
+                        TopMenuButton(
+                            icon = UiRes.drawable.arrow_left_24,
+                            contentDescription = stringResource(UiRes.string.main_header_back),
+                            onClick = onBack,
+                        )
+                    },
+                )
+                HorizontalDivider(thickness = 1.dp, color = KotlinConfTheme.colors.strokePale)
+            },
+            compactContentHeader = {
+                Name(currentSpeaker, Modifier.padding(vertical = 24.dp))
+            },
+            largeContentHeader = {
+                Name(currentSpeaker, Modifier.padding(bottom = 24.dp, top = 6.dp))
+            },
+            unifiedContent = {
+                Description(currentSpeaker)
+                Spacer(Modifier.height(16.dp))
+                Talks(sessions, viewModel, onSession)
+            },
+            largeMainContent = {
+                Description(currentSpeaker)
+            },
+            largeSideContent = {
+                Talks(sessions, viewModel, onSession)
+            },
+            onBack = onBack,
+            modifier =
+                Modifier.fillMaxSize(fraction = 1f)
+                    .padding(horizontal = 16.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .background(Color.White)
+                    .clip(RoundedCornerShape(16.dp)),
+        )
+    }
+}</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">@Composable
+fun SpeakerDetail(onBack: () -&gt; Unit) {
+    Box {
+        AdaptiveDetailLayout(
+            compactHeader = {
+                MainHeaderTitleBar(
+                    title = stringResource(Res.string.speaker_detail_title),
+                    startContent = {
+                        TopMenuButton(
+                            icon = UiRes.drawable.arrow_left_24,
+                            contentDescription = stringResource(UiRes.string.main_header_back),
+                            onClick = onBack,
+                        )
+                    },
+                )
+                HorizontalDivider(thickness = 1.dp, color = KotlinConfTheme.colors.strokePale)
+            },
+            compactContentHeader = {
+                Name(currentSpeaker, Modifier.padding(vertical = 24.dp))
+            },
+            largeContentHeader = {
+                Name(currentSpeaker, Modifier.padding(bottom = 24.dp, top = 6.dp))
+            },
+            unifiedContent = {
+                Description(currentSpeaker)
+                Spacer(Modifier.height(16.dp))
+                Talks(sessions, viewModel, onSession)
+            },
+            largeMainContent = {
+                Description(currentSpeaker)
+            },
+            largeSideContent = {
+                Talks(sessions, viewModel, onSession)
+            },
+            onBack = onBack,
+            modifier = Modifier.fillMaxSize(fraction = 1f)
+                .padding(horizontal = 16.dp)
+                .align(Alignment.CenterHorizontally)
+                .background(Color.White)
+                .clip(RoundedCornerShape(16.dp)),
+        )
+    }
+}</code></pre>
+      </div>
+    </div>
+      </div>
       
     </section></main>
 <footer>Generated by <code>python3 generate.py</code> from <code>snippets.py</code>;
