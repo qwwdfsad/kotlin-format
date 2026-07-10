@@ -347,20 +347,39 @@ val filtered = v.mapValues { (_, value) ->
     .mapKeys { it.key.lowercase() }
 ```
 
-**Breaking the receiver onto its own line is author-preserving.** For any member-access chain with at
-least two links (`.foo().bar()`), both layouts read well: the default — receiver through its first
-call attached, then the staircase — and one where the receiver sits **alone** on the introducer's line
-with **every** `.call`, including the first, on its own line. Rather than pick one, optofmt **preserves
-what the author wrote**: if the source already had a line break between the receiver and its first
-`.call`, that form is kept; otherwise the default attachment is used.
+**A chain the author broke across lines is author-preserving — even when it would fit.** For any
+member-access chain with at least two links (`.foo().bar()`), both a one-line form and a staircase read
+well. Rather than always collapse a chain that fits (§1), optofmt **preserves what the author wrote**:
+if the source already broke the chain — a line break after the receiver-through-first-call, before the
+first subsequent `.call` — that staircase is kept, one `.call` per line, **even if the whole chain
+would fit on a single line**. A chain the author wrote on **one line** stays on one line (it collapses
+if it fits). So the author toggles between the two forms by where they place the newlines; both are
+idempotent (a staircased output re-reads as broken, a one-line output re-reads as collapsible).
 
 ```kotlin
-// source kept the receiver and its first call together → default attachment:
+// author wrote it on one line and it fits → stays on one line:
+val y = obj.foo(1).bar(2).baz(3)
+
+// author staircased it → kept staircased even though it fits:
+Flowable.fromArray(1)
+    .onBackpressureDrop()
+    .collect {
+        assertEquals(1, it)
+        expect(2)
+    }
+```
+
+If the author additionally broke the **receiver itself** off (a newline before the FIRST `.call`), the
+receiver sits **alone** on the introducer's line with **every** `.call`, including the first, on its own
+line:
+
+```kotlin
+// source kept the receiver and its first call together → receiver-through-first-call attached:
 val x = someReceiverObject.firstMethodCall(argOne)
     .secondMethodCall(argTwo)
     .thirdMethodCall(argThree)
 
-// source already broke the receiver off → preserved, every `.call` on its own line:
+// source broke the receiver off → preserved, every `.call` on its own line:
 val x = someReceiverObject
     .firstMethodCall(argOne)
     .secondMethodCall(argTwo)
@@ -369,8 +388,7 @@ val x = someReceiverObject
 
 This holds for any chain, trailing lambdas or not. It does **not** apply to a single-call chain
 (`OverrideOrganizations.Override(…)` — one link): the receiver through its first call is atomic and
-stays whole even if the source wrapped it (see §7's atomicity rule above). A chain short enough to fit
-on one line collapses either way.
+stays whole even if the source wrapped it (see §7's atomicity rule above).
 
 ## 8. Comments are never reflowed, and they hold their own line
 
