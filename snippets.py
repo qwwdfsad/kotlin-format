@@ -966,4 +966,49 @@ typealias MessageId = StrongId<MessageTag>""",
         "optofmt": "fun f() {\n    js(\"\"\"\n        var error = new Error();\n        error.message = message;\n    \"\"\")\n}",
         "idiomatic": "optofmt",
     },
+    {
+        "id": "expression-body-single-line-rhs",
+        "name": "Expression body kept on its own line (author-preserving)",
+        "source": "kotlinx.coroutines · Await.kt:19 (awaitAll)",
+        "thesis": "When a function's expression body is written on its own line after <code>=</code> and the whole right-hand side fits there, ktfmt ergonomics keeps it on that one line — it does not pull the <code>if/else</code> back onto the <code>=</code> line and split it across three.",
+        "why": "For an expression-body function (<code>fun f() = …</code>), keeping the right-hand side whole on the line the author already gave it is both compact and stable. ktfmt ergonomics does not <em>force</em> this layout — it <em>preserves</em> it (RULES §3): a right-hand side the author wrote attached to <code>=</code> keeps the default attach-and-wrap instead (see the variation). The rule is scoped to expression-body functions; every other introducer (property, assignment, named argument, <code>by</code>, infix <code>to</code>) always uses the default attach.",
+        "input": "public suspend fun <T> awaitAll(vararg deferreds: Deferred<T>): List<T> =\n    if (deferreds.isEmpty()) emptyList() else AwaitAll(deferreds).await()",
+        "ktfmt": """public suspend fun <T> awaitAll(vararg deferreds: Deferred<T>): List<T> =
+    if (deferreds.isEmpty()) emptyList() else AwaitAll(deferreds).await()""",
+        "optofmt": """public suspend fun <T> awaitAll(vararg deferreds: Deferred<T>): List<T> =
+    if (deferreds.isEmpty()) emptyList() else AwaitAll(deferreds).await()""",
+        "idiomatic": "parity",
+        "extra": [{
+            "note": "The break is <em>preserved</em>, not forced: write the same body attached to <code>=</code> "
+                    "and ktfmt ergonomics keeps it attached — splitting the <code>if/else</code> in place (§3 "
+                    "default) — while ktfmt rectangle normalizes back to the break-after-<code>=</code> form.",
+            "ktfmt": """public suspend fun <T> awaitAll(vararg deferreds: Deferred<T>): List<T> =
+    if (deferreds.isEmpty()) emptyList() else AwaitAll(deferreds).await()""",
+            "optofmt": """public suspend fun <T> awaitAll(vararg deferreds: Deferred<T>): List<T> = if (deferreds.isEmpty())
+        emptyList()
+    else AwaitAll(deferreds).await()""",
+        }],
+    },
+    {
+        "id": "expression-body-chain-single-line-rhs",
+        "name": "Expression-body call chain kept whole on its own line",
+        "source": "kotlinx.coroutines · reactive (Flow.Publisher.awaitFirstOrNull)",
+        "thesis": "A call chain the author placed on its own line after <code>=</code> stays whole; ktfmt ergonomics does not attach the receiver-through-first-call and drop the trailing <code>.call</code> onto its own line.",
+        "why": "Same author-preserving rule (RULES §3/§7) for an expression-body function whose right-hand side is a call chain: when the author broke after <code>=</code> and the whole chain fits on that line, keep it whole rather than staircasing it. Written attached, the chain keeps the default receiver-through-first-call attach (§7) — the break is preserved, never forced.",
+        "input": "public suspend fun <T> Flow.Publisher<T>.awaitFirstOrNull(): T =\n    FlowAdapters.toPublisher(this).awaitFirstOrNull()",
+        "ktfmt": """public suspend fun <T> Flow.Publisher<T>.awaitFirstOrNull(): T =
+    FlowAdapters.toPublisher(this).awaitFirstOrNull()""",
+        "optofmt": """public suspend fun <T> Flow.Publisher<T>.awaitFirstOrNull(): T =
+    FlowAdapters.toPublisher(this).awaitFirstOrNull()""",
+        "idiomatic": "parity",
+        "extra": [{
+            "note": "Preserved, not forced: written attached, ktfmt ergonomics keeps the receiver-through-first-call "
+                    "on the <code>=</code> line and drops <code>.awaitFirstOrNull()</code> to its own line (§7 "
+                    "default); ktfmt rectangle normalizes to the whole-chain-on-one-line form.",
+            "ktfmt": """public suspend fun <T> Flow.Publisher<T>.awaitFirstOrNull(): T =
+    FlowAdapters.toPublisher(this).awaitFirstOrNull()""",
+            "optofmt": """public suspend fun <T> Flow.Publisher<T>.awaitFirstOrNull(): T = FlowAdapters.toPublisher(this)
+    .awaitFirstOrNull()""",
+        }],
+    },
 ]

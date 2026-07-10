@@ -114,7 +114,7 @@
 <header class="b">
   <h1>ktfmt code style comparison</h1>
   <p class="lead">The page presents a comparison between two potential ktfmt engines &mdash; <b>&ldquo;The Rectangle Rule&rdquo;</b>, the current ktfmt engine, and a potential new one &mdash; <b>&ldquo;The ergonomics rule&rdquo;</b>.</p><div class="engines"><div class="engine rect"><h3>The Rectangle Rule</h3><p>a strict engine that follows the corresponding <a href="https://github.com/google/google-java-format/wiki/The-Rectangle-Rule" target="_blank" rel="noopener">rule</a>. It is very strict and predictable &mdash; every syntax subtree is in its own bounding rectangle, it is very local (changes in one line rarely affect surrounding lines&rsquo; formatting) and thus Git-history-friendly. Because of these properties, it also produces quite a few newlines and additional layers of tabular nesting</p></div><div class="engine ergo"><h3>The ergonomics rule</h3><p>an engine that prioritizes concise and ergonomic Kotlin. Its goal is to format code in a compact manner, minimizing its width and length, but without general loss of readability. It subjectively improves information density but with the opposite tradeoffs &mdash; it is less predictable and less local.</p></div></div><p class="goal"><b>Our goal is to understand the stylistic preferences of Kotlin developers.</b> So the current page has a series of snippets formatted in two ways to showcase the difference between these two engines, for you to pick the one you prefer. Some snippets are grouped in a way that shows how the code might evolve over time to showcase formatting locality (or lack of thereof).</p><p class="legend">Both use <b>4-space indent</b> and a <b>100-column limit</b>; amber marks any line past 100 columns.</p>
-  <div class="pills"><span class="pill">23 patterns</span></div>
+  <div class="pills"><span class="pill">25 patterns</span></div>
 </header>
 <main>
     <section class="card">
@@ -1341,6 +1341,73 @@ fun testSomething() {}</code></pre>
       </div>
     </div>
       
+      
+    </section>
+    <section class="card">
+      <h2>Expression body kept on its own line (author-preserving) <span class="src">kotlinx.coroutines · Await.kt:19 (awaitAll)</span></h2>
+      <p class="thesis">When a function's expression body is written on its own line after <code>=</code> and the whole right-hand side fits there, ktfmt ergonomics keeps it on that one line — it does not pull the <code>if/else</code> back onto the <code>=</code> line and split it across three.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; awaitAll(vararg deferreds: Deferred&lt;T&gt;): List&lt;T&gt; =
+    if (deferreds.isEmpty()) emptyList() else AwaitAll(deferreds).await()</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics <span class="same">&equiv; identical</span></div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; awaitAll(vararg deferreds: Deferred&lt;T&gt;): List&lt;T&gt; =
+    if (deferreds.isEmpty()) emptyList() else AwaitAll(deferreds).await()</code></pre>
+      </div>
+    </div>
+      
+      <div class="extra">
+        <p class="thesis">The break is <em>preserved</em>, not forced: write the same body attached to <code>=</code> and ktfmt ergonomics keeps it attached — splitting the <code>if/else</code> in place (§3 default) — while ktfmt rectangle normalizes back to the break-after-<code>=</code> form.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; awaitAll(vararg deferreds: Deferred&lt;T&gt;): List&lt;T&gt; =
+    if (deferreds.isEmpty()) emptyList() else AwaitAll(deferreds).await()</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; awaitAll(vararg deferreds: Deferred&lt;T&gt;): List&lt;T&gt; = if (deferreds.isEmpty())
+        emptyList()
+    else AwaitAll(deferreds).await()</code></pre>
+      </div>
+    </div>
+      </div>
+      
+    </section>
+    <section class="card">
+      <h2>Expression-body call chain kept whole on its own line <span class="src">kotlinx.coroutines · reactive (Flow.Publisher.awaitFirstOrNull)</span></h2>
+      <p class="thesis">A call chain the author placed on its own line after <code>=</code> stays whole; ktfmt ergonomics does not attach the receiver-through-first-call and drop the trailing <code>.call</code> onto its own line.</p>
+      <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; Flow.Publisher&lt;T&gt;.awaitFirstOrNull(): T =
+    FlowAdapters.toPublisher(this).awaitFirstOrNull()</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics <span class="same">&equiv; identical</span></div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; Flow.Publisher&lt;T&gt;.awaitFirstOrNull(): T =
+    FlowAdapters.toPublisher(this).awaitFirstOrNull()</code></pre>
+      </div>
+    </div>
+      
+      <div class="extra">
+        <p class="thesis">Preserved, not forced: written attached, ktfmt ergonomics keeps the receiver-through-first-call on the <code>=</code> line and drops <code>.awaitFirstOrNull()</code> to its own line (§7 default); ktfmt rectangle normalizes to the whole-chain-on-one-line form.</p>
+        <div class="cols">
+      <div class="col">
+        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; Flow.Publisher&lt;T&gt;.awaitFirstOrNull(): T =
+    FlowAdapters.toPublisher(this).awaitFirstOrNull()</code></pre>
+      </div>
+      <div class="col">
+        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
+        <pre><code class="language-kotlin" data-over="">public suspend fun &lt;T&gt; Flow.Publisher&lt;T&gt;.awaitFirstOrNull(): T = FlowAdapters.toPublisher(this)
+    .awaitFirstOrNull()</code></pre>
+      </div>
+    </div>
+      </div>
       
     </section></main>
 <footer>Generated by <code>python3 generate.py</code> from <code>snippets.py</code>;

@@ -70,6 +70,26 @@ val cfg by provideDelegate(firstArgument, secondArgument)  // not: val cfg by\n 
 When the right-hand side is itself too long, keep the introducer + opener on the first line
 and wrap the *contents* (see §4/§5), still at a single indent.
 
+**Expression-body functions — a whole-RHS line break is author-preserving.** For a function whose
+body is an expression (`fun f() = <rhs>`), attaching is the default but not forced. When the author
+already broke the line *right after* the `=` **and** the entire right-hand side fits on that one
+line, keep it there whole — do **not** pull it back onto the `=` line and split it (a wrapped
+`if/else`, a staircased chain, one-argument-per-line). This is the same author-preservation as a
+chain's receiver break (§7): optofmt keeps the single-line form the author chose, and an attached
+RHS keeps the default attach-and-wrap. Both forms are idempotent. This carve-out applies **only** to
+expression-body functions — every other introducer (property initializer, assignment, named
+argument, `by`, infix `to`) always uses the default attach behavior above.
+
+```kotlin
+// author wrote the RHS on its own line and it fits → preserved whole (not split onto three lines):
+public suspend fun <T> awaitAll(vararg deferreds: Deferred<T>): List<T> =
+    if (deferreds.isEmpty()) emptyList() else AwaitAll(deferreds).await()
+
+// a chain the author placed on its own line stays whole (not: receiver attached, `.call` dangling):
+public suspend fun <T> Flow.Publisher<T>.awaitFirstOrNull(): T =
+    FlowAdapters.toPublisher(this).awaitFirstOrNull()
+```
+
 **Nested introducers — the innermost yields first.** When introducers nest (an assignment `=`
 whose right-hand side is itself an infix `to`, `by`, etc.) and the whole `= left to opener(` unit
 is too long to sit on one line, keep the **outer** introducer attached and break after the
