@@ -1011,4 +1011,273 @@ typealias MessageId = StrongId<MessageTag>""",
     .awaitFirstOrNull()""",
         }],
     },
+    # ──────────────────────────────────────────────────────────────────────────
+    # Compose formatting
+    # ──────────────────────────────────────────────────────────────────────────
+    {
+        "id": "compose-formatting",
+        "name": "Compose formatting",
+        "source": "Jetpack Compose · KotlinConf app",
+        "thesis": "Idiomatic Jetpack Compose exercises a cluster of ktfmt-ergonomics rules at once, and most of it is parity: a block-body `@Composable` keeps its annotation on its own line, a trailing comma holds the parameter list one-per-line, `@Composable`-typed slot parameters stay attached to their function type, and `by remember { mutableStateOf(…) }` delegates wrap identically in both engines. Two shapes diverge — an expression-body composable (ktfmt rectangle packs `@Composable` inline, ergonomics drops it to its own line) and a `modifier = Modifier.…` builder chain (rectangle breaks after `=` and double-indents the chain, ergonomics keeps it attached to the argument name).",
+        "why": "Compose code is a good stress test because a single screen touches several rules. "
+               "<strong>Annotation placement</strong> (§argument-less-annotation): <code>@Composable</code> is "
+               "not in ktfmt ergonomics' modifier-like inline allowlist (<code>@JvmStatic</code>, "
+               "<code>@JvmInline</code>, <code>@JvmOverloads</code>, <code>@PublishedApi</code>), so it sits on "
+               "its own line above the declaration. On a block-body function ktfmt rectangle already puts it "
+               "there, so both agree; the split only shows on an expression-body composable, where rectangle "
+               "keeps the whole <code>@Composable fun … = …</code> on one line. The <code>@Composable</code> on "
+               "a <em>parameter</em> is a type-use annotation (<code>@Composable () -> Unit</code>), not a "
+               "declaration annotation, so the own-line rule does not fire there — it stays glued to the "
+               "function type in both columns. <strong>Delegates</strong> (§3/§5): the delegate <code>by</code> "
+               "is an introducer and <code>remember { … }</code> is a trailing-lambda block, so both engines "
+               "keep <code>var flags by remember {</code> attached and wrap only the lambda body when it "
+               "overflows. <strong>Modifier chains</strong> (§3/§7): a builder chain passed as the "
+               "<code>modifier = …</code> named argument is the long-call-chain case reached through a named "
+               "introducer — ergonomics keeps the receiver-through-first-call "
+               "(<code>Modifier.fillMaxSize(fraction = 1f)</code>) on the argument line and hangs each "
+               "<code>.call</code> one indent in, while rectangle breaks after <code>modifier =</code> and "
+               "indents the whole chain a second level. Trailing commas throughout are a keep-exploded signal "
+               "both engines honour.",
+        "input": """@Composable
+fun DeveloperMenuScreen(
+    onBack: () -> Unit,
+    skipWarningDelay: Boolean = false,
+) {
+    val realFlags = LocalFlags.current
+    var flags by remember { mutableStateOf(realFlags) }
+    var showWarning by remember { mutableStateOf(true) }
+}""",
+        "ktfmt": """@Composable
+fun DeveloperMenuScreen(
+    onBack: () -> Unit,
+    skipWarningDelay: Boolean = false,
+) {
+    val realFlags = LocalFlags.current
+    var flags by remember { mutableStateOf(realFlags) }
+    var showWarning by remember { mutableStateOf(true) }
+}""",
+        "optofmt": """@Composable
+fun DeveloperMenuScreen(
+    onBack: () -> Unit,
+    skipWarningDelay: Boolean = false,
+) {
+    val realFlags = LocalFlags.current
+    var flags by remember { mutableStateOf(realFlags) }
+    var showWarning by remember { mutableStateOf(true) }
+}""",
+        "idiomatic": "parity",
+        "extra": [{
+            "note": "<strong>Annotation, the divergence.</strong> Give the composable an <em>expression body</em> "
+                    "and the annotation splits: <code>@Composable</code> is outside ktfmt ergonomics' inline "
+                    "allowlist, so it drops to its own line above <code>fun … = …</code>, matching idiomatic "
+                    "Compose. ktfmt rectangle keeps the annotation, <code>fun</code> and body packed on one line "
+                    "because the whole thing fits under 100 columns.",
+            "input": "@Composable fun StatusLabel(state: UiState): Unit = Text(text = state.label, color = state.color)",
+            "ktfmt": "@Composable fun StatusLabel(state: UiState): Unit = Text(text = state.label, color = state.color)",
+            "optofmt": """@Composable
+fun StatusLabel(state: UiState): Unit = Text(text = state.label, color = state.color)""",
+            "idiomatic": "optofmt",
+        }, {
+            "note": "<strong>Delegate, parity.</strong> Lengthen a delegate until "
+                    "<code>var flags by remember { mutableStateOf(…) }</code> overflows and both engines keep "
+                    "<code>by remember {</code> attached (the <code>by</code> introducer plus a trailing-lambda "
+                    "block, §3/§5) and wrap only the lambda body at one indent — laid out identically.",
+            "input": """@Composable
+fun DeveloperMenuScreen() {
+var flags by remember { mutableStateOf(LocalFlags.current.withDeveloperOverridesApplied(skipWarningDelay)) }
+}""",
+            "ktfmt": """@Composable
+fun DeveloperMenuScreen() {
+    var flags by remember {
+        mutableStateOf(LocalFlags.current.withDeveloperOverridesApplied(skipWarningDelay))
+    }
+}""",
+            "optofmt": """@Composable
+fun DeveloperMenuScreen() {
+    var flags by remember {
+        mutableStateOf(LocalFlags.current.withDeveloperOverridesApplied(skipWarningDelay))
+    }
+}""",
+            "idiomatic": "parity",
+        }, {
+            "note": "<strong>Slot parameters, parity.</strong> A slot-heavy composable whose parameters are all "
+                    "<code>@Composable</code>-annotated function types keeps every parameter on its own line "
+                    "(the trailing comma after <code>modifier: Modifier = Modifier</code> is a keep-exploded "
+                    "signal both honour), and the type-use <code>@Composable</code> stays attached to each "
+                    "parameter type — the own-line annotation rule applies only to the declaration, not to "
+                    "type-use annotations. Both engines agree line-for-line.",
+            "input": """@Composable
+fun AdaptiveDetailLayout(
+    compactHeader: @Composable () -> Unit,
+    compactContentHeader: @Composable ColumnScope.() -> Unit,
+    largeContentHeader: @Composable ColumnScope.() -> Unit,
+    unifiedContent: @Composable ColumnScope.() -> Unit,
+    largeMainContent: @Composable ColumnScope.() -> Unit,
+    largeSideContent: @Composable ColumnScope.() -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {}""",
+            "ktfmt": """@Composable
+fun AdaptiveDetailLayout(
+    compactHeader: @Composable () -> Unit,
+    compactContentHeader: @Composable ColumnScope.() -> Unit,
+    largeContentHeader: @Composable ColumnScope.() -> Unit,
+    unifiedContent: @Composable ColumnScope.() -> Unit,
+    largeMainContent: @Composable ColumnScope.() -> Unit,
+    largeSideContent: @Composable ColumnScope.() -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {}""",
+            "optofmt": """@Composable
+fun AdaptiveDetailLayout(
+    compactHeader: @Composable () -> Unit,
+    compactContentHeader: @Composable ColumnScope.() -> Unit,
+    largeContentHeader: @Composable ColumnScope.() -> Unit,
+    unifiedContent: @Composable ColumnScope.() -> Unit,
+    largeMainContent: @Composable ColumnScope.() -> Unit,
+    largeSideContent: @Composable ColumnScope.() -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {}""",
+            "idiomatic": "parity",
+        }, {
+            "note": "<strong>Modifier chain, the divergence.</strong> At the call site a <code>Modifier</code> "
+                    "builder chain passed as <code>modifier = …</code> overflows and must wrap. ktfmt ergonomics "
+                    "keeps <code>modifier = Modifier.fillMaxSize(fraction = 1f)</code> on the argument line and "
+                    "hangs each <code>.call</code> one indent in (§3/§7); ktfmt rectangle breaks after "
+                    "<code>modifier =</code> and drops the whole chain a second level deeper. Every other "
+                    "argument — the named trailing-lambda slots — is laid out identically by both.",
+            "input": """@Composable
+fun SpeakerDetail(onBack: () -> Unit) {
+    Box {
+        AdaptiveDetailLayout(
+            compactHeader = {
+                MainHeaderTitleBar(
+                    title = stringResource(Res.string.speaker_detail_title),
+                    startContent = {
+                        TopMenuButton(
+                            icon = UiRes.drawable.arrow_left_24,
+                            contentDescription = stringResource(UiRes.string.main_header_back),
+                            onClick = onBack,
+                        )
+                    }
+                )
+                HorizontalDivider(thickness = 1.dp, color = KotlinConfTheme.colors.strokePale)
+            },
+            compactContentHeader = {
+                Name(currentSpeaker, Modifier.padding(vertical = 24.dp))
+            },
+            largeContentHeader = {
+                Name(currentSpeaker, Modifier.padding(bottom = 24.dp, top = 6.dp))
+            },
+            unifiedContent = {
+                Description(currentSpeaker)
+                Spacer(Modifier.height(16.dp))
+                Talks(sessions, viewModel, onSession)
+            },
+            largeMainContent = {
+                Description(currentSpeaker)
+            },
+            largeSideContent = {
+                Talks(sessions, viewModel, onSession)
+            },
+            onBack = onBack,
+            modifier = Modifier.fillMaxSize(fraction = 1f)
+                .padding(horizontal = 16.dp)
+                .align(Alignment.CenterHorizontally)
+                .background(Color.White)
+                .clip(RoundedCornerShape(16.dp))
+        )
+    }
+}""",
+            "ktfmt": """@Composable
+fun SpeakerDetail(onBack: () -> Unit) {
+    Box {
+        AdaptiveDetailLayout(
+            compactHeader = {
+                MainHeaderTitleBar(
+                    title = stringResource(Res.string.speaker_detail_title),
+                    startContent = {
+                        TopMenuButton(
+                            icon = UiRes.drawable.arrow_left_24,
+                            contentDescription = stringResource(UiRes.string.main_header_back),
+                            onClick = onBack,
+                        )
+                    },
+                )
+                HorizontalDivider(thickness = 1.dp, color = KotlinConfTheme.colors.strokePale)
+            },
+            compactContentHeader = {
+                Name(currentSpeaker, Modifier.padding(vertical = 24.dp))
+            },
+            largeContentHeader = {
+                Name(currentSpeaker, Modifier.padding(bottom = 24.dp, top = 6.dp))
+            },
+            unifiedContent = {
+                Description(currentSpeaker)
+                Spacer(Modifier.height(16.dp))
+                Talks(sessions, viewModel, onSession)
+            },
+            largeMainContent = {
+                Description(currentSpeaker)
+            },
+            largeSideContent = {
+                Talks(sessions, viewModel, onSession)
+            },
+            onBack = onBack,
+            modifier =
+                Modifier.fillMaxSize(fraction = 1f)
+                    .padding(horizontal = 16.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .background(Color.White)
+                    .clip(RoundedCornerShape(16.dp)),
+        )
+    }
+}""",
+            "optofmt": """@Composable
+fun SpeakerDetail(onBack: () -> Unit) {
+    Box {
+        AdaptiveDetailLayout(
+            compactHeader = {
+                MainHeaderTitleBar(
+                    title = stringResource(Res.string.speaker_detail_title),
+                    startContent = {
+                        TopMenuButton(
+                            icon = UiRes.drawable.arrow_left_24,
+                            contentDescription = stringResource(UiRes.string.main_header_back),
+                            onClick = onBack,
+                        )
+                    },
+                )
+                HorizontalDivider(thickness = 1.dp, color = KotlinConfTheme.colors.strokePale)
+            },
+            compactContentHeader = {
+                Name(currentSpeaker, Modifier.padding(vertical = 24.dp))
+            },
+            largeContentHeader = {
+                Name(currentSpeaker, Modifier.padding(bottom = 24.dp, top = 6.dp))
+            },
+            unifiedContent = {
+                Description(currentSpeaker)
+                Spacer(Modifier.height(16.dp))
+                Talks(sessions, viewModel, onSession)
+            },
+            largeMainContent = {
+                Description(currentSpeaker)
+            },
+            largeSideContent = {
+                Talks(sessions, viewModel, onSession)
+            },
+            onBack = onBack,
+            modifier = Modifier.fillMaxSize(fraction = 1f)
+                .padding(horizontal = 16.dp)
+                .align(Alignment.CenterHorizontally)
+                .background(Color.White)
+                .clip(RoundedCornerShape(16.dp)),
+        )
+    }
+}""",
+            "idiomatic": "optofmt",
+        }],
+    },
 ]
