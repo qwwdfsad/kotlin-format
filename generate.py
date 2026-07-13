@@ -154,6 +154,10 @@ STYLE = """
   .note { color:var(--txt); margin:14px 0 0; padding:10px 14px; border-radius:7px;
           background:var(--over); border-left:3px solid var(--amb); font-size:14px; }
   code { background:var(--code-bg); padding:1px 5px; border-radius:4px; font-size:.92em; }
+  .card a { color:var(--acc); }
+  .resources ul { margin:6px 0 0; padding-left:20px; }
+  .resources li { margin:8px 0; }
+  .resources li p { color:var(--mut); margin:2px 0 0; font-size:13px; }
   .cols { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   .cols3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
   @media (max-width:900px) { .cols,.cols3 { grid-template-columns:1fr; } }
@@ -315,6 +319,27 @@ def page(title, intro, body, pills=""):
 </body></html>"""
 
 
+RESOURCES = '''
+    <section class="card resources">
+      <h2>Further reading &amp; prototype</h2>
+      <p class="thesis">Related examples</p>
+      <ul>
+        <li>
+          <a href="https://github.com/Kotlin/kotlinx.coroutines/pull/4696" target="_blank" rel="noopener">kotlinx.coroutines &middot; formatted with ktfmt (rectangle)</a>
+          <p>kotlinx.coroutines reformatted with the current ktfmt engine.</p>
+        </li>
+        <li>
+          <a href="https://github.com/Kotlin/kotlinx.coroutines/pull/4697" target="_blank" rel="noopener">kotlinx.coroutines &middot; formatted with ktfmt (ergonomics)</a>
+          <p>The same repository reformatted with the ktfmt ergonomics engine.</p>
+        </li>
+        <li>
+          <a href="https://github.com/qwwdfsad/ktfmt/pull/2" target="_blank" rel="noopener">Try out the prototype</a>
+          <p>An experimental implementation of the ergonomics engine &mdash; but read the disclaimer.</p>
+        </li>
+      </ul>
+    </section>'''
+
+
 def build_report():
     intro = (
         '<p class="lead">The page presents a comparison between two potential ktfmt '
@@ -343,7 +368,7 @@ def build_report():
         '<p class="legend">Both use <b>4-space indent</b> and a <b>100-column limit</b>; '
         'amber marks any line past 100 columns.</p>')
     pills = f'<div class="pills"><span class="pill">{len(SNIPPETS)} patterns</span></div>'
-    body = "".join(card(s) for s in SNIPPETS)
+    body = "".join(card(s) for s in SNIPPETS) + RESOURCES
     (HERE / "report.html").write_text(page("ktfmt code style comparison", intro, body, pills))
 
 
