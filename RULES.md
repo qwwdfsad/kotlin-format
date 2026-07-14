@@ -386,6 +386,21 @@ val x = someReceiverObject
     .thirdMethodCall(argThree)
 ```
 
+Here "the receiver" is everything up to that first `.call` — a bare reference (`someReceiverObject`)
+**or** a leading property/reference run that navigates to it (`users.users`, `a.b.c`). That run is part
+of the receiver, so it stays **whole** on the introducer's line; only the first `.call` and everything
+after staircase:
+
+```kotlin
+// source broke before the first CALL (`.asSequence()`), keeping the `users.users` navigation whole →
+// the receiver `users.users` sits alone, every `.call` (incl. the first) on its own line:
+val teamList: List<TeamInfo> = users.users
+    .asSequence()
+    .filter { team -> team.role == "in_contest" }
+    .map { team -> TeamInfo(team) }
+    .toList()
+```
+
 This holds for any chain, trailing lambdas or not. It does **not** apply to a single-call chain
 (`OverrideOrganizations.Override(…)` — one link): the receiver through its first call is atomic and
 stays whole even if the source wrapped it (see §7's atomicity rule above).
