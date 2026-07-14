@@ -549,36 +549,6 @@ typealias RunId = StrongId<RunTag>
 typealias MessageId = StrongId<MessageTag>""",
     },
     {
-        "id": "long-parameter-list",
-        "group": 7,
-        "name": "Long parameter list",
-        "source": "synthetic",
-        "thesis": "Parity — both split parameters one per line and keep `) {` together (ktfmt rectangle adds a trailing comma). A virtual ergonomics v2 instead fills the parameters to the line width, several per line.",
-        "input": "fun registerEventListener(eventType: EventType, listenerPriority: ListenerPriority, "
-                 "listenerCallback: EventListener) { installListener() }",
-        "ktfmt": """fun registerEventListener(
-    eventType: EventType,
-    listenerPriority: ListenerPriority,
-    listenerCallback: EventListener,
-) {
-    installListener()
-}""",
-        "optofmt": """fun registerEventListener(
-    eventType: EventType,
-    listenerPriority: ListenerPriority,
-    listenerCallback: EventListener,
-) {
-    installListener()
-}
-""",
-        "third": """fun registerEventListener(
-    eventType: EventType, listenerPriority: ListenerPriority,
-    listenerCallback: EventListener
-) {
-    installListener()
-}""",
-    },
-    {
         "id": "elvis-fits",
         "group": 8,
         "name": "Elvis (`?:`) stays inline when it fits",

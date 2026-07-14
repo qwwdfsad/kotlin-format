@@ -84,7 +84,7 @@ def card(s):
         for ex in s.get("extra", []))
     return f'''
     <section class="card">
-      <h2><span class="grp">{s["group"]}</span>{esc(s["name"]).replace("`", "")} <span class="src">{s["source"]}</span></h2>
+      <h2>{esc(s["name"]).replace("`", "")} <span class="src">{s["source"]}</span></h2>
       <p class="thesis">{s["thesis"]}</p>
       {columns(panes)}
       {extras}
@@ -150,10 +150,6 @@ STYLE = """
   h2 { font-size:18px; margin:2px 0 8px; font-weight:600; }
   .src { font:12px ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--mut);
          font-weight:400; margin-left:6px; }
-  .grp { display:inline-block; min-width:22px; padding:1px 7px; margin-right:9px;
-         border-radius:11px; background:var(--line); color:var(--mut);
-         font:12px ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600;
-         text-align:center; vertical-align:middle; }
   .thesis { color:var(--txt); margin:6px 0 14px; }
   .note { color:var(--txt); margin:14px 0 0; padding:10px 14px; border-radius:7px;
           background:var(--over); border-left:3px solid var(--amb); font-size:14px; }
@@ -396,7 +392,7 @@ def build_diff():
                  ("optofmt", "ktfmt ergonomics &middot; after", cur[sid])]
         cards.append(f'''
     <section class="card">
-      <h2><span class="grp">{s["group"]}</span>{esc(s["name"]).replace("`", "")} <span class="src">{s["source"]}</span></h2>
+      <h2>{esc(s["name"]).replace("`", "")} <span class="src">{s["source"]}</span></h2>
       {columns(panes)}
     </section>''')
     intro = ('<p>ktfmt ergonomics layouts that changed since the last run (e.g. after editing '

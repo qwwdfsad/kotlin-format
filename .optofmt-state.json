@@ -11,7 +11,6 @@
   "trailing-lambda": "fun run() {\n    executeWithRetryPolicy(maximumRetryCount, backoffStrategy, { requestContext: RequestContext ->\n        requestContext.proceed()\n    })\n}",
   "compact-header": "public class SharedFlowSubscriptionScope<T> @PublishedApi internal constructor(\n    @PublishedApi internal val flow: SharedFlow<T>,\n    private val subscriptionWaitingFlow: MutableStateFlow<Int>,\n) {}\n",
   "grouped-declarations": "typealias TeamId = StrongId<TeamTag>\ntypealias RunId = StrongId<RunTag>\ntypealias MessageId = StrongId<MessageTag>",
-  "long-parameter-list": "fun registerEventListener(\n    eventType: EventType,\n    listenerPriority: ListenerPriority,\n    listenerCallback: EventListener,\n) {\n    installListener()\n}\n",
   "elvis-fits": "fun f() {\n    val entry = registry.lookup(requestedName) ?: registry.defaultFor(requestedName)\n}",
   "accessor-placement": "val placeOfGetter: String get() = \"hello\"",
   "control-flow-lambda": "fun lambdasWithReturns(nullableString: String?) {\n    nullableString?.let { return }\n}",

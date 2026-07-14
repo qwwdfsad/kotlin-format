@@ -60,10 +60,6 @@
   h2 { font-size:18px; margin:2px 0 8px; font-weight:600; }
   .src { font:12px ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--mut);
          font-weight:400; margin-left:6px; }
-  .grp { display:inline-block; min-width:22px; padding:1px 7px; margin-right:9px;
-         border-radius:11px; background:var(--line); color:var(--mut);
-         font:12px ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600;
-         text-align:center; vertical-align:middle; }
   .thesis { color:var(--txt); margin:6px 0 14px; }
   .note { color:var(--txt); margin:14px 0 0; padding:10px 14px; border-radius:7px;
           background:var(--over); border-left:3px solid var(--amb); font-size:14px; }
@@ -122,11 +118,11 @@
 <header class="b">
   <h1>ktfmt code style comparison</h1>
   <p class="lead">The page presents a comparison between two potential ktfmt engines &mdash; <b>&ldquo;The Rectangle Rule&rdquo;</b>, the current ktfmt engine, and a potential new one &mdash; <b>&ldquo;The ergonomics rule&rdquo;</b>.</p><div class="engines"><div class="engine rect"><h3>The Rectangle Rule</h3><p>a strict engine that follows the corresponding <a href="https://github.com/google/google-java-format/wiki/The-Rectangle-Rule" target="_blank" rel="noopener">rule</a>. It is very strict and predictable &mdash; every syntax subtree is in its own bounding rectangle, it is very local (changes in one line rarely affect surrounding lines&rsquo; formatting) and thus Git-history-friendly. Because of these properties, it also produces quite a few newlines and additional layers of tabular nesting</p></div><div class="engine ergo"><h3>The ergonomics rule</h3><p>an engine that prioritizes concise and ergonomic Kotlin. Its goal is to format code in a compact manner, minimizing its width and length, but without general loss of readability. It subjectively improves information density but with the opposite tradeoffs &mdash; it is less predictable and less local.</p></div></div><p class="goal"><b>Our goal is to understand the stylistic preferences of Kotlin developers.</b> So the current page has a series of snippets formatted in two ways to showcase the difference between these two engines, for you to pick the one you prefer. Some snippets are grouped in a way that shows how the code might evolve over time to showcase formatting locality (or lack of thereof).</p><p class="legend">Both use <b>4-space indent</b> and a <b>100-column limit</b>; amber marks any line past 100 columns.</p>
-  <div class="pills"><span class="pill">23 patterns</span></div>
+  <div class="pills"><span class="pill">22 patterns</span></div>
 </header>
 <main>
     <section class="card">
-      <h2><span class="grp">1</span>Boolean conditions <span class="src">kotlinx.coroutines · JobSupport.kt:273</span></h2>
+      <h2>Boolean conditions <span class="src">kotlinx.coroutines · JobSupport.kt:273</span></h2>
       <p class="thesis">A single condition is laid out identically by both engines.</p>
       <div class="cols">
       <div class="col">
@@ -193,7 +189,7 @@
       
     </section>
     <section class="card">
-      <h2><span class="grp">2</span>Nested call with a long argument <span class="src">synthetic example</span></h2>
+      <h2>Nested call with a long argument <span class="src">synthetic example</span></h2>
       <p class="thesis">A short nested call, the same story — identical layout at first.</p>
       <div class="cols">
       <div class="col">
@@ -246,7 +242,7 @@
       
     </section>
     <section class="card">
-      <h2><span class="grp">2</span>Nested call argument wrapping <span class="src">icpc/live-v3 · Rules.kt:219</span></h2>
+      <h2>Nested call argument wrapping <span class="src">icpc/live-v3 · Rules.kt:219</span></h2>
       <p class="thesis">A single nested positional call argument that is long enough to break.</p>
       <div class="cols">
       <div class="col">
@@ -384,7 +380,7 @@
       
     </section>
     <section class="card">
-      <h2><span class="grp">3</span>Infix call (to) stays attached <span class="src">icpc/live-v3 · OverrideOrganizations</span></h2>
+      <h2>Infix call (to) stays attached <span class="src">icpc/live-v3 · OverrideOrganizations</span></h2>
       <p class="thesis">Reasonably long infix `to` operator.</p>
       <div class="cols">
       <div class="col">
@@ -430,7 +426,7 @@
       
     </section>
     <section class="card">
-      <h2><span class="grp">3</span>Supertype constructor call stays attached to : <span class="src">icpc/live-v3 · ClicsArchiveCommand</span></h2>
+      <h2>Supertype constructor call stays attached to : <span class="src">icpc/live-v3 · ClicsArchiveCommand</span></h2>
       <p class="thesis">Supertype that is long enough to have a linebreak.</p>
       <div class="cols">
       <div class="col">
@@ -508,7 +504,7 @@
       
     </section>
     <section class="card">
-      <h2><span class="grp">4</span>Long call chain <span class="src">icpc/live-v3 · CdsLoadersTest</span></h2>
+      <h2>Long call chain <span class="src">icpc/live-v3 · CdsLoadersTest</span></h2>
       <p class="thesis">A long chain call -- one of the most popular patterns in Kotlin</p>
       <div class="cols">
       <div class="col">
@@ -543,7 +539,7 @@
       
     </section>
     <section class="card">
-      <h2><span class="grp">4</span>Delegated property (by) call chain <span class="src">ktor client · delegated response</span></h2>
+      <h2>Delegated property (by) call chain <span class="src">ktor client · delegated response</span></h2>
       <p class="thesis"></p>
       <div class="cols">
       <div class="col">
@@ -562,7 +558,7 @@
       
     </section>
     <section class="card">
-      <h2><span class="grp">5</span>Block-valued right-hand side (when/if/try) stays on the = line <span class="src">icpc/live-v3 · AbstractScoreboardCalculator.kt:202</span></h2>
+      <h2>Block-valued right-hand side (when/if/try) stays on the = line <span class="src">icpc/live-v3 · AbstractScoreboardCalculator.kt:202</span></h2>
       <p class="thesis"></p>
       <div class="cols">
       <div class="col">
@@ -721,7 +717,7 @@
       
     </section>
     <section class="card">
-      <h2><span class="grp">5</span>Block-valued accessor (get() = when) stays on the property line <span class="src">kotlinx-knit · linked in review thread</span></h2>
+      <h2>Block-valued accessor (get() = when) stays on the property line <span class="src">kotlinx-knit · linked in review thread</span></h2>
       <p class="thesis"></p>
       <div class="cols">
       <div class="col">
@@ -747,7 +743,7 @@
       
     </section>
     <section class="card">
-      <h2><span class="grp">6</span>Trailing lambda / last-argument expansion <span class="src">icpc/live-v3</span></h2>
+      <h2>Trailing lambda / last-argument expansion <span class="src">icpc/live-v3</span></h2>
       <p class="thesis"></p>
       <div class="cols">
       <div class="col">
@@ -773,7 +769,7 @@
       <p class="note">Note that while having a trailing lambda out of the parentheses is a preferrable way of formatting, such transformation is potentially a binary-breaking change and cannot be performed by a formatter.</p>
     </section>
     <section class="card">
-      <h2><span class="grp">7</span>Compact declaration header (annotations &amp; modifiers) <span class="src">kotlinx.coroutines · SharedFlowSubscriptionScope</span></h2>
+      <h2>Compact declaration header (annotations &amp; modifiers) <span class="src">kotlinx.coroutines · SharedFlowSubscriptionScope</span></h2>
       <p class="thesis"></p>
       <div class="cols">
       <div class="col">
@@ -797,7 +793,7 @@ internal constructor(
       
     </section>
     <section class="card">
-      <h2><span class="grp">7</span>Grouped one-line declarations keep no blank lines <span class="src">synthetic</span></h2>
+      <h2>Grouped one-line declarations keep no blank lines <span class="src">synthetic</span></h2>
       <p class="thesis"></p>
       <div class="cols">
       <div class="col">
@@ -819,44 +815,7 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
       
     </section>
     <section class="card">
-      <h2><span class="grp">7</span>Long parameter list <span class="src">synthetic</span></h2>
-      <p class="thesis">Parity — both split parameters one per line and keep `) {` together (ktfmt rectangle adds a trailing comma). A virtual ergonomics v2 instead fills the parameters to the line width, several per line.</p>
-      <div class="cols3">
-      <div class="col">
-        <div class="hd ktfmt">ktfmt &middot; rectangle</div>
-        <pre><code class="language-kotlin" data-over="">fun registerEventListener(
-    eventType: EventType,
-    listenerPriority: ListenerPriority,
-    listenerCallback: EventListener,
-) {
-    installListener()
-}</code></pre>
-      </div>
-      <div class="col">
-        <div class="hd optofmt">ktfmt &middot; ergonomics</div>
-        <pre><code class="language-kotlin" data-over="">fun registerEventListener(
-    eventType: EventType,
-    listenerPriority: ListenerPriority,
-    listenerCallback: EventListener,
-) {
-    installListener()
-}</code></pre>
-      </div>
-      <div class="col">
-        <div class="hd third">ktfmt &middot; ergonomics v2</div>
-        <pre><code class="language-kotlin" data-over="">fun registerEventListener(
-    eventType: EventType, listenerPriority: ListenerPriority,
-    listenerCallback: EventListener
-) {
-    installListener()
-}</code></pre>
-      </div>
-    </div>
-      
-      
-    </section>
-    <section class="card">
-      <h2><span class="grp">8</span>Elvis (?:) stays inline when it fits <span class="src">null-fallback idiom</span></h2>
+      <h2>Elvis (?:) stays inline when it fits <span class="src">null-fallback idiom</span></h2>
       <p class="thesis">A short enough expression with elvis.</p>
       <div class="cols">
       <div class="col">
@@ -896,7 +855,7 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
       
     </section>
     <section class="card">
-      <h2><span class="grp">8</span>Trivial property accessor stays on the property line <span class="src">Kotlin project · ktfmt diff study</span></h2>
+      <h2>Trivial property accessor stays on the property line <span class="src">Kotlin project · ktfmt diff study</span></h2>
       <p class="thesis"></p>
       <div class="cols">
       <div class="col">
@@ -913,7 +872,7 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
       
     </section>
     <section class="card">
-      <h2><span class="grp">6</span>Lambda that fits stays on one line (even with return) <span class="src">Kotlin project · ktfmt diff study</span></h2>
+      <h2>Lambda that fits stays on one line (even with return) <span class="src">Kotlin project · ktfmt diff study</span></h2>
       <p class="thesis"></p>
       <div class="cols">
       <div class="col">
@@ -935,7 +894,7 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
       
     </section>
     <section class="card">
-      <h2><span class="grp">8</span>Comma-separated when conditions stay on one line when they fit <span class="src">synthetic</span></h2>
+      <h2>Comma-separated when conditions stay on one line when they fit <span class="src">synthetic</span></h2>
       <p class="thesis"></p>
       <div class="cols">
       <div class="col">
@@ -987,7 +946,7 @@ typealias MessageId = StrongId&lt;MessageTag&gt;</code></pre>
       
     </section>
     <section class="card">
-      <h2><span class="grp">8</span>Introducer = stays attached (scope-function / concatenation / collection) <span class="src">okio · Okio.kt:60</span></h2>
+      <h2>Introducer = stays attached (scope-function / concatenation / collection) <span class="src">okio · Okio.kt:60</span></h2>
       <p class="thesis"></p>
       <div class="cols">
       <div class="col">
@@ -1094,7 +1053,7 @@ val ANSI_SQL_2003_KEYWORDS: Set&lt;String&gt; = setOf(
       
     </section>
     <section class="card">
-      <h2><span class="grp">9</span>Argument-less annotation on its own line <span class="src">sqldelight · SqlDelightExtension.kt:6</span></h2>
+      <h2>Argument-less annotation on its own line <span class="src">sqldelight · SqlDelightExtension.kt:6</span></h2>
       <p class="thesis">Well, a @DslMaker</p>
       <div class="cols">
       <div class="col">
@@ -1164,7 +1123,7 @@ fun testSomething() {}</code></pre>
       
     </section>
     <section class="card">
-      <h2><span class="grp">9</span>Multiple supertypes: one per line, never packed <span class="src">sqldelight · ArrayValueExpressionMixin.kt:20</span></h2>
+      <h2>Multiple supertypes: one per line, never packed <span class="src">sqldelight · ArrayValueExpressionMixin.kt:20</span></h2>
       <p class="thesis"></p>
       <div class="cols3">
       <div class="col">
@@ -1197,7 +1156,7 @@ fun testSomething() {}</code></pre>
       
     </section>
     <section class="card">
-      <h2><span class="grp">10</span>Small overflow tolerated instead of exploding a compact signature <span class="src">sqldelight · SqlDelightRefactoringSupportProvider.kt:8</span></h2>
+      <h2>Small overflow tolerated instead of exploding a compact signature <span class="src">sqldelight · SqlDelightRefactoringSupportProvider.kt:8</span></h2>
       <p class="thesis">When a signature spills only 1–2 columns past 100, ktfmt ergonomics keeps it on one line (matching the hand-written source); ktfmt rectangle explodes the parameter list one-per-line the instant it crosses 100.</p>
       <div class="cols">
       <div class="col">
@@ -1243,7 +1202,7 @@ fun testSomething() {}</code></pre>
       
     </section>
     <section class="card">
-      <h2><span class="grp">10</span>Trailing line-comment does not force a wrap <span class="src">kotlinx.coroutines · DebugCoroutineInfo.kt:18</span></h2>
+      <h2>Trailing line-comment does not force a wrap <span class="src">kotlinx.coroutines · DebugCoroutineInfo.kt:18</span></h2>
       <p class="thesis">When only a trailing <code>// comment</code> pushes a line past 100, ktfmt ergonomics keeps the whole line intact (matching the author); ktfmt rectangle wraps the value onto a new line to fit.</p>
       <div class="cols">
       <div class="col">
@@ -1264,7 +1223,7 @@ fun testSomething() {}</code></pre>
       
     </section>
     <section class="card">
-      <h2><span class="grp">10</span>Triple-quoted string as sole call argument stays attached <span class="src">kotlinx.coroutines · CoroutineExceptionHandlerImpl.kt:17</span></h2>
+      <h2>Triple-quoted string as sole call argument stays attached <span class="src">kotlinx.coroutines · CoroutineExceptionHandlerImpl.kt:17</span></h2>
       <p class="thesis"></p>
       <div class="cols">
       <div class="col">
