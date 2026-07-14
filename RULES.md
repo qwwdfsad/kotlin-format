@@ -347,6 +347,24 @@ val filtered = v.mapValues { (_, value) ->
     .mapKeys { it.key.lowercase() }
 ```
 
+**A lambda-free tail hugs the block it follows when the author wrote it that way.** In a broken
+staircase, a *lambda-free* `.call()`/`.property` tail (`.toList()`, `.size`, `.first()`) that the
+author placed on the same line as the preceding trailing-lambda call's closing `}` **stays hugged**
+(`}.toList()`) rather than dropping to its own line — the same block-body hugging economy as §5. As
+with the receiver break, this is preserved per link from the source and is idempotent: a hugged tail
+re-reads as hugged, and a tail the author put on its own line stays on its own line. (Only lambda-free
+tails hug; a tail that carries its own lambda is a full `.call` and keeps its own line.)
+
+```kotlin
+// author hugged the lambda-free `.toList()` onto `.map`'s `}` → kept hugged:
+val teamList = users.users
+    .asSequence()
+    .filter { team -> team.role == "in_contest" }
+    .map { team ->
+        TeamInfo(team)
+    }.toList()
+```
+
 **A chain the author broke across lines is author-preserving — even when it would fit.** For any
 member-access chain with at least two links (`.foo().bar()`), both a one-line form and a staircase read
 well. Rather than always collapse a chain that fits (§1), optofmt **preserves what the author wrote**:
